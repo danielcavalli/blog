@@ -10,66 +10,76 @@
 
 /* View Transitions API - Seamless Morphing */
 @supports (view-transition-name: none) {
-    /* Root transition - prevent white flash */
+    /* Root transition - prevent white flash during page morphing */
     ::view-transition-old(root),
     ::view-transition-new(root) {
-        animation-duration: 0.5s;
+        animation-duration: 0.55s;
         animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
     }
     
     /* Prevent white block overlay during transition */
     ::view-transition-group(root) {
-        animation-duration: 0.5s;
+        animation-duration: 0.55s;
+        animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
     }
     
     ::view-transition-image-pair(root) {
         isolation: auto;
     }
     
+    /* Smooth cross-fade for root */
     ::view-transition-old(root) {
-        animation: fade-out 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        animation: fade-out 0.55s cubic-bezier(0.23, 1, 0.32, 1);
     }
     
     ::view-transition-new(root) {
-        animation: fade-in 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        animation: fade-in 0.55s cubic-bezier(0.23, 1, 0.32, 1);
     }
     
-    /* Card content container - main morphing element */
+    /* Card content container - expands to full article smoothly */
     ::view-transition-old(post-content-1),
     ::view-transition-new(post-content-1),
     ::view-transition-old(post-content-2),
-    ::view-transition-new(post-content-2) {
-        animation-duration: 0.6s;
+    ::view-transition-new(post-content-2),
+    ::view-transition-old(post-content-3),
+    ::view-transition-new(post-content-3) {
+        animation-duration: 0.58s;
         animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
         mix-blend-mode: normal;
     }
     
-    /* Title - perfectly smooth morphing */
+    /* Title - stays anchored, morphs smoothly in place */
     ::view-transition-old(post-title-1),
     ::view-transition-new(post-title-1),
     ::view-transition-old(post-title-2),
-    ::view-transition-new(post-title-2) {
-        animation-duration: 0.6s;
+    ::view-transition-new(post-title-2),
+    ::view-transition-old(post-title-3),
+    ::view-transition-new(post-title-3) {
+        animation-duration: 0.58s;
         animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
         mix-blend-mode: normal;
     }
     
-    /* Date element */
+    /* Date element - maintains position during card expansion */
     ::view-transition-old(post-date-1),
     ::view-transition-new(post-date-1),
     ::view-transition-old(post-date-2),
-    ::view-transition-new(post-date-2) {
-        animation-duration: 0.6s;
+    ::view-transition-new(post-date-2),
+    ::view-transition-old(post-date-3),
+    ::view-transition-new(post-date-3) {
+        animation-duration: 0.58s;
         animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
         mix-blend-mode: normal;
     }
     
-    /* Excerpt to lead paragraph - seamless morph */
+    /* Excerpt fades to full content gracefully */
     ::view-transition-old(post-excerpt-1),
     ::view-transition-new(post-excerpt-1),
     ::view-transition-old(post-excerpt-2),
-    ::view-transition-new(post-excerpt-2) {
-        animation-duration: 0.6s;
+    ::view-transition-new(post-excerpt-2),
+    ::view-transition-old(post-excerpt-3),
+    ::view-transition-new(post-excerpt-3) {
+        animation-duration: 0.58s;
         animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
         mix-blend-mode: normal;
     }
@@ -329,13 +339,13 @@ body {
 
 .page-header {
     margin-bottom: 4rem;
-    animation: fadeInUp 0.6s var(--transition-easing);
+    animation: fadeInUp 0.65s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -348,6 +358,7 @@ body {
     font-weight: 700;
     letter-spacing: -0.03em;
     line-height: 1.1;
+    text-rendering: optimizeLegibility;
 }
 
 /* ==========================================
@@ -389,8 +400,8 @@ body {
 /* Only animate cards on first page load, not on navigation back */
 .posts-grid:not(.disable-animation) .post-card {
     opacity: 0;
-    animation: cardFadeIn 0.6s var(--transition-easing) forwards;
-    animation-delay: calc(var(--card-index, 0) * 0.1s);
+    animation: cardFadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    animation-delay: calc(var(--card-index, 0) * 0.08s + 0.1s);
 }
 
 .posts-grid:not(.disable-animation) .post-card:nth-child(1) { --card-index: 0; }
@@ -413,6 +424,14 @@ body {
     text-decoration: none;
     color: inherit;
     height: 100%;
+    border-radius: var(--border-radius);
+    outline: none;
+}
+
+/* Smooth focus state for keyboard navigation */
+.post-link:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 4px;
 }
 
 .post-content {
@@ -427,11 +446,21 @@ body {
     contain: layout style paint;
 }
 
-/* Hover effect with transform */
+/* Hover effect - lifts card smoothly */
 .post-card:hover .post-content {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    border-color: transparent;
+    transform: translateY(-6px);
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.04),
+        0 12px 24px rgba(0, 0, 0, 0.06),
+        0 24px 48px rgba(0, 0, 0, 0.08);
+    border-color: var(--color-text-secondary);
+}
+
+/* Active/press state for tactile feedback */
+.post-card:active .post-content {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition-duration: 0.1s;
 }
 
 /* Subtle gradient overlay on hover */
@@ -442,9 +471,10 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0) 100%);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.015) 0%, rgba(0, 0, 0, 0) 100%);
     opacity: 0;
     transition: opacity var(--transition-speed) var(--transition-easing);
+    pointer-events: none;
 }
 
 .post-card:hover .post-content::before {

@@ -16,6 +16,9 @@ POSTS_DIR = Path("blog-posts")
 OUTPUT_DIR = Path("blog")
 INDEX_FILE = Path("index.html")
 
+# Path configuration - set to "" for local development
+BASE_PATH = ""
+
 # Ensure directories exist
 POSTS_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
@@ -44,26 +47,26 @@ def generate_post_html(post, post_number):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="base" content="/blog/">
-    <title>{post['title']} - Blog</title>
-    <link rel="stylesheet" href="/blog/styles.css">
-    <link rel="stylesheet" href="/blog/post.css">
+    <title>{post['title']} - dan.rio</title>
+    <link rel="stylesheet" href="{BASE_PATH}/styles.css">
+    <link rel="stylesheet" href="{BASE_PATH}/post.css">
+    <link rel="preload" href="{BASE_PATH}/theme.js" as="script">
     <style>
         @view-transition {{
             navigation: auto;
         }}
     </style>
-    <script src="/blog/theme.js"></script>
-    <script src="/blog/transitions.js" defer></script>
+    <script src="{BASE_PATH}/theme.js"></script>
+    <script src="{BASE_PATH}/transitions.js" defer></script>
 </head>
 <body>
     <nav class="nav">
         <div class="nav-container">
-            <a href="/blog/index.html" class="logo">dan.rio</a>
+            <a href="{BASE_PATH}/index.html" class="logo">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="/blog/index.html" class="active">BLOG</a></li>
-                    <li><a href="/blog/about.html">ABOUT</a></li>
+                    <li><a href="{BASE_PATH}/index.html" class="active">BLOG</a></li>
+                    <li><a href="{BASE_PATH}/about.html">ABOUT</a></li>
                 </ul>
                 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -88,7 +91,7 @@ def generate_post_html(post, post_number):
     <main class="container">
         <article class="post" style="view-transition-name: post-content-{post_number};">
             <header class="post-header">
-                <a href="/blog/index.html" class="back-link">← Back to Blog</a>
+                <a href="{BASE_PATH}/index.html" class="back-link">← Back to Blog</a>
                 <h1 class="post-title-large" style="view-transition-name: post-title-{post_number};">{post['title'].upper()}</h1>
                 <div class="post-meta" style="view-transition-name: post-date-{post_number};">
                     <time class="post-date">{format_date(post['date'])}</time>
@@ -135,7 +138,7 @@ def generate_post_html(post, post_number):
 def generate_post_card(post, post_number):
     """Generate HTML card for the index page"""
     return f"""            <article class="post-card">
-                <a href="/blog/blog/{post['slug']}.html" class="post-link">
+                <a href="{BASE_PATH}/blog/{post['slug']}.html" class="post-link">
                     <div class="post-content" style="view-transition-name: post-content-{post_number};">
                         <h2 class="post-title" style="view-transition-name: post-title-{post_number};">{post['title'].upper()}</h2>
                         <time class="post-date" style="view-transition-name: post-date-{post_number};">{post['date']}</time>
@@ -156,26 +159,27 @@ def generate_index_html(posts):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="base" content="/blog/">
-    <title>Blog - dan.rio</title>
-    <link rel="stylesheet" href="/blog/styles.css">
+    <title>dan.rio - Blog</title>
+    <meta name="description" content="Personal blog by Daniel Cavalli on machine learning, CUDA, distributed training, and engineering.">
+    <link rel="stylesheet" href="{BASE_PATH}/styles.css">
+    <link rel="preload" href="{BASE_PATH}/theme.js" as="script">
     <style>
         /* View Transitions API support */
         @view-transition {{
             navigation: auto;
         }}
     </style>
-    <script src="/blog/theme.js"></script>
-    <script src="/blog/transitions.js" defer></script>
+    <script src="{BASE_PATH}/theme.js"></script>
+    <script src="{BASE_PATH}/transitions.js" defer></script>
 </head>
 <body>
     <nav class="nav">
         <div class="nav-container">
-            <a href="/blog/index.html" class="logo">dan.rio</a>
+            <a href="{BASE_PATH}/index.html" class="logo">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="/blog/index.html" class="active">BLOG</a></li>
-                    <li><a href="/blog/about.html">ABOUT</a></li>
+                    <li><a href="{BASE_PATH}/index.html" class="active">BLOG</a></li>
+                    <li><a href="{BASE_PATH}/about.html">ABOUT</a></li>
                 </ul>
                 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

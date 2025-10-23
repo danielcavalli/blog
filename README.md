@@ -1,12 +1,12 @@
-# dan.rio# dan.rio# Markdown Blog with Seamless Transitions
+# dan.rio# dan.rio# dan.rio# dan.rio# Markdown Blog with Seamless Transitions
 
 
 
-Personal blog. Static HTML generated from Markdown.
+Static blog generator with View Transitions API. Converts Markdown to HTML with seamless page morphing.
 
 
 
-## BuildPersonal blog built with minimal dependencies and seamless View Transitions.A minimal, elegant blog built with Markdown that features seamless page transitions using the View Transitions API.
+## BuildMinimal blog with seamless page transitions. Write in Markdown, build to static HTML.
 
 
 
@@ -14,39 +14,139 @@ Personal blog. Static HTML generated from Markdown.
 
 pip install -r requirements.txt
 
-python build.py## Stack## ✨ Features
+python build.py## FeaturesPersonal blog. Static HTML generated from Markdown.
 
 ```
 
 
 
-## Local server
+## Development
 
-- Python build script (Markdown → HTML)- 📝 **Write in Markdown** - Blog posts are simple `.md` files with frontmatter
+- Seamless card-to-page transitions (View Transitions API)
 
 ```bash
+
+python -m http.server 8080- Dark/light mode with persistence
+
+```
+
+- Fast pre-compiled HTML## BuildPersonal blog built with minimal dependencies and seamless View Transitions.A minimal, elegant blog built with Markdown that features seamless page transitions using the View Transitions API.
+
+## Writing Posts
+
+- CSS-first animations
+
+Create Markdown files in `blog-posts/`:
+
+- Chromium-optimized
+
+```markdown
+
+---
+
+title: Post Title
+
+date: 2025-10-23## Quick Start```bash
+
+excerpt: Brief description
+
+---
+
+
+
+Content here.```bashpip install -r requirements.txt
+
+```
+
+# Install
+
+Run `python build.py` to generate HTML.
+
+pip install -r requirements.txtpython build.py## Stack## ✨ Features
+
+## Deployment
+
+
+
+Set `BASE_PATH = ""` in `build.py` for local development.
+
+# Write posts in blog-posts/*.md then build```
+
+Set `BASE_PATH = "/blog"` before deploying to GitHub Pages at `username.github.io/blog/`.
+
+python build.py
+
+Push to GitHub. Pages serves from root. Include `.nojekyll` file.
+
+
+
+## Stack
+
+# Serve locally
+
+- Python (Markdown to HTML)
+
+- View Transitions API (Chromium)python -m http.server 8080## Local server
+
+- CSS-first animations
+
+- No framework, no Node.js```
+
+
+
+## Browser Support- Python build script (Markdown → HTML)- 📝 **Write in Markdown** - Blog posts are simple `.md` files with frontmatter
+
+
+
+Chrome/Edge 111+ for full transitions. Graceful fallback for other browsers.## Writing Posts
+
+
+```bash
+
+Create `blog-posts/your-post.md`:
 
 python -m http.server 8080- CSS-first animations with View Transitions API- 🎨 **Seamless Transitions** - Fluid card-to-page animations using View Transitions API
 
+```markdown
+
+---```
+
+title: Your Post Title
+
+date: 2025-10-23- Dark/light theme with localStorage persistence- 🌓 **Dark/Light Mode** - Toggle with preference persistence
+
+excerpt: Brief description for the card
+
+---## Deploy
+
+
+
+Your content here...- No framework, no Node.js- ⚡ **Fast & Minimal** - Pre-compiled HTML, no runtime processing
+
 ```
-
-- Dark/light theme with localStorage persistence- 🌓 **Dark/Light Mode** - Toggle with preference persistence
-
-## Deploy
-
-- No framework, no Node.js- ⚡ **Fast & Minimal** - Pre-compiled HTML, no runtime processing
 
 Push to GitHub. Pages serves from root.
 
+Run `python build.py` and you're done.
+
 - ♿ **Accessible** - WCAG 2.1 AA compliant with screen reader support
+
+## Path Configuration
 
 ## Development- 📱 **Responsive** - Works beautifully on all devices
 
-- 🐍 **Simple Build** - Just Python, no Node.js required
+For local development: `BASE_PATH = ""` in `build.py`
 
-```bash
+For GitHub Pages at `/blog/`: `BASE_PATH = "/blog"`- 🐍 **Simple Build** - Just Python, no Node.js required
 
-# Install dependencies## 🚀 Quick Start
+
+
+## Browser Support```bash
+
+
+
+Chrome/Edge 111+ for full transitions. Works everywhere with graceful fallback.# Install dependencies## 🚀 Quick Start
+
 
 pip install -r requirements.txt
 
