@@ -16,8 +16,10 @@ POSTS_DIR = Path("blog-posts")
 OUTPUT_DIR = Path("blog")
 INDEX_FILE = Path("index.html")
 
-# Path configuration - set to "" for local development
-BASE_PATH = ""
+# Path configuration
+# For GitHub Pages at username.github.io/blog/: BASE_PATH = "/blog"
+# For local development: BASE_PATH = ""
+BASE_PATH = "/blog"
 
 # Ensure directories exist
 POSTS_DIR.mkdir(exist_ok=True)
