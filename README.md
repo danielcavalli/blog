@@ -1,22 +1,42 @@
-# dan.rio# Markdown Blog with Seamless Transitions
+# dan.rio# dan.rio# Markdown Blog with Seamless Transitions
 
 
 
-Personal blog built with minimal dependencies and seamless View Transitions.A minimal, elegant blog built with Markdown that features seamless page transitions using the View Transitions API.
+Personal blog. Static HTML generated from Markdown.
 
 
 
-## Stack## ✨ Features
+## BuildPersonal blog built with minimal dependencies and seamless View Transitions.A minimal, elegant blog built with Markdown that features seamless page transitions using the View Transitions API.
 
 
+
+```bash
+
+pip install -r requirements.txt
+
+python build.py## Stack## ✨ Features
+
+```
+
+
+
+## Local server
 
 - Python build script (Markdown → HTML)- 📝 **Write in Markdown** - Blog posts are simple `.md` files with frontmatter
 
-- CSS-first animations with View Transitions API- 🎨 **Seamless Transitions** - Fluid card-to-page animations using View Transitions API
+```bash
+
+python -m http.server 8080- CSS-first animations with View Transitions API- 🎨 **Seamless Transitions** - Fluid card-to-page animations using View Transitions API
+
+```
 
 - Dark/light theme with localStorage persistence- 🌓 **Dark/Light Mode** - Toggle with preference persistence
 
+## Deploy
+
 - No framework, no Node.js- ⚡ **Fast & Minimal** - Pre-compiled HTML, no runtime processing
+
+Push to GitHub. Pages serves from root.
 
 - ♿ **Accessible** - WCAG 2.1 AA compliant with screen reader support
 
