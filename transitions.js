@@ -44,12 +44,40 @@
                 
                 // Swap content smoothly
                 document.title = newDoc.title;
+                
+                // Update stylesheets if different
+                const currentStylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map(l => l.href);
+                const newStylesheets = Array.from(newDoc.querySelectorAll('link[rel="stylesheet"]')).map(l => l.href);
+                
+                // Add any new stylesheets that don't exist
+                newStylesheets.forEach(href => {
+                    if (!currentStylesheets.includes(href)) {
+                        const link = document.createElement('link');
+                        link.rel = 'stylesheet';
+                        link.href = href;
+                        document.head.appendChild(link);
+                    }
+                });
+                
+                // Swap main content
                 const main = document.querySelector('main');
                 const newMain = newDoc.querySelector('main');
                 
                 if (main && newMain) {
                     main.replaceWith(newMain);
                 }
+                
+                // Update navigation active state
+                const currentPath = new URL(url).pathname;
+                document.querySelectorAll('.nav-links a').forEach(link => {
+                    const linkPath = new URL(link.href).pathname;
+                    if (linkPath === currentPath || 
+                        (currentPath.includes('/blog/') && linkPath.includes('index.html'))) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
                 
                 // Update URL
                 history.pushState(null, '', url);

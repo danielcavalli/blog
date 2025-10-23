@@ -1,12 +1,12 @@
-# dan.rio# dan.rio# dan.rio# dan.rio# Markdown Blog with Seamless Transitions
+# dan.rio# dan.rio# dan.rio# dan.rio# dan.rio# Markdown Blog with Seamless Transitions
 
 
 
-Static blog generator with View Transitions API. Converts Markdown to HTML with seamless page morphing.
+Static blog generator. Markdown to HTML with View Transitions API.
 
 
 
-## BuildMinimal blog with seamless page transitions. Write in Markdown, build to static HTML.
+## BuildStatic blog generator with View Transitions API. Converts Markdown to HTML with seamless page morphing.
 
 
 
@@ -14,7 +14,7 @@ Static blog generator with View Transitions API. Converts Markdown to HTML with 
 
 pip install -r requirements.txt
 
-python build.py## FeaturesPersonal blog. Static HTML generated from Markdown.
+python build.py## BuildMinimal blog with seamless page transitions. Write in Markdown, build to static HTML.
 
 ```
 
@@ -22,33 +22,84 @@ python build.py## FeaturesPersonal blog. Static HTML generated from Markdown.
 
 ## Development
 
-- Seamless card-to-page transitions (View Transitions API)
+```bash
 
 ```bash
 
-python -m http.server 8080- Dark/light mode with persistence
+python -m http.server 8080pip install -r requirements.txt
 
 ```
 
-- Fast pre-compiled HTML## BuildPersonal blog built with minimal dependencies and seamless View Transitions.A minimal, elegant blog built with Markdown that features seamless page transitions using the View Transitions API.
+python build.py## FeaturesPersonal blog. Static HTML generated from Markdown.
 
 ## Writing Posts
 
-- CSS-first animations
+```
 
-Create Markdown files in `blog-posts/`:
+Create files in `blog-posts/`:
 
-- Chromium-optimized
+
 
 ```markdown
 
----
+---## Development
 
 title: Post Title
 
-date: 2025-10-23## Quick Start```bash
+date: 2025-10-23- Seamless card-to-page transitions (View Transitions API)
 
 excerpt: Brief description
+
+---```bash
+
+
+
+Content here.python -m http.server 8080- Dark/light mode with persistence
+
+```
+
+```
+
+Run `python build.py` after creating or editing posts.
+
+- Fast pre-compiled HTML## BuildPersonal blog built with minimal dependencies and seamless View Transitions.A minimal, elegant blog built with Markdown that features seamless page transitions using the View Transitions API.
+
+## Deployment
+
+## Writing Posts
+
+Edit `BASE_PATH` in `build.py`:
+
+- Local: `BASE_PATH = ""`- CSS-first animations
+
+- GitHub Pages: `BASE_PATH = "/blog"`
+
+Create Markdown files in `blog-posts/`:
+
+Push to GitHub. Ensure `.nojekyll` file exists.
+
+- Chromium-optimized
+
+## Stack
+
+```markdown
+
+- Python (markdown, frontmatter)
+
+- View Transitions API---
+
+- CSS animations
+
+- No framework requiredtitle: Post Title
+
+
+
+## Browser Supportdate: 2025-10-23## Quick Start```bash
+
+
+
+Chrome and Edge 111+ support full transitions. Other browsers work with standard navigation.excerpt: Brief description
+
 
 ---
 
