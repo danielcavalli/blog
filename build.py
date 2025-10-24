@@ -12,7 +12,7 @@ from pathlib import Path
 from datetime import datetime
 import markdown
 import frontmatter
-from config import BASE_PATH, SITE_NAME, AUTHOR_BIO, LANGUAGES, DEFAULT_LANGUAGE
+from config import BASE_PATH, SITE_NAME, SITE_DESCRIPTION, AUTHOR_BIO, LANGUAGES, DEFAULT_LANGUAGE
 from translator import GeminiTranslator
 
 # Configuration
@@ -727,34 +727,75 @@ def parse_markdown_post(filepath):
     }
 
 
-def generate_root_index():
-    """Generate root index.html with automatic language detection"""
+def generate_landing_html():
+    """Generate landing page with morphing transition to blog"""
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dan.rio - Blog</title>
-    <meta name="description" content="Personal blog by Daniel Cavalli on machine learning, CUDA, distributed training, and engineering.">
+    <title>{SITE_NAME}</title>
+    <meta name="description" content="{SITE_DESCRIPTION}">
     <link rel="stylesheet" href="{BASE_PATH}/styles.css">
+    <link rel="stylesheet" href="{BASE_PATH}/landing.css">
+    <script src="{BASE_PATH}/theme.js"></script>
+</head>
+<body>
+    <!-- Theme toggle (minimal, top-right corner) -->
+    <button id="theme-toggle" class="theme-toggle-minimal" aria-label="Toggle theme">
+        <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+    </button>
+
+    <!-- Landing surface -->
+    <div class="landing-surface">
+        <div class="landing-center">
+            <h1 class="landing-title" data-morph-target="logo">{SITE_NAME}</h1>
+            <nav class="landing-nav">
+                <a href="{BASE_PATH}/en/index.html" class="landing-link" data-destination="blog" data-morph-target="nav-blog">Blog</a>
+                <a href="{BASE_PATH}/en/about.html" class="landing-link" data-destination="about" data-morph-target="nav-about">About Me</a>
+                <a href="{BASE_PATH}/cv" class="landing-link" data-destination="cv" data-morph-target="nav-cv">CV</a>
+            </nav>
+        </div>
+    </div>
+
+    <script src="{BASE_PATH}/landing.js"></script>
+</body>
+</html>"""
+
+
+def generate_root_index():
+    """Generate root index.html that redirects to landing page"""
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{SITE_NAME}</title>
+    <meta name="description" content="{SITE_DESCRIPTION}">
     <script>
-        // Automatic language detection and redirect
-        (function() {{
-            const userLang = navigator.language || navigator.userLanguage;
-            const isBrazilian = userLang.toLowerCase().startsWith('pt');
-            const targetLang = isBrazilian ? 'pt' : 'en';
-            
-            // Redirect to appropriate language version
-            window.location.href = `{BASE_PATH}/${{targetLang}}/index.html`;
-        }})();
+        // Redirect to landing page
+        window.location.href = '{BASE_PATH}/landing.html';
     </script>
     <noscript>
-        <meta http-equiv="refresh" content="0; url={BASE_PATH}/en/index.html">
+        <meta http-equiv="refresh" content="0; url={BASE_PATH}/landing.html">
     </noscript>
 </head>
 <body>
     <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, -apple-system, sans-serif;">
-        <p>Redirecting...</p>
+        <p>Loading...</p>
     </div>
 </body>
 </html>"""
@@ -897,13 +938,24 @@ def build():
             print(f"      ✗ Error generating about.html: {e}")
             return False
     
-    # Generate root index.html with language detection
-    print("\n   🌐 Root language selector:")
+    # Generate landing page
+    print("\n   🎨 Landing page:")
+    try:
+        landing_html = generate_landing_html()
+        landing_file = Path("landing.html")
+        landing_file.write_text(landing_html, encoding='utf-8')
+        print(f"      ✓ landing.html")
+    except Exception as e:
+        print(f"      ✗ Error generating landing.html: {e}")
+        return False
+    
+    # Generate root index.html with redirect to landing
+    print("\n   🌐 Root redirect:")
     try:
         root_html = generate_root_index()
         root_index = Path("index.html")
         root_index.write_text(root_html, encoding='utf-8')
-        print(f"      ✓ index.html (auto-detect)")
+        print(f"      ✓ index.html (redirect)")
     except Exception as e:
         print(f"      ✗ Error generating root index.html: {e}")
         return False
