@@ -7,6 +7,9 @@ order: 1
 tags: [cuda, pytorch, learning material, workstation, hardware]
 image: /images/gpu-lab-hero.jpg
 canonical: https://example.com/blog/choosing-the-right-gpu-for-ai-learning
+created_at: "2025-10-24T00:49:34.911567"
+updated_at: "2025-10-24T01:06:39.236513"
+content_hash: "72d8011df8eab5dd85aa7595b4dccbe6"
 ---
 
 # Choosing the Right GPU Setup for AI Engineering (and Learning)

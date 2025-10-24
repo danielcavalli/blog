@@ -5,6 +5,9 @@ excerpt: Creating smooth, performant animations using only CSS. A deep dive into
 slug: css-animations-guide
 order: 1
 tags: [css, web, animations, performance]
+created_at: "2025-10-24T00:49:34.910255"
+updated_at: "2025-10-24T15:30:29.360341"
+content_hash: "aa546bfff8743344d3f147c4481524fc"
 ---
 
 ## Why CSS Animations?
@@ -270,9 +273,9 @@ Always respect user preferences with the `prefers-reduced-motion` media query. S
 
 Motion should enhance, never hinder. When a user signals they need reduced motion, honor that immediately.
 
-## The Result
+## The conclusion
 
-CSS animations, when approached systematically, create interfaces that feel **alive but calm**. The goal isn't to impress with flashy transitions, but to build trust through spatial coherence.
+CSS animations, when approached systematically, create interfaces that feel **alive but calm**. The goal isn't to impress with flashy transitions, but to build trust through spatial coherence. The goal wasn't performance but it should also feel performant due to the idea behind the transtions: fluidity. A choppy trasition takes away from this interface and while one could implement it in pure JS, I am not a good (nor want to be) good JS programmer. Heavily using the CSS features to abstract the implementation logic speeds up development while also giving performance optimization responsabilities to the browser itself.
 
 Every animation on this blog serves the same philosophy:
 - **Continuity**: One uninterrupted surface
@@ -281,5 +284,6 @@ Every animation on this blog serves the same philosophy:
 
 Use CSS custom properties for shared timing. Let the browser handle sequencing via `transitionend` events. Apply `will-change` only during active animations. Always ask: Where from? Where to? How does it relate?
 
-The interface doesn't perform. It responds.
+The interface doesn't perform. It responds. 
+
 

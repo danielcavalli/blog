@@ -191,6 +191,8 @@
     --color-text-secondary: #666666;
     --color-border: #e5e5e5;
     --color-hover: #f5f5f5;
+    --color-surface-elevated: #f8f8f8;
+    --accent-color: #007bff; /* Primary blue accent */
     
     /* Typography */
     --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -232,6 +234,8 @@
     --color-text-secondary: #a0a0a0;
     --color-border: #2a2a2a;
     --color-hover: #1a1a1a;
+    --color-surface-elevated: #1a1a1a;
+    --accent-color: #1e90ff; /* Brighter blue for dark mode */
 }
 
 /* Dark mode - system preference (when no user preference) */
@@ -243,6 +247,7 @@
         --color-text-secondary: #a0a0a0;
         --color-border: #2a2a2a;
         --color-hover: #1a1a1a;
+        --accent-color: #1e90ff; /* Brighter blue for dark mode */
     }
 }
 
@@ -263,25 +268,21 @@ body {
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    
+    /* Permanent color transitions - always active, no class needed */
+    transition: background-color var(--motion-duration-ripple) var(--motion-easing),
+                color var(--motion-duration-ripple) var(--motion-easing);
 }
 
-/* Theme Transition Ripple - Ambient Light Change
-   Only transitions color-related properties, preserves existing motion transitions */
-body.theme-transitioning,
-body.theme-transitioning * {
-    transition: background-color var(--motion-duration-ripple) var(--motion-easing),
-                color var(--motion-duration-ripple) var(--motion-easing),
-                border-color var(--motion-duration-ripple) var(--motion-easing),
-                box-shadow var(--motion-duration-ripple) var(--motion-easing),
-                fill var(--motion-duration-ripple) var(--motion-easing),
-                stroke var(--motion-duration-ripple) var(--motion-easing);
-}
-
-/* Preserve post-title transform transition during theme change */
-body.theme-transitioning .post-title {
-    transition: background-color var(--motion-duration-ripple) var(--motion-easing),
-                color var(--motion-duration-ripple) var(--motion-easing),
-                transform var(--transition-speed) var(--transition-easing);
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 /* ==========================================
@@ -379,41 +380,157 @@ body.theme-transitioning .post-title {
 
 /* Theme Toggle Button */
 /* Language and Theme Toggles */
+/* Language Toggle - Single button with globe icon and ambient glow */
 .lang-toggle {
-    background: transparent;
-    border: 1px solid var(--color-border);
-    border-radius: 20px;
-    height: 40px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: 0.5rem;
-    padding: 0 0.75rem;
+    padding: 0.5rem 0;
+    background: transparent;
+    border: none;
     cursor: pointer;
-    transition: all var(--transition-speed) var(--transition-easing);
     text-decoration: none;
     color: var(--color-text);
     font-size: 0.875rem;
     font-weight: 500;
-    margin-right: 0.5rem;
+    transition: opacity var(--motion-duration-quick) var(--motion-easing);
+    margin-right: 1rem;
+    position: relative;
 }
 
 .lang-toggle:hover {
-    background: var(--color-hover);
-    border-color: var(--color-text);
+    opacity: 0.85;
 }
 
-.lang-toggle svg {
-    transition: transform var(--transition-speed) var(--transition-easing);
+/* Globe icon */
+.lang-icon {
     flex-shrink: 0;
+    opacity: 0.65;
+    transition: all var(--motion-duration-quick) var(--motion-easing);
 }
 
-.lang-toggle:hover svg {
-    transform: rotate(180deg);
+.lang-toggle:hover .lang-icon {
+    opacity: 0.9;
+    transform: scale(1.05);
 }
 
-.lang-label {
-    transition: opacity var(--transition-speed) var(--transition-easing);
+/* Language text container */
+.lang-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    position: relative;
+}
+
+/* Individual language labels */
+.lang-en,
+.lang-pt {
+    position: relative;
+    transition: all var(--motion-duration-core) var(--motion-easing);
+    opacity: 0.35;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+/* Separator */
+.lang-sep {
+    opacity: 0.25;
+    font-weight: 300;
+    user-select: none;
+    transition: opacity var(--motion-duration-core) var(--motion-easing);
+}
+
+/* Active language with ambient glow effect */
+.lang-en.active,
+.lang-pt.active {
+    opacity: 1;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+/* Ambient glow - light mode: soft blue radiance */
+.lang-en.active::before,
+.lang-pt.active::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 160%;
+    height: 160%;
+    background: radial-gradient(
+        circle at center,
+        rgba(0, 123, 255, 0.12) 0%,
+        rgba(0, 123, 255, 0.06) 40%,
+        transparent 70%
+    );
+    border-radius: 50%;
+    opacity: 1;
+    transition: all var(--motion-duration-core) var(--motion-easing);
+    pointer-events: none;
+    z-index: -1;
+    filter: blur(8px);
+}
+
+/* Dark mode glow - brighter, cooler tone for contrast */
+[data-theme="dark"] .lang-en.active::before,
+[data-theme="dark"] .lang-pt.active::before {
+    background: radial-gradient(
+        circle at center,
+        rgba(100, 170, 255, 0.18) 0%,
+        rgba(100, 170, 255, 0.08) 40%,
+        transparent 70%
+    );
+    filter: blur(10px);
+}
+
+/* Enhanced glow on hover - intensifies the radiance */
+.lang-toggle:hover .lang-en.active::before,
+.lang-toggle:hover .lang-pt.active::before {
+    background: radial-gradient(
+        circle at center,
+        rgba(0, 123, 255, 0.2) 0%,
+        rgba(0, 123, 255, 0.1) 40%,
+        transparent 70%
+    );
+    width: 180%;
+    height: 180%;
+    filter: blur(10px);
+}
+
+[data-theme="dark"] .lang-toggle:hover .lang-en.active::before,
+[data-theme="dark"] .lang-toggle:hover .lang-pt.active::before {
+    background: radial-gradient(
+        circle at center,
+        rgba(100, 170, 255, 0.28) 0%,
+        rgba(100, 170, 255, 0.14) 40%,
+        transparent 70%
+    );
+    width: 180%;
+    height: 180%;
+    filter: blur(12px);
+}
+
+/* Separator slightly brightens when hovering over toggle */
+.lang-toggle:hover .lang-sep {
+    opacity: 0.4;
+}
+
+/* Keyboard focus state */
+.lang-toggle:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+.lang-toggle:focus:not(:focus-visible) {
+    outline: none;
+}
+
+.lang-toggle:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 4px;
+    border-radius: 4px;
 }
 
 .theme-toggle {
@@ -528,8 +645,26 @@ body.theme-transitioning .post-title {
 /* Header Controls - Groups filter button and order-by dropdown */
 .header-controls {
     display: flex;
-    align-items: center;
+    align-items: flex-end; /* Align buttons to bottom */
     gap: 1rem;
+}
+
+/* Sort Control - Wraps label and toggle button */
+.sort-control {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+.sort-label {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-secondary);
+    opacity: 0.5;
+    font-weight: 500;
+    padding-left: 0.25rem;
 }
 
 /* Order Toggle Button - Morphing text on click */
@@ -698,7 +833,12 @@ body.theme-transitioning .post-title {
     border-radius: var(--border-radius);
     height: 100%;
     background-color: var(--color-bg);
-    transition: all var(--transition-speed) var(--transition-easing);
+    /* Separate transitions: quick motion, ambient colors */
+    transition: transform var(--motion-duration-quick) var(--motion-easing),
+                box-shadow var(--motion-duration-quick) var(--motion-easing),
+                opacity var(--motion-duration-quick) var(--motion-easing),
+                background-color var(--motion-duration-ripple) var(--motion-easing),
+                border-color var(--motion-duration-ripple) var(--motion-easing);
     position: relative;
     overflow: hidden;
     contain: paint layout style;
@@ -1210,7 +1350,7 @@ button:focus-visible {
 
 .filter-tag.active {
     background: linear-gradient(135deg, var(--accent-color) 0%, #0056b3 100%);
-    color: white;
+    color: #ffffff; /* Ensure white text on blue background */
     border-color: var(--accent-color);
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 123, 255, 0.25);
@@ -1232,19 +1372,19 @@ button:focus-visible {
 .tag-pill {
     display: inline-block;
     padding: 0.35rem 0.75rem;
-    background: var(--bg-color);
-    color: var(--text-muted);
-    border: 1px solid var(--border-color);
+    background: var(--color-hover);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
     border-radius: 16px;
     font-size: 0.8rem;
     font-family: var(--font-mono);
     text-transform: lowercase;
-    transition: all 0.2s ease;
+    /* No transitions defined - inherits from body.theme-transitioning */
 }
 
 .tag-pill:hover {
-    border-color: var(--accent-color);
-    color: var(--accent-color);
+    transform: translateY(-1px);
+    opacity: 0.9;
 }
 
 /* Post cards - two-phase filtering choreography */

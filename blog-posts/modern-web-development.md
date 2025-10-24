@@ -5,6 +5,9 @@ excerpt: Exploring the latest trends and best practices in modern web developmen
 slug: modern-web-development
 order: 2
 tags: [web, css, performance]
+created_at: "2025-10-24T00:50:34.912728"
+updated_at: "2025-10-24T01:06:39.237710"
+content_hash: "3adee9fba3a4c2f689cbe07ef9a6126c"
 ---
 
 ## The Evolution of Web Development

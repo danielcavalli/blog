@@ -20,7 +20,6 @@ POSTS_DIR = Path("blog-posts")
 OUTPUT_DIR = Path("blog")
 INDEX_FILE = Path("index.html")
 ABOUT_FILE = Path("about.html")
-METADATA_FILE = Path("post-metadata.json")
 
 # Language-specific directories
 LANG_DIRS = {
@@ -38,50 +37,9 @@ for lang_dir in LANG_DIRS.values():
     (lang_dir / 'blog').mkdir(exist_ok=True)
 
 
-def load_metadata():
-    """Load post metadata (creation and update dates)"""
-    if METADATA_FILE.exists():
-        try:
-            with open(METADATA_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except:
-            return {}
-    return {}
-
-
-def save_metadata(metadata):
-    """Save post metadata to JSON file"""
-    with open(METADATA_FILE, 'w', encoding='utf-8') as f:
-        json.dump(metadata, f, indent=2, ensure_ascii=False)
-
-
 def calculate_content_hash(content):
     """Calculate MD5 hash of content for change detection"""
     return hashlib.md5(content.encode('utf-8')).hexdigest()
-
-
-def update_post_metadata(slug, output_file, content_hash):
-    """Update metadata for a post (tracks creation and update dates)
-    Only updates the 'updated' timestamp if content actually changed"""
-    metadata = load_metadata()
-    now = datetime.now().isoformat()
-    
-    if slug not in metadata:
-        # New post - set creation date
-        metadata[slug] = {
-            'created': now,
-            'updated': now,
-            'content_hash': content_hash
-        }
-    else:
-        # Existing post - only update timestamp if content changed
-        if metadata[slug].get('content_hash') != content_hash:
-            metadata[slug]['updated'] = now
-            metadata[slug]['content_hash'] = content_hash
-        # If content hasn't changed, keep existing timestamps
-    
-    save_metadata(metadata)
-    return metadata[slug]
 
 
 def calculate_reading_time(content):
@@ -100,6 +58,15 @@ def format_date(date_str):
         return str(date_str)
 
 
+def format_iso_date(iso_str):
+    """Format ISO datetime string to readable date"""
+    try:
+        dt = datetime.fromisoformat(iso_str)
+        return dt.strftime("%B %d, %Y")
+    except:
+        return str(iso_str)
+
+
 def get_lang_path(lang: str, path: str = '') -> str:
     """Generate language-specific path"""
     if lang == DEFAULT_LANGUAGE:
@@ -116,17 +83,66 @@ def get_alternate_lang(current_lang: str) -> str:
 
 
 def generate_lang_toggle_html(current_lang: str, current_page: str) -> str:
-    """Generate language toggle button HTML"""
+    """Generate language toggle button HTML as a single unified control
+    
+    Creates a single button showing a globe icon and both languages (EN / PT) with
+    the active language highlighted by a soft ambient glow. Clicking the button
+    switches to the opposite language.
+    
+    Design Philosophy:
+        - Single unified button (not separate clickable areas)
+        - Globe icon + "EN / PT" on same baseline
+        - Active language: soft ambient glow effect
+        - Inactive language: dimmed appearance
+        - Smooth glow transition when switching
+        - Typographic design, not boxed or decorated
+        - Minimal and elegant
+    
+    Args:
+        current_lang (str): Current page language code ('en' or 'pt')
+        current_page (str): Relative page path (e.g., "index.html" or "blog/post-slug.html")
+    
+    Returns:
+        str: HTML string for language toggle button
+    
+    Accessibility:
+        - Single button element with clear aria-label
+        - Announces current and target language for screen readers
+        - Keyboard navigable via Tab key
+        - Focus states with outline for keyboard users
+    
+    Example Output:
+        <a href="/pt/index.html" class="lang-toggle" aria-label="Switch to Português (currently English)">
+            <svg>...</svg>
+            <span class="lang-text">
+                <span class="lang-en active">EN</span>
+                <span class="lang-sep">/</span>
+                <span class="lang-pt">PT</span>
+            </span>
+        </a>
+    """
     other_lang = get_alternate_lang(current_lang)
-    other_lang_label = LANGUAGES[other_lang]['label']
     other_lang_path = get_lang_path(other_lang, current_page)
     
-    return f'''<a href="{other_lang_path}" class="lang-toggle" aria-label="Switch to {LANGUAGES[other_lang]['name']}" data-lang-switch="{other_lang}">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    # Determine which language is active for CSS classes
+    en_active = 'active' if current_lang == 'en' else ''
+    pt_active = 'active' if current_lang == 'pt' else ''
+    
+    # Accessibility label
+    current_name = LANGUAGES[current_lang]['name']
+    target_name = LANGUAGES[other_lang]['name']
+    aria_label = f"Switch to {target_name} (currently {current_name})"
+    
+    return f'''<a href="{other_lang_path}" class="lang-toggle" aria-label="{aria_label}" data-current-lang="{current_lang}">
+        <svg class="lang-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
         </svg>
-        <span class="lang-label">{other_lang_label}</span>
+        <span class="lang-text">
+            <span class="lang-en {en_active}">EN</span>
+            <span class="lang-sep">/</span>
+            <span class="lang-pt {pt_active}">PT</span>
+        </span>
     </a>'''
 
 
@@ -208,7 +224,7 @@ def generate_post_html(post, post_number, lang='en'):
                 {last_updated_html}
                 <h1 class="post-title-large" style="view-transition-name: post-title-{post_number};">{post['title'].upper()}</h1>
                 <div class="post-meta">
-                    <time class="post-date" style="view-transition-name: post-date-{post_number};">{format_date(post['date'])}</time>
+                    <time class="post-date" style="view-transition-name: post-date-{post_number};">{format_iso_date(post['created_date'])}</time>
                     <span class="post-separator">•</span>
                     <span class="post-reading-time">{post['reading_time']}</span>
                 </div>
@@ -276,7 +292,7 @@ def generate_post_card(post, post_number, lang='en'):
                 <a href="{post_url}" class="post-link">
                     <div class="post-content">
                         <h2 class="post-title" style="view-transition-name: post-title-{post_number};">{post['title'].upper()}</h2>
-                        <time class="post-date" style="view-transition-name: post-date-{post_number};">{post['date']}</time>
+                        <time class="post-date" style="view-transition-name: post-date-{post_number};">{format_iso_date(post['created_date'])}</time>
                         {tags_html}
                         <p class="post-excerpt" style="view-transition-name: post-excerpt-{post_number};">
                             {post['excerpt']}
@@ -289,6 +305,7 @@ def generate_post_card(post, post_number, lang='en'):
 def generate_index_html(posts, lang='en'):
     """Generate the main index.html page"""
     lang_toggle_html = generate_lang_toggle_html(lang, 'index.html')
+    ui = LANGUAGES[lang]['ui']
     posts_html = '\n\n'.join(generate_post_card(post, i + 1, lang) for i, post in enumerate(posts))
     
     # Collect all unique years, months, and tags for filters (only from existing posts)
@@ -302,13 +319,16 @@ def generate_index_html(posts, lang='en'):
     all_tags = sorted(set(tag for post in posts for tag in post.get('tags', [])))
     
     # Generate year options
-    year_options = '<div class="select-option" data-value="">All Years</div>' + ''.join(
+    year_options = f'<div class="select-option" data-value="">{ui["all_years"]}</div>' + ''.join(
         f'<div class="select-option" data-value="{year}">{year}</div>' for year in years
     )
     
+    # Get month translations
+    months_dict = LANGUAGES[lang].get('months', {})
+    
     # Generate month options (only months with posts)
-    month_options = '<div class="select-option" data-value="">All Months</div>' + ''.join(
-        f'<div class="select-option" data-value="{month}">{month}</div>' for month in months_with_posts
+    month_options = f'<div class="select-option" data-value="">{ui["all_months"]}</div>' + ''.join(
+        f'<div class="select-option" data-value="{month}">{months_dict.get(month, month)}</div>' for month in months_with_posts
     )
     
     # Generate tag pills for filter
@@ -341,8 +361,8 @@ def generate_index_html(posts, lang='en'):
             <a href="{get_lang_path(lang, 'index.html')}" class="logo">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="{get_lang_path(lang, 'index.html')}" class="active">BLOG</a></li>
-                    <li><a href="{get_lang_path(lang, 'about.html')}">ABOUT</a></li>
+                    <li><a href="{get_lang_path(lang, 'index.html')}" class="active">{ui['blog']}</a></li>
+                    <li><a href="{get_lang_path(lang, 'about.html')}">{ui['about']}</a></li>
                 </ul>
                 {lang_toggle_html}
                 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
@@ -368,13 +388,16 @@ def generate_index_html(posts, lang='en'):
     <main class="container">
         <header class="page-header" style="view-transition-name: blog-header;">
             <div class="header-content">
-                <h1 class="page-title">Latest Posts</h1>
+                <h1 class="page-title">{ui['latest_posts']}</h1>
                 <div class="header-controls">
-                    <button id="order-toggle" class="order-toggle" data-order="updated" aria-label="Toggle sort order">
-                        <span class="order-toggle-text">Updated</span>
-                    </button>
+                    <div class="sort-control">
+                        <span class="sort-label">{ui['sort_by']}</span>
+                        <button id="order-toggle" class="order-toggle" data-order="updated" data-label-updated="{ui['last_updated']}" data-label-created="{ui['published_at']}" aria-label="Toggle sort order">
+                            <span class="order-toggle-text">{ui['last_updated']}</span>
+                        </button>
+                    </div>
                     <button id="filter-toggle" class="filter-toggle" aria-label="Toggle filters">
-                        <span class="filter-toggle-text">Filter</span>
+                        <span class="filter-toggle-text">{ui['filter']}</span>
                         <svg class="filter-toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
@@ -387,7 +410,7 @@ def generate_index_html(posts, lang='en'):
             <div class="filter-row">
                 <div class="custom-select" id="year-filter-wrapper">
                     <div class="select-trigger" data-value="">
-                        <span class="select-label">All Years</span>
+                        <span class="select-label">{ui['all_years']}</span>
                     </div>
                     <div class="select-options">
                         {year_options}
@@ -395,13 +418,13 @@ def generate_index_html(posts, lang='en'):
                 </div>
                 <div class="custom-select" id="month-filter-wrapper">
                     <div class="select-trigger" data-value="">
-                        <span class="select-label">All Months</span>
+                        <span class="select-label">{ui['all_months']}</span>
                     </div>
                     <div class="select-options">
                         {month_options}
                     </div>
                 </div>
-                <button id="clear-filters" class="filter-clear">Clear Filters</button>
+                <button id="clear-filters" class="filter-clear">{ui['clear_filters']}</button>
             </div>
             <div class="filter-tags">
                 {tag_pills_html}
@@ -442,13 +465,15 @@ def generate_index_html(posts, lang='en'):
 def generate_about_html(lang='en'):
     """Generate the about.html page"""
     lang_toggle_html = generate_lang_toggle_html(lang, 'about.html')
+    ui = LANGUAGES[lang]['ui']
+    about = LANGUAGES[lang]['about']
     
     return f"""<!DOCTYPE html>
 <html lang="{lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About - dan.rio</title>
+    <title>{about['title']} - dan.rio</title>
     <meta name="description" content="{AUTHOR_BIO}">
     <link rel="stylesheet" href="{BASE_PATH}/styles.css">
     <link rel="stylesheet" href="{BASE_PATH}/post.css">
@@ -467,8 +492,8 @@ def generate_about_html(lang='en'):
             <a href="{get_lang_path(lang, 'index.html')}" class="logo">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="{get_lang_path(lang, 'index.html')}">BLOG</a></li>
-                    <li><a href="{get_lang_path(lang, 'about.html')}" class="active">ABOUT</a></li>
+                    <li><a href="{get_lang_path(lang, 'index.html')}">{ui['blog']}</a></li>
+                    <li><a href="{get_lang_path(lang, 'about.html')}" class="active">{ui['about']}</a></li>
                 </ul>
                 {lang_toggle_html}
                 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
@@ -494,17 +519,17 @@ def generate_about_html(lang='en'):
     <main class="container">
         <article class="post">
             <header class="post-header">
-                <h1 class="post-title-large">ABOUT</h1>
+                <h1 class="post-title-large">{about['title']}</h1>
             </header>
 
             <div class="post-body">
-                <p>I'm Daniel Cavalli. I like understanding how things work by taking them apart. It doesn't matter if it's a CUDA kernel, a surfboard, or a bike crankset. The process is the same: break it open, study the pieces, build it better.</p>
+                <p>{about['p1']}</p>
 
-                <p>I work as a Machine Learning Engineer at Nubank, where I care about efficiency. I like when systems are clean and do what they should without noise. My work is an extension of that mindset, finding simpler paths that make everything move faster and with less friction.</p>
+                <p>{about['p2']}</p>
 
-                <p>Writing helps me think. It forces precision and makes me see where my ideas actually hold.</p>
+                <p>{about['p3']}</p>
 
-                <p>Outside of work I stay close to the ocean. I surf, bike, build things with my hands, and spend time with Moana, my dog. I live in Copacabana, where the sea is part of the background of everything.</p>
+                <p>{about['p4']}</p>
 
                 <img src="{BASE_PATH}/Logo.png" alt="Moana Surfworks" loading="lazy" class="about-image">
             </div>
@@ -623,7 +648,7 @@ def generate_about_html(lang='en'):
 
 
 def parse_markdown_post(filepath):
-    """Parse a markdown file with frontmatter"""
+    """Parse a markdown file with frontmatter and update metadata in place"""
     post = frontmatter.load(filepath)
     
     # Get filename without extension
@@ -633,24 +658,36 @@ def parse_markdown_post(filepath):
     # Calculate content hash for change detection
     content_hash = calculate_content_hash(post.content)
     
-    # Check if HTML output exists to determine if this is an update
-    output_file = OUTPUT_DIR / f"{slug}.html"
-    metadata = load_metadata()
+    # Get or create metadata directly in frontmatter
+    created_at = post.get('created_at')
+    updated_at = post.get('updated_at')
+    stored_hash = post.get('content_hash')
     
-    # Determine creation and update dates based on content hash
-    if slug in metadata:
-        created_date = metadata[slug]['created']
-        # Check if content actually changed
-        if metadata[slug].get('content_hash') == content_hash:
-            # Content unchanged - use existing updated date
-            updated_date = metadata[slug]['updated']
-        else:
-            # Content changed - set new updated date
-            updated_date = datetime.now().isoformat()
+    now = datetime.now().isoformat()
+    needs_update = False
+    
+    if not created_at:
+        # New post - set creation date
+        created_at = now
+        updated_at = now
+        post['created_at'] = created_at
+        post['updated_at'] = updated_at
+        post['content_hash'] = content_hash
+        needs_update = True
+    elif stored_hash != content_hash:
+        # Content changed - update timestamp and hash
+        updated_at = now
+        post['updated_at'] = updated_at
+        post['content_hash'] = content_hash
+        needs_update = True
     else:
-        # New post
-        created_date = datetime.now().isoformat()
-        updated_date = created_date
+        # Content unchanged - keep existing timestamps
+        pass
+    
+    # Write updated frontmatter back to file if needed
+    if needs_update:
+        with open(filepath, 'wb') as f:
+            frontmatter.dump(post, f)
     
     # Convert markdown content to HTML
     html_content = markdown.markdown(
@@ -684,10 +721,43 @@ def parse_markdown_post(filepath):
         'tags': tags,
         'reading_time': post.get('readingTime') or calculate_reading_time(post.content),
         'content': html_content,
-        'created_date': created_date,
-        'updated_date': updated_date,
+        'created_date': created_at,
+        'updated_date': updated_at,
         'content_hash': content_hash,
     }
+
+
+def generate_root_index():
+    """Generate root index.html with automatic language detection"""
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dan.rio - Blog</title>
+    <meta name="description" content="Personal blog by Daniel Cavalli on machine learning, CUDA, distributed training, and engineering.">
+    <link rel="stylesheet" href="{BASE_PATH}/styles.css">
+    <script>
+        // Automatic language detection and redirect
+        (function() {{
+            const userLang = navigator.language || navigator.userLanguage;
+            const isBrazilian = userLang.toLowerCase().startsWith('pt');
+            const targetLang = isBrazilian ? 'pt' : 'en';
+            
+            // Redirect to appropriate language version
+            window.location.href = `{BASE_PATH}/${{targetLang}}/index.html`;
+        }})();
+    </script>
+    <noscript>
+        <meta http-equiv="refresh" content="0; url={BASE_PATH}/en/index.html">
+    </noscript>
+</head>
+<body>
+    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, -apple-system, sans-serif;">
+        <p>Redirecting...</p>
+    </div>
+</body>
+</html>"""
 
 
 def build():
@@ -707,6 +777,14 @@ def build():
     try:
         translator = GeminiTranslator()
         print("🌐 Translation system initialized\n")
+        
+        # Translate About page content
+        about_en = LANGUAGES['en']['about']
+        about_pt_translated = translator.translate_about(about_en, force=False)
+        
+        # Update Portuguese config with translated content
+        LANGUAGES['pt']['about'] = about_pt_translated
+        
     except Exception as e:
         print(f"⚠️  Translation system unavailable: {e}")
         print("   Continuing with English-only build\n")
@@ -760,9 +838,6 @@ def build():
             html = generate_post_html(post, i + 1, lang='en')
             output_file = LANG_DIRS['en'] / 'blog' / f"{post['slug']}.html"
             output_file.write_text(html, encoding='utf-8')
-            
-            # Update metadata
-            update_post_metadata(post['slug'], output_file, post['content_hash'])
             
             print(f"      ✓ blog/{post['slug']}.html")
         except Exception as e:
@@ -821,6 +896,17 @@ def build():
         except Exception as e:
             print(f"      ✗ Error generating about.html: {e}")
             return False
+    
+    # Generate root index.html with language detection
+    print("\n   🌐 Root language selector:")
+    try:
+        root_html = generate_root_index()
+        root_index = Path("index.html")
+        root_index.write_text(root_html, encoding='utf-8')
+        print(f"      ✓ index.html (auto-detect)")
+    except Exception as e:
+        print(f"      ✗ Error generating root index.html: {e}")
+        return False
     
     lang_count = 2 if posts_pt else 1
     print(f"\n🎉 Build complete! {len(posts_en)} post(s) in {lang_count} language(s).\n")
