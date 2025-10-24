@@ -1,0 +1,256 @@
+/* ==========================================
+   LANDING PAGE - ORIGIN STATE
+   ========================================== */
+
+/* Landing surface - full viewport, centered content */
+.landing-surface {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+/* Center container - perfect alignment */
+.landing-center {
+    text-align: center;
+    max-width: 600px;
+    width: 100%;
+}
+
+/* Landing title - large, balanced, anchored */
+.landing-title {
+    font-size: clamp(3rem, 12vw, 6rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin: 0 0 3rem 0;
+    color: var(--color-text);
+    text-transform: lowercase;
+    line-height: 1;
+    transition: color var(--motion-duration-ripple) var(--motion-easing),
+                transform var(--motion-duration-core) cubic-bezier(0.45, 0, 0.25, 1),
+                font-size var(--motion-duration-core) cubic-bezier(0.45, 0, 0.25, 1),
+                opacity var(--motion-duration-core) cubic-bezier(0.45, 0, 0.25, 1);
+}
+
+/* Landing navigation - simple typographic buttons */
+.landing-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+/* Landing links - clean typography, no decoration */
+.landing-link {
+    font-size: 1.125rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    position: relative;
+    padding: 0.5rem 0;
+    transition: color var(--motion-duration-ripple) var(--motion-easing),
+                opacity var(--motion-duration-quick) cubic-bezier(0.45, 0, 0.25, 1),
+                transform var(--motion-duration-core) cubic-bezier(0.45, 0, 0.25, 1);
+}
+
+/* Hover state - subtle tonal shift */
+.landing-link:hover {
+    color: var(--color-text);
+    opacity: 0.85;
+}
+
+/* Focus state - calm underline */
+.landing-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 1px;
+    background-color: var(--color-text);
+    transition: width var(--motion-duration-quick) cubic-bezier(0.45, 0, 0.25, 1);
+}
+
+.landing-link:hover::after,
+.landing-link:focus::after {
+    width: 100%;
+}
+
+.landing-link:focus {
+    outline: none;
+}
+
+.landing-link:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 4px;
+}
+
+/* Theme toggle - minimal, top-right */
+.theme-toggle-minimal {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: transparent;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    opacity: 0.6;
+    transition: opacity var(--motion-duration-quick) var(--motion-easing),
+                color var(--motion-duration-ripple) var(--motion-easing);
+    z-index: 1000;
+}
+
+.theme-toggle-minimal:hover {
+    opacity: 1;
+}
+
+.theme-toggle-minimal:focus {
+    outline: none;
+}
+
+.theme-toggle-minimal:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 4px;
+}
+
+/* Icon visibility based on theme */
+.theme-toggle-minimal .sun-icon {
+    display: none;
+}
+
+.theme-toggle-minimal .moon-icon {
+    display: block;
+}
+
+[data-theme="dark"] .theme-toggle-minimal .sun-icon {
+    display: block;
+}
+
+[data-theme="dark"] .theme-toggle-minimal .moon-icon {
+    display: none;
+}
+
+/* Morphing transition states */
+@supports (view-transition-name: none) {
+    .landing-title {
+        view-transition-name: landing-title;
+    }
+    
+    .landing-link[data-morph-target="nav-blog"] {
+        view-transition-name: nav-blog;
+    }
+    
+    .landing-link[data-morph-target="nav-about"] {
+        view-transition-name: nav-about;
+    }
+    
+    .landing-link[data-morph-target="nav-cv"] {
+        view-transition-name: nav-cv;
+    }
+}
+
+/* View Transition - landing to site morphing */
+@supports (view-transition-name: none) {
+    ::view-transition-group(landing-title) {
+        animation-duration: 550ms;
+        animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
+    }
+    
+    ::view-transition-old(landing-title) {
+        animation: morphToLogo 550ms cubic-bezier(0.45, 0, 0.25, 1) forwards;
+    }
+    
+    ::view-transition-new(landing-title) {
+        animation: morphFromLanding 550ms cubic-bezier(0.45, 0, 0.25, 1) forwards;
+    }
+    
+    @keyframes morphToLogo {
+        from {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        to {
+            transform: scale(0.3) translateY(-40vh);
+            opacity: 0;
+        }
+    }
+    
+    @keyframes morphFromLanding {
+        from {
+            transform: scale(3.3) translateY(40vh);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    /* Navigation links slide and reorganize */
+    ::view-transition-group(nav-blog),
+    ::view-transition-group(nav-about),
+    ::view-transition-group(nav-cv) {
+        animation-duration: 550ms;
+        animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
+    }
+    
+    ::view-transition-old(nav-blog),
+    ::view-transition-old(nav-about),
+    ::view-transition-old(nav-cv) {
+        animation: slideOut 550ms cubic-bezier(0.45, 0, 0.25, 1) forwards;
+    }
+    
+    ::view-transition-new(nav-blog),
+    ::view-transition-new(nav-about),
+    ::view-transition-new(nav-cv) {
+        animation: slideIn 550ms cubic-bezier(0.45, 0, 0.25, 1) forwards;
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .landing-title {
+        font-size: clamp(2.5rem, 10vw, 4rem);
+        margin-bottom: 2rem;
+    }
+    
+    .landing-nav {
+        gap: 1.25rem;
+    }
+    
+    .landing-link {
+        font-size: 1rem;
+    }
+    
+    .theme-toggle-minimal {
+        top: 1rem;
+        right: 1rem;
+    }
+}

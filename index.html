@@ -3,27 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dan.rio - Blog</title>
-    <meta name="description" content="Personal blog by Daniel Cavalli on machine learning, CUDA, distributed training, and engineering.">
-    <link rel="stylesheet" href="/blog/styles.css">
+    <title>dan.rio</title>
+    <meta name="description" content="Personal site by Daniel Cavalli - Blog, About, and CV.">
     <script>
-        // Automatic language detection and redirect
-        (function() {
-            const userLang = navigator.language || navigator.userLanguage;
-            const isBrazilian = userLang.toLowerCase().startsWith('pt');
-            const targetLang = isBrazilian ? 'pt' : 'en';
-            
-            // Redirect to appropriate language version
-            window.location.href = `/blog/${targetLang}/index.html`;
-        })();
+        // Redirect to landing page
+        window.location.href = '/landing.html';
     </script>
     <noscript>
-        <meta http-equiv="refresh" content="0; url=/blog/en/index.html">
+        <meta http-equiv="refresh" content="0; url=/landing.html">
     </noscript>
 </head>
 <body>
     <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, -apple-system, sans-serif;">
-        <p>Redirecting...</p>
+        <p>Loading...</p>
     </div>
 </body>
 </html>
