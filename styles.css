@@ -20,19 +20,19 @@
         animation-duration: 0s;
     }
     
-    /* Global timing - slower, more deliberate like breathing */
+    /* Global timing - consistent with motion system core duration */
     ::view-transition-group(*) {
-        animation-duration: 0.75s;
-        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-duration: var(--motion-duration-core);
+        animation-timing-function: var(--motion-easing);
     }
     
     /* HEADER: Slides up behind nav bar when going to post, slides down when returning */
     ::view-transition-old(blog-header) {
-        animation: slide-header-up 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation: slide-header-up var(--motion-duration-core) var(--motion-easing) forwards;
     }
     
     ::view-transition-new(blog-header) {
-        animation: slide-header-down 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation: slide-header-down var(--motion-duration-core) var(--motion-easing) forwards;
     }
     
     @keyframes slide-header-up {
@@ -59,11 +59,11 @@
     
     /* FILTERS: Same upward scroll motion */
     ::view-transition-old(blog-filters) {
-        animation: slide-filters-up 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation: slide-filters-up var(--motion-duration-core) var(--motion-easing) forwards;
     }
     
     ::view-transition-new(blog-filters) {
-        animation: slide-filters-down 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation: slide-filters-down var(--motion-duration-core) var(--motion-easing) forwards;
     }
     
     @keyframes slide-filters-up {
@@ -92,8 +92,8 @@
     ::view-transition-group(post-container-1),
     ::view-transition-group(post-container-2),
     ::view-transition-group(post-container-3) {
-        animation-duration: 0.75s;
-        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-duration: var(--motion-duration-core);
+        animation-timing-function: var(--motion-easing);
     }
     
     ::view-transition-old(post-container-1),
@@ -102,8 +102,8 @@
     ::view-transition-new(post-container-2),
     ::view-transition-old(post-container-3),
     ::view-transition-new(post-container-3) {
-        animation-duration: 0.75s;
-        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-duration: var(--motion-duration-core);
+        animation-timing-function: var(--motion-easing);
         mix-blend-mode: normal;
     }
     
@@ -111,8 +111,8 @@
     ::view-transition-group(post-title-1),
     ::view-transition-group(post-title-2),
     ::view-transition-group(post-title-3) {
-        animation-duration: 0.75s;
-        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-duration: var(--motion-duration-core);
+        animation-timing-function: var(--motion-easing);
     }
     
     ::view-transition-old(post-title-1),
@@ -121,8 +121,8 @@
     ::view-transition-new(post-title-2),
     ::view-transition-old(post-title-3),
     ::view-transition-new(post-title-3) {
-        animation-duration: 0.75s;
-        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-duration: var(--motion-duration-core);
+        animation-timing-function: var(--motion-easing);
         mix-blend-mode: normal;
     }
     
@@ -130,8 +130,8 @@
     ::view-transition-group(post-date-1),
     ::view-transition-group(post-date-2),
     ::view-transition-group(post-date-3) {
-        animation-duration: 0.75s;
-        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-duration: var(--motion-duration-core);
+        animation-timing-function: var(--motion-easing);
     }
     
     ::view-transition-old(post-date-1),
@@ -140,8 +140,8 @@
     ::view-transition-new(post-date-2),
     ::view-transition-old(post-date-3),
     ::view-transition-new(post-date-3) {
-        animation-duration: 0.75s;
-        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-duration: var(--motion-duration-core);
+        animation-timing-function: var(--motion-easing);
         mix-blend-mode: normal;
     }
     
@@ -149,8 +149,8 @@
     ::view-transition-group(post-excerpt-1),
     ::view-transition-group(post-excerpt-2),
     ::view-transition-group(post-excerpt-3) {
-        animation-duration: 0.75s;
-        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-duration: var(--motion-duration-core);
+        animation-timing-function: var(--motion-easing);
     }
     
     ::view-transition-old(post-excerpt-1),
@@ -159,8 +159,8 @@
     ::view-transition-new(post-excerpt-2),
     ::view-transition-old(post-excerpt-3),
     ::view-transition-new(post-excerpt-3) {
-        animation-duration: 0.75s;
-        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-duration: var(--motion-duration-core);
+        animation-timing-function: var(--motion-easing);
         mix-blend-mode: normal;
     }
     
@@ -206,10 +206,16 @@
     --space-3xl: 4rem;
     --space-4xl: 8rem;
     
-    /* Transitions */
-    --transition-speed: 0.3s;
-    --transition-speed-slow: 0.6s;
-    --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+    /* Motion System - Shared Rhythm (Design Philosophy: 400-600ms, consistent easing) */
+    --motion-duration-core: 500ms;      /* Primary motion timing - morphing, sliding, expansion */
+    --motion-duration-quick: 300ms;     /* Subtle micro-interactions - hover feedback */
+    --motion-duration-ripple: 600ms;    /* Atmospheric changes - theme transitions */
+    --motion-easing: cubic-bezier(0.4, 0, 0.2, 1);  /* Shared personality - all transitions */
+    
+    /* Legacy variables - kept for gradual migration */
+    --transition-speed: var(--motion-duration-quick);
+    --transition-speed-slow: var(--motion-duration-ripple);
+    --transition-easing: var(--motion-easing);
     --transition-easing-smooth: cubic-bezier(0.23, 1, 0.32, 1);
     
     /* Layout */
@@ -259,15 +265,23 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Theme Transition Ripple - Ambient Light Change */
+/* Theme Transition Ripple - Ambient Light Change
+   Only transitions color-related properties, preserves existing motion transitions */
 body.theme-transitioning,
 body.theme-transitioning * {
-    transition: background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                fill 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                stroke 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: background-color var(--motion-duration-ripple) var(--motion-easing),
+                color var(--motion-duration-ripple) var(--motion-easing),
+                border-color var(--motion-duration-ripple) var(--motion-easing),
+                box-shadow var(--motion-duration-ripple) var(--motion-easing),
+                fill var(--motion-duration-ripple) var(--motion-easing),
+                stroke var(--motion-duration-ripple) var(--motion-easing);
+}
+
+/* Preserve post-title transform transition during theme change */
+body.theme-transitioning .post-title {
+    transition: background-color var(--motion-duration-ripple) var(--motion-easing),
+                color var(--motion-duration-ripple) var(--motion-easing),
+                transform var(--transition-speed) var(--transition-easing);
 }
 
 /* ==========================================
@@ -440,8 +454,8 @@ body.theme-transitioning * {
 
 .page-header {
     margin-bottom: 2rem;
-    animation: fadeInUp 0.65s cubic-bezier(0.23, 1, 0.32, 1);
-    transition: margin-bottom 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeInUp 0.65s var(--motion-easing);
+    transition: margin-bottom var(--motion-duration-ripple) var(--motion-easing);
 }
 
 /* No longer needed - expansion happens on .filters instead */
@@ -486,7 +500,7 @@ body.theme-transitioning * {
     font-size: 0.9rem;
     color: var(--color-text-secondary);
     cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--motion-duration-core) var(--motion-easing);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
@@ -499,7 +513,7 @@ body.theme-transitioning * {
 }
 
 .filter-toggle-icon {
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--motion-duration-core) var(--motion-easing);
 }
 
 .filter-toggle.active .filter-toggle-icon {
@@ -554,10 +568,10 @@ body.theme-transitioning * {
     }
 }
 
-/* Only animate cards on first page load, not on navigation back */
+/* Initial page load: Cards fade in with staggered timing (only on first load) */
 .posts-grid:not(.disable-animation) .post-card {
-    opacity: 0;
-    animation: cardFadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    /* Animation handles opacity from 0 to 1 - don't set base opacity: 0 */
+    animation: cardFadeIn 0.7s var(--motion-easing) forwards;
     animation-delay: calc(var(--card-index, 0) * 0.08s + 0.1s);
 }
 
@@ -832,6 +846,10 @@ button:focus-visible {
    FILTERS & TAGS - Breathing Layer
    ========================================== */
 
+/* FILTERS SECTION - Breathing Expansion
+   Where from: Collapsed (max-height: 0, hidden)
+   Where to: Expanded (max-height: 500px, visible)
+   How relate: Unfolds from the same surface, extending the header canvas */
 .filters {
     margin: 0 0 3rem;
     padding: 0;
@@ -839,7 +857,7 @@ button:focus-visible {
     overflow: hidden;
     opacity: 0;
     background: transparent;
-    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--motion-duration-ripple) var(--motion-easing);
     transform-origin: top;
 }
 
@@ -851,9 +869,13 @@ button:focus-visible {
     background: var(--card-bg);
     border-radius: 12px;
     border: 1px solid var(--border-color);
+    will-change: max-height, opacity;  /* Optimize expansion animation */
 }
 
-/* Organic expansion when dropdown reaches boundary */
+/* Organic Nudge: Filters expand downward when dropdown extends beyond boundary
+   Where from: Normal padding
+   Where to: Extended padding (5rem bottom)
+   How relate: Pushes content down to accommodate dropdown, maintains spatial continuity */
 .filters.expanded.dropdown-active {
     padding-bottom: 5rem;
 }
@@ -866,7 +888,7 @@ button:focus-visible {
     align-items: center;
     opacity: 0;
     transform: translateY(-10px);
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s;
+    transition: all var(--motion-duration-core) var(--motion-easing) 0.1s;
     position: relative;
     z-index: 10;
 }
@@ -882,7 +904,7 @@ button:focus-visible {
     flex-wrap: wrap;
     opacity: 0;
     transform: translateY(-10px);
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s;
+    transition: all var(--motion-duration-core) var(--motion-easing) 0.2s;
     position: relative;
     z-index: 1;
 }
@@ -912,7 +934,7 @@ button:focus-visible {
     font-weight: 400;
     line-height: 1.5;
     cursor: pointer;
-    transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: border-color var(--motion-duration-quick) var(--motion-easing);
     user-select: none;
     
     /* Subtle chevron - part of the text */
@@ -947,6 +969,10 @@ button:focus-visible {
 }
 
 /* Options list - sheet of text sliding down from the same surface */
+/* DROPDOWN UNFOLDING - Options emerge from text trigger
+   Where from: Hidden (max-height: 0, opacity: 0)
+   Where to: Visible (max-height: 300px, opacity: 1)
+   How relate: Text becoming interactive list, unfolding from same surface */
 .select-options {
     position: absolute;
     top: 100%;
@@ -959,8 +985,8 @@ button:focus-visible {
     max-height: 0;
     overflow: hidden;
     opacity: 0;
-    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: max-height var(--motion-duration-core) var(--motion-easing),
+                opacity var(--motion-duration-core) var(--motion-easing);
     z-index: 9999;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -983,6 +1009,7 @@ button:focus-visible {
     max-height: 300px;
     opacity: 1;
     overflow-y: auto;
+    will-change: max-height, opacity;  /* Optimize dropdown unfold */
 }
 
 /* Individual options - continuation of text hierarchy */
@@ -1074,7 +1101,7 @@ button:focus-visible {
     font-size: 0.85rem;
     font-family: var(--font-mono);
     cursor: pointer;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--motion-duration-core) var(--motion-easing);
     text-transform: lowercase;
     position: relative;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
@@ -1127,21 +1154,45 @@ button:focus-visible {
     color: var(--accent-color);
 }
 
-/* Post cards - filtering with two-phase choreography */
+/* Post cards - two-phase filtering choreography */
 .post-card {
-    /* Base transition for filtering fade */
-    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Dissolve: Cards losing relevance fade from view
+       From: visible (opacity: 1) → To: transparent (opacity: 0)
+       Relate: Maintains spatial position during fade, removed after */
+    transition: opacity var(--motion-duration-core) var(--motion-easing);
+    will-change: auto; /* Default state - no performance hints */
 }
 
-/* Phase 1: Dissolve - cards losing relevance fade out */
+/* Phase 1: Dissolve - cards losing relevance fade out over 500ms */
 .post-card.filtering-out {
     opacity: 0;
-    pointer-events: none;
+    pointer-events: none;  /* Relate: No longer interactive during fade */
+    will-change: opacity;  /* Optimize GPU compositing for fade */
 }
 
-/* Phase 2: After dissolve, remove from layout */
+/* Phase 2: After dissolve completes, remove from layout flow */
 .post-card.filtered-out {
-    display: none;
+    display: none;  /* Where to: Outside spatial canvas, truly gone */
+}
+
+/* FLIP Animation - Smooth reorganization after filtering */
+.post-card.flip-measuring {
+    /* Freeze transitions to capture instant position snapshot */
+    transition: none !important;
+}
+
+.post-card.flip-animating {
+    /* Reorganization: Cards slide into new grid positions
+       From: old position (via transform offset) → To: natural position (transform: none)
+       Relate: Maintains visual continuity during grid reflow */
+    transition: transform var(--motion-duration-core) var(--motion-easing);
+    transform: translate(var(--flip-x, 0), var(--flip-y, 0));
+    will-change: transform;  /* Optimize GPU compositing */
+}
+
+/* After FLIP completes, clean up performance hints */
+.post-card:not(.flip-animating) {
+    will-change: auto;
 }
 
 /* Posts grid maintains spatial continuity */

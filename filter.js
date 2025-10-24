@@ -51,24 +51,21 @@
                     wrapper.classList.add('open');
                     
                     // Check if dropdown will overflow the filters block
-                    // Apply motion in parallel with dropdown opening for fluid interaction
-                    setTimeout(() => {
+                    // Use actual DOM measurements instead of magic numbers
+                    requestAnimationFrame(() => {
                         if (filtersPanel && options) {
                             const filtersRect = filtersPanel.getBoundingClientRect();
-                            const triggerRect = trigger.getBoundingClientRect();
-                            const filtersBottom = filtersRect.bottom;
+                            const optionsRect = options.getBoundingClientRect();
                             
-                            // Estimate if dropdown will overflow based on option count
-                            const optionCount = optionElements.length;
-                            const estimatedHeight = optionCount * 45; // ~45px per option
-                            const dropdownBottom = triggerRect.bottom + estimatedHeight;
+                            // Calculate actual overflow (dropdown bottom - filters bottom)
+                            const actualOverflow = optionsRect.bottom - filtersRect.bottom;
                             
                             // Only nudge if dropdown extends beyond filters boundary
-                            if (dropdownBottom > filtersBottom) {
+                            if (actualOverflow > 0) {
                                 filtersPanel.classList.add('dropdown-active');
                             }
                         }
-                    }, 10); // Minimal delay, motion happens in parallel
+                    });
                 } else {
                     // Check if any dropdowns remain open
                     setTimeout(() => {
@@ -147,6 +144,8 @@
                 initialPositions.set(card, { top: rect.top, left: rect.left });
             });
 
+            const cardsToHide = [];
+
             // Phase 1: Identify and start dissolving non-matching cards
             requestAnimationFrame(() => {
                 postCards.forEach((card) => {
@@ -166,74 +165,105 @@
                         // Card should be visible - ensure it's not in filtering state
                         card.classList.remove('filtering-out', 'filtered-out');
                     } else {
-                        // Card doesn't match - begin dissolve (Phase 1: 300ms)
+                        // Card doesn't match - begin dissolve (Phase 1)
                         card.classList.add('filtering-out');
+                        cardsToHide.push(card);
                     }
                 });
 
                 // Phase 2: After dissolve completes, trigger reorganization
-                setTimeout(() => {
-                    // Remove dissolved cards from layout
-                    postCards.forEach((card) => {
-                        if (card.classList.contains('filtering-out')) {
-                            card.classList.add('filtered-out');
+                // Use transitionend event instead of setTimeout for browser-driven timing
+                if (cardsToHide.length > 0) {
+                    const handleDissolveComplete = (e) => {
+                        // Only respond to opacity transitions on cards being hidden
+                        if (e.propertyName !== 'opacity' || !cardsToHide.includes(e.target)) {
+                            return;
+                        }
+
+                        // Remove listener to prevent multiple triggers
+                        const grid = document.querySelector('.posts-grid');
+                        grid.removeEventListener('transitionend', handleDissolveComplete);
+
+                        performReorganization();
+                    };
+
+                    const grid = document.querySelector('.posts-grid');
+                    grid.addEventListener('transitionend', handleDissolveComplete);
+                } else {
+                    // No cards to hide, but still reorganize visible cards
+                    performReorganization();
+                }
+            });
+
+            function performReorganization() {
+                // Remove dissolved cards from layout
+                postCards.forEach((card) => {
+                    if (card.classList.contains('filtering-out')) {
+                        card.classList.add('filtered-out');
+                    }
+                });
+
+                // Wait for layout to settle, then animate reorganization (FLIP technique)
+                requestAnimationFrame(() => {
+                    // Capture final positions (FLIP: Last)
+                    const finalPositions = new Map();
+                    postCards.forEach(card => {
+                        if (!card.classList.contains('filtered-out')) {
+                            const rect = card.getBoundingClientRect();
+                            finalPositions.set(card, { top: rect.top, left: rect.left });
                         }
                     });
 
-                    // Wait for layout to settle, then animate reorganization (FLIP technique)
-                    requestAnimationFrame(() => {
-                        // Capture final positions (FLIP: Last)
-                        const finalPositions = new Map();
-                        postCards.forEach(card => {
-                            if (!card.classList.contains('filtered-out')) {
-                                const rect = card.getBoundingClientRect();
-                                finalPositions.set(card, { top: rect.top, left: rect.left });
-                            }
-                        });
-
-                        // Calculate deltas and apply inverse transforms (FLIP: Invert)
-                        postCards.forEach(card => {
-                            if (!card.classList.contains('filtered-out')) {
-                                const initial = initialPositions.get(card);
-                                const final = finalPositions.get(card);
+                    // Calculate deltas and apply inverse transforms (FLIP: Invert)
+                    postCards.forEach(card => {
+                        if (!card.classList.contains('filtered-out')) {
+                            const initial = initialPositions.get(card);
+                            const final = finalPositions.get(card);
+                            
+                            if (initial && final) {
+                                const deltaY = initial.top - final.top;
+                                const deltaX = initial.left - final.left;
                                 
-                                if (initial && final) {
-                                    const deltaY = initial.top - final.top;
-                                    const deltaX = initial.left - final.left;
+                                // Only animate if position actually changed
+                                if (Math.abs(deltaY) > 1 || Math.abs(deltaX) > 1) {
+                                    // Freeze transitions to set initial position (FLIP: Invert)
+                                    card.classList.add('flip-measuring');
+                                    card.style.setProperty('--flip-x', `${deltaX}px`);
+                                    card.style.setProperty('--flip-y', `${deltaY}px`);
                                     
-                                    // Only animate if position actually changed
-                                    if (Math.abs(deltaY) > 1 || Math.abs(deltaX) > 1) {
-                                        // Set initial transform without transition
-                                        card.style.transition = 'none';
-                                        card.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-                                        
-                                        // Force reflow
-                                        card.offsetHeight;
-                                        
-                                        // Animate to final position (FLIP: Play)
-                                        card.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-                                        card.style.transform = 'translate(0, 0)';
-                                    }
+                                    // Force reflow to apply instant position
+                                    card.offsetHeight;
+                                    
+                                    // Enable animation and slide to natural position (FLIP: Play)
+                                    card.classList.remove('flip-measuring');
+                                    card.classList.add('flip-animating');
+                                    
+                                    // Reset custom properties to trigger animation to (0, 0)
+                                    requestAnimationFrame(() => {
+                                        card.style.setProperty('--flip-x', '0');
+                                        card.style.setProperty('--flip-y', '0');
+                                    });
                                 }
                             }
-                        });
-
-                        // Clean up transforms after animation
-                        setTimeout(() => {
-                            postCards.forEach(card => {
-                                card.style.transition = '';
-                                card.style.transform = '';
-                            });
-                        }, 500);
+                        }
                     });
-                }, 300); // Match dissolve duration
 
-                // Update clear button visibility
-                const hasActiveFilters = activeFilters.year || activeFilters.month || activeFilters.tags.size > 0;
-                if (clearButton) {
-                    clearButton.style.display = hasActiveFilters ? 'inline-block' : 'none';
-                }
-            });
+                    // Clean up FLIP classes after animation completes
+                    setTimeout(() => {
+                        postCards.forEach(card => {
+                            card.classList.remove('flip-animating');
+                            card.style.removeProperty('--flip-x');
+                            card.style.removeProperty('--flip-y');
+                        });
+                    }, 500); // Match motion-duration-core
+                });
+            }
+
+            // Update clear button visibility
+            const hasActiveFilters = activeFilters.year || activeFilters.month || activeFilters.tags.size > 0;
+            if (clearButton) {
+                clearButton.style.display = hasActiveFilters ? 'inline-block' : 'none';
+            }
         }
 
         // Setup custom dropdowns

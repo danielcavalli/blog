@@ -22,18 +22,20 @@
     // Apply theme to document with smooth ripple
     function applyTheme(theme, animated = false) {
         if (animated) {
-            // Add ripple effect class for smooth color transition
+            // CRITICAL ORDER: Change theme FIRST, then enable transitions
+            // This prevents flash where transitions apply to old theme
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            // Force reflow to ensure theme change is applied
+            document.body.offsetHeight;
+            
+            // Now add transition class for smooth color ripple
             document.body.classList.add('theme-transitioning');
             
-            // Apply theme after a brief delay for smoothness
-            requestAnimationFrame(() => {
-                document.documentElement.setAttribute('data-theme', theme);
-                
-                // Remove transition class after animation completes
-                setTimeout(() => {
-                    document.body.classList.remove('theme-transitioning');
-                }, 600);
-            });
+            // Remove transition class after animation completes (600ms ripple duration)
+            setTimeout(() => {
+                document.body.classList.remove('theme-transitioning');
+            }, 600);
         } else {
             document.documentElement.setAttribute('data-theme', theme);
         }
