@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Blog Builder - Compiles Markdown posts to HTML
+Blog Builder - Compiles Markdown posts to HTML with bilingual support
 Run this whenever you add or edit a blog post.
 """
 
@@ -12,7 +12,8 @@ from pathlib import Path
 from datetime import datetime
 import markdown
 import frontmatter
-from config import BASE_PATH, SITE_NAME, AUTHOR_BIO
+from config import BASE_PATH, SITE_NAME, AUTHOR_BIO, LANGUAGES, DEFAULT_LANGUAGE
+from translator import GeminiTranslator
 
 # Configuration
 POSTS_DIR = Path("blog-posts")
@@ -21,9 +22,20 @@ INDEX_FILE = Path("index.html")
 ABOUT_FILE = Path("about.html")
 METADATA_FILE = Path("post-metadata.json")
 
+# Language-specific directories
+LANG_DIRS = {
+    'en': Path('en'),
+    'pt': Path('pt')
+}
+
 # Ensure directories exist
 POSTS_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
+
+# Create language-specific directories
+for lang_dir in LANG_DIRS.values():
+    lang_dir.mkdir(exist_ok=True)
+    (lang_dir / 'blog').mkdir(exist_ok=True)
 
 
 def load_metadata():
@@ -88,8 +100,43 @@ def format_date(date_str):
         return str(date_str)
 
 
-def generate_post_html(post, post_number):
+def get_lang_path(lang: str, path: str = '') -> str:
+    """Generate language-specific path"""
+    if lang == DEFAULT_LANGUAGE:
+        # English version at /en/
+        return f"{BASE_PATH}/en/{path}" if path else f"{BASE_PATH}/en"
+    else:
+        # Portuguese at /pt/
+        return f"{BASE_PATH}/pt/{path}" if path else f"{BASE_PATH}/pt"
+
+
+def get_alternate_lang(current_lang: str) -> str:
+    """Get the alternate language code"""
+    return 'pt' if current_lang == 'en' else 'en'
+
+
+def generate_lang_toggle_html(current_lang: str, current_page: str) -> str:
+    """Generate language toggle button HTML"""
+    other_lang = get_alternate_lang(current_lang)
+    other_lang_label = LANGUAGES[other_lang]['label']
+    other_lang_path = get_lang_path(other_lang, current_page)
+    
+    return f'''<a href="{other_lang_path}" class="lang-toggle" aria-label="Switch to {LANGUAGES[other_lang]['name']}" data-lang-switch="{other_lang}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span class="lang-label">{other_lang_label}</span>
+    </a>'''
+
+
+def generate_post_html(post, post_number, lang='en'):
     """Generate HTML for a single blog post"""
+    # Generate language-specific paths
+    lang_dir = LANGUAGES[lang]['dir']
+    current_page = f"blog/{post['slug']}.html"
+    lang_toggle_html = generate_lang_toggle_html(lang, current_page)
+    
     # Generate tags HTML for post page
     tags_html = ''
     if post.get('tags'):
@@ -108,7 +155,7 @@ def generate_post_html(post, post_number):
         last_updated_html = f'<div class="last-updated">Last updated: {updated_formatted}</div>'
     
     return f"""<!DOCTYPE html>>
-<html lang="en">
+<html lang="{lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -127,12 +174,13 @@ def generate_post_html(post, post_number):
 <body>
     <nav class="nav">
         <div class="nav-container">
-            <a href="{BASE_PATH}/index.html" class="logo">dan.rio</a>
+            <a href="{get_lang_path(lang, 'index.html')}" class="logo">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="{BASE_PATH}/index.html" class="active">BLOG</a></li>
-                    <li><a href="{BASE_PATH}/about.html">ABOUT</a></li>
+                    <li><a href="{get_lang_path(lang, 'index.html')}" class="active">BLOG</a></li>
+                    <li><a href="{get_lang_path(lang, 'about.html')}">ABOUT</a></li>
                 </ul>
+                {lang_toggle_html}
                 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="5"/>
@@ -156,7 +204,7 @@ def generate_post_html(post, post_number):
     <main class="container">
         <article class="post" style="view-transition-name: post-container-{post_number};">
             <header class="post-header">
-                <a href="{BASE_PATH}/index.html" class="back-link">← Back to Blog</a>
+                <a href="{get_lang_path(lang, 'index.html')}" class="back-link">← Back to Blog</a>
                 {last_updated_html}
                 <h1 class="post-title-large" style="view-transition-name: post-title-{post_number};">{post['title'].upper()}</h1>
                 <div class="post-meta">
@@ -202,7 +250,7 @@ def generate_post_html(post, post_number):
 </html>"""
 
 
-def generate_post_card(post, post_number):
+def generate_post_card(post, post_number, lang='en'):
     """Generate HTML card for the index page"""
     # Generate tags HTML
     tags_html = ''
@@ -215,6 +263,9 @@ def generate_post_card(post, post_number):
     created_timestamp = post.get('created_date', '')
     updated_timestamp = post.get('updated_date', '')
     
+    # Generate language-specific blog post link
+    post_url = get_lang_path(lang, f"blog/{post['slug']}.html")
+    
     return f"""            <article class="post-card" 
                      data-year="{post['year']}" 
                      data-month="{post['month']}" 
@@ -222,7 +273,7 @@ def generate_post_card(post, post_number):
                      data-created="{created_timestamp}"
                      data-updated="{updated_timestamp}"
                      style="view-transition-name: post-container-{post_number};">
-                <a href="{BASE_PATH}/blog/{post['slug']}.html" class="post-link">
+                <a href="{post_url}" class="post-link">
                     <div class="post-content">
                         <h2 class="post-title" style="view-transition-name: post-title-{post_number};">{post['title'].upper()}</h2>
                         <time class="post-date" style="view-transition-name: post-date-{post_number};">{post['date']}</time>
@@ -235,9 +286,10 @@ def generate_post_card(post, post_number):
             </article>"""
 
 
-def generate_index_html(posts):
+def generate_index_html(posts, lang='en'):
     """Generate the main index.html page"""
-    posts_html = '\n\n'.join(generate_post_card(post, i + 1) for i, post in enumerate(posts))
+    lang_toggle_html = generate_lang_toggle_html(lang, 'index.html')
+    posts_html = '\n\n'.join(generate_post_card(post, i + 1, lang) for i, post in enumerate(posts))
     
     # Collect all unique years, months, and tags for filters (only from existing posts)
     years = sorted(set(post['year'] for post in posts), reverse=True)
@@ -265,7 +317,7 @@ def generate_index_html(posts):
     )
     
     return f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="{lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -286,12 +338,13 @@ def generate_index_html(posts):
 <body>
     <nav class="nav">
         <div class="nav-container">
-            <a href="{BASE_PATH}/index.html" class="logo">dan.rio</a>
+            <a href="{get_lang_path(lang, 'index.html')}" class="logo">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="{BASE_PATH}/index.html" class="active">BLOG</a></li>
-                    <li><a href="{BASE_PATH}/about.html">ABOUT</a></li>
+                    <li><a href="{get_lang_path(lang, 'index.html')}" class="active">BLOG</a></li>
+                    <li><a href="{get_lang_path(lang, 'about.html')}">ABOUT</a></li>
                 </ul>
+                {lang_toggle_html}
                 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="5"/>
@@ -386,10 +439,12 @@ def generate_index_html(posts):
 </html>"""
 
 
-def generate_about_html():
+def generate_about_html(lang='en'):
     """Generate the about.html page"""
+    lang_toggle_html = generate_lang_toggle_html(lang, 'about.html')
+    
     return f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="{lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -409,12 +464,13 @@ def generate_about_html():
 <body>
     <nav class="nav">
         <div class="nav-container">
-            <a href="{BASE_PATH}/index.html" class="logo">dan.rio</a>
+            <a href="{get_lang_path(lang, 'index.html')}" class="logo">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="{BASE_PATH}/index.html">BLOG</a></li>
-                    <li><a href="{BASE_PATH}/about.html" class="active">ABOUT</a></li>
+                    <li><a href="{get_lang_path(lang, 'index.html')}">BLOG</a></li>
+                    <li><a href="{get_lang_path(lang, 'about.html')}" class="active">ABOUT</a></li>
                 </ul>
+                {lang_toggle_html}
                 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="5"/>
@@ -635,8 +691,8 @@ def parse_markdown_post(filepath):
 
 
 def build():
-    """Main build function"""
-    print("🏗️  Building blog from Markdown...\n")
+    """Main build function with bilingual support"""
+    print("🏗️  Building bilingual blog from Markdown...\n")
     
     # Run validation first
     try:
@@ -646,6 +702,15 @@ def build():
             return False
     except ImportError:
         print("⚠️  Skipping validation (validate.py not found)\n")
+    
+    # Initialize translator
+    try:
+        translator = GeminiTranslator()
+        print("🌐 Translation system initialized\n")
+    except Exception as e:
+        print(f"⚠️  Translation system unavailable: {e}")
+        print("   Continuing with English-only build\n")
+        translator = None
     
     # Get all markdown files
     md_files = sorted(POSTS_DIR.glob("*.md"))
@@ -657,56 +722,108 @@ def build():
     
     print(f"📝 Found {len(md_files)} markdown file(s)\n")
     
-    # Parse all posts
-    posts = []
+    # Parse all posts (English versions)
+    posts_en = []
+    posts_pt = []
+    
     for md_file in md_files:
         try:
-            post = parse_markdown_post(md_file)
-            posts.append(post)
-            print(f"   ✓ Parsed: {md_file.name}")
+            # Parse English version
+            post_en = parse_markdown_post(md_file)
+            posts_en.append(post_en)
+            print(f"   ✓ Parsed: {md_file.name} (EN)")
+            
+            # Translate to Portuguese if translator available
+            if translator:
+                try:
+                    post_pt = translator.translate_if_needed(post_en, 'pt')
+                    posts_pt.append(post_pt)
+                    print(f"   ✓ Translated: {md_file.name} (PT)")
+                except Exception as e:
+                    print(f"   ⚠️  Translation failed for {md_file.name}: {e}")
+                    # Use English version as fallback
+                    posts_pt.append(post_en)
         except Exception as e:
             print(f"   ✗ Error parsing {md_file.name}: {e}")
             return False
     
-    # Sort posts (by order, then by updated date - most recently updated first)
-    posts.sort(key=lambda p: (-p['order'], p['updated_date']), reverse=True)
+    # Sort posts (by order, then by updated date)
+    posts_en.sort(key=lambda p: (-p['order'], p['updated_date']), reverse=True)
+    posts_pt.sort(key=lambda p: (-p['order'], p['updated_date']), reverse=True)
     
     print(f"\n🔨 Generating HTML files...\n")
     
-    # Generate HTML for each post
-    for i, post in enumerate(posts):
+    # Generate English site
+    print("   📄 English version:")
+    for i, post in enumerate(posts_en):
         try:
-            html = generate_post_html(post, i + 1)
-            output_file = OUTPUT_DIR / f"{post['slug']}.html"
+            html = generate_post_html(post, i + 1, lang='en')
+            output_file = LANG_DIRS['en'] / 'blog' / f"{post['slug']}.html"
             output_file.write_text(html, encoding='utf-8')
             
-            # Update metadata after successful generation (with content hash for change detection)
+            # Update metadata
             update_post_metadata(post['slug'], output_file, post['content_hash'])
             
-            print(f"   ✓ Generated: blog/{post['slug']}.html")
+            print(f"      ✓ blog/{post['slug']}.html")
         except Exception as e:
-            print(f"   ✗ Error generating {post['slug']}.html: {e}")
+            print(f"      ✗ Error generating {post['slug']}.html: {e}")
             return False
     
-    # Generate index.html
+    # Generate English index
     try:
-        index_html = generate_index_html(posts)
-        INDEX_FILE.write_text(index_html, encoding='utf-8')
-        print(f"   ✓ Generated: index.html")
+        index_html = generate_index_html(posts_en, lang='en')
+        index_file = LANG_DIRS['en'] / 'index.html'
+        index_file.write_text(index_html, encoding='utf-8')
+        print(f"      ✓ index.html")
     except Exception as e:
-        print(f"   ✗ Error generating index.html: {e}")
+        print(f"      ✗ Error generating index.html: {e}")
         return False
     
-    # Generate about.html
+    # Generate English about
     try:
-        about_html = generate_about_html()
-        ABOUT_FILE.write_text(about_html, encoding='utf-8')
-        print(f"   ✓ Generated: about.html")
+        about_html = generate_about_html(lang='en')
+        about_file = LANG_DIRS['en'] / 'about.html'
+        about_file.write_text(about_html, encoding='utf-8')
+        print(f"      ✓ about.html")
     except Exception as e:
-        print(f"   ✗ Error generating about.html: {e}")
+        print(f"      ✗ Error generating about.html: {e}")
         return False
     
-    print(f"\n🎉 Build complete! {len(posts)} post(s) compiled.\n")
+    # Generate Portuguese site (if translations available)
+    if posts_pt:
+        print("\n   📄 Portuguese version:")
+        for i, post in enumerate(posts_pt):
+            try:
+                html = generate_post_html(post, i + 1, lang='pt')
+                output_file = LANG_DIRS['pt'] / 'blog' / f"{post['slug']}.html"
+                output_file.write_text(html, encoding='utf-8')
+                print(f"      ✓ blog/{post['slug']}.html")
+            except Exception as e:
+                print(f"      ✗ Error generating {post['slug']}.html: {e}")
+                return False
+        
+        # Generate Portuguese index
+        try:
+            index_html = generate_index_html(posts_pt, lang='pt')
+            index_file = LANG_DIRS['pt'] / 'index.html'
+            index_file.write_text(index_html, encoding='utf-8')
+            print(f"      ✓ index.html")
+        except Exception as e:
+            print(f"      ✗ Error generating index.html: {e}")
+            return False
+        
+        # Generate Portuguese about
+        try:
+            about_html = generate_about_html(lang='pt')
+            about_file = LANG_DIRS['pt'] / 'about.html'
+            about_file.write_text(about_html, encoding='utf-8')
+            print(f"      ✓ about.html")
+        except Exception as e:
+            print(f"      ✗ Error generating about.html: {e}")
+            return False
+    
+    lang_count = 2 if posts_pt else 1
+    print(f"\n🎉 Build complete! {len(posts_en)} post(s) in {lang_count} language(s).\n")
     return True
 
 

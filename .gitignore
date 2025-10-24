@@ -7,6 +7,10 @@ __pycache__/
 venv/
 env/
 
+# Environment & Secrets
+.env
+translation-cache.json
+
 # OS
 .DS_Store
 Thumbs.db

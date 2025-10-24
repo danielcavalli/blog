@@ -378,6 +378,44 @@ body.theme-transitioning .post-title {
 }
 
 /* Theme Toggle Button */
+/* Language and Theme Toggles */
+.lang-toggle {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0 0.75rem;
+    cursor: pointer;
+    transition: all var(--transition-speed) var(--transition-easing);
+    text-decoration: none;
+    color: var(--color-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.lang-toggle:hover {
+    background: var(--color-hover);
+    border-color: var(--color-text);
+}
+
+.lang-toggle svg {
+    transition: transform var(--transition-speed) var(--transition-easing);
+    flex-shrink: 0;
+}
+
+.lang-toggle:hover svg {
+    transform: rotate(180deg);
+}
+
+.lang-label {
+    transition: opacity var(--transition-speed) var(--transition-easing);
+}
+
 .theme-toggle {
     background: transparent;
     border: 1px solid var(--color-border);

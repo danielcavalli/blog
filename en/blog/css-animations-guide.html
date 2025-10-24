@@ -1,0 +1,303 @@
+<!DOCTYPE html>>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Art of CSS Animations - dan.rio</title>
+    <link rel="stylesheet" href="/blog/styles.css">
+    <link rel="stylesheet" href="/blog/post.css">
+    <link rel="preload" href="/blog/theme.js" as="script">
+    <style>
+        @view-transition {
+            navigation: auto;
+        }
+    </style>
+    <script src="/blog/theme.js"></script>
+    <script src="/blog/transitions.js" defer></script>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/blog/en/index.html" class="logo">dan.rio</a>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="/blog/en/index.html" class="active">BLOG</a></li>
+                    <li><a href="/blog/en/about.html">ABOUT</a></li>
+                </ul>
+                <a href="/blog/pt/blog/css-animations-guide.html" class="lang-toggle" aria-label="Switch to Português" data-lang-switch="pt">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span class="lang-label">PT</span>
+    </a>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <article class="post" style="view-transition-name: post-container-2;">
+            <header class="post-header">
+                <a href="/blog/en/index.html" class="back-link">← Back to Blog</a>
+                <div class="last-updated">Last updated: October 24, 2025 at 01:06 AM</div>
+                <h1 class="post-title-large" style="view-transition-name: post-title-2;">THE ART OF CSS ANIMATIONS</h1>
+                <div class="post-meta">
+                    <time class="post-date" style="view-transition-name: post-date-2;">October 23, 2025</time>
+                    <span class="post-separator">•</span>
+                    <span class="post-reading-time">6 min read</span>
+                </div>
+                <div class="post-tags"><span class="tag-pill">css</span><span class="tag-pill">web</span><span class="tag-pill">animations</span><span class="tag-pill">performance</span></div>
+            </header>
+
+            <div class="post-body">
+                <p class="lead" style="view-transition-name: post-excerpt-2;">
+                    Creating smooth, performant animations using only CSS. A deep dive into building coherent motion systems for the modern web.
+                </p>
+                <h2>Why CSS Animations?</h2>
+<p>CSS animations offer several advantages over JavaScript-based animations. They're hardware-accelerated, more performant, and maintain smooth 60fps frame rates even on lower-end devices. But more importantly, they enable a <strong>declarative approach to motion</strong> — you define what should happen, and the browser handles how.</p>
+<p>This blog is built entirely on CSS-first animations. JavaScript is used only to trigger state changes; the visual behavior lives in stylesheets.</p>
+<h2>The Philosophy of Motion</h2>
+<p>Before choosing animation techniques, consider what the motion <em>means</em>. Every transition should answer three questions: <strong>Where from? Where to? How does it relate to what came before?</strong></p>
+<p>On this site, animations serve three core principles:<br />
+1. <strong>Continuity</strong> - Everything exists in one uninterrupted surface<br />
+2. <strong>Physical Plausibility</strong> - Motion echoes real-world dynamics without imitating them<br />
+3. <strong>Calm Energy</strong> - Purposeful movement without agitation</p>
+<p>Motion is never decoration. It establishes spatial relationships and acknowledges state changes. The interface breathes.</p>
+<h2>The Building Blocks</h2>
+<p>CSS provides three main ways to create animations:</p>
+<h3>Transitions</h3>
+<p>Smooth interpolations between states. Used for hover effects, theme changes, and dropdown expansions. The key is using shared motion constants. All transitions on this site use the same easing curve: <code>cubic-bezier(0.4, 0, 0.2, 1)</code>.</p>
+<pre><code class="language-css">:root {
+    --motion-duration-core: 500ms;
+    --motion-duration-quick: 300ms;
+    --motion-duration-ripple: 600ms;
+    --motion-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-select {
+    transition: all var(--motion-duration-core) var(--motion-easing);
+}
+</code></pre>
+<p>This creates a shared temporal rhythm. Every interaction feels like part of the same choreography.</p>
+<h3>Keyframe Animations</h3>
+<p>Multi-step choreography for complex motions. This blog uses keyframes sparingly — only for initial page load animations where elements fade in and rise upward.</p>
+<pre><code class="language-css">@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</code></pre>
+<h3>Transform Properties</h3>
+<p>The performance backbone. <code>translateY</code>, <code>scale</code>, and <code>rotate</code> are hardware-accelerated and won't trigger expensive reflows. When the header slides behind the navigation bar, it uses <code>translateY(-120%)</code> with a 500ms duration, matching the core motion timing.</p>
+<h2>View Transitions API</h2>
+<p>Modern browsers support the <strong>View Transitions API</strong>, which enables seamless morphing between page navigations. This blog uses it to transform post cards into full articles:</p>
+<pre><code class="language-css">::view-transition-old(post-container-1),
+::view-transition-new(post-container-1) {
+    animation-duration: var(--motion-duration-core);
+    animation-timing-function: var(--motion-easing);
+}
+</code></pre>
+<p>The critical insight: <strong>fetch content BEFORE calling <code>startViewTransition()</code></strong>. Change the DOM synchronously inside the callback. This ensures the browser captures old and new states correctly, preventing flash-of-content issues.</p>
+<pre><code class="language-javascript">async function navigateTo(url) {
+    const response = await fetch(url);
+    const html = await response.text();
+
+    document.startViewTransition(() =&gt; {
+        // Synchronous DOM swap here
+        updateDOM(html);
+    });
+}
+</code></pre>
+<h2>Performance Matters</h2>
+<p>Not all CSS properties are created equal when it comes to animation performance. </p>
+<p><strong>Hardware-accelerated (GPU):</strong><br />
+- <code>transform</code> (translate, scale, rotate)<br />
+- <code>opacity</code><br />
+- <code>filter</code> (with caution — can be expensive)</p>
+<p><strong>Avoid animating:</strong><br />
+- <code>width</code>, <code>height</code>, <code>margin</code>, <code>padding</code> (triggers layout)<br />
+- <code>color</code>, <code>background-color</code> alone (triggers paint)<br />
+- <code>box-shadow</code> (expensive, but acceptable for subtle hover states)</p>
+<p>Use <code>will-change</code> sparingly and only during active animations:</p>
+<pre><code class="language-css">.post-card.filtering-out {
+    opacity: 0;
+    will-change: opacity;
+}
+
+.post-card:not(.filtering-out) {
+    will-change: auto; /* Reset after animation */
+}
+</code></pre>
+<p>This tells the browser to optimize GPU compositing, but only when needed. Leaving <code>will-change</code> active wastes memory.</p>
+<h2>The Rhythm of Interaction</h2>
+<p>All animations on this site follow a consistent temporal rhythm defined by CSS custom properties:<br />
+- <strong>500ms (core)</strong> for most transitions (morphing, sliding, expansion)<br />
+- <strong>300ms (quick)</strong> for micro-interactions (hover feedback)<br />
+- <strong>600ms (ripple)</strong> for atmospheric changes (theme transitions)<br />
+- <strong>Same easing everywhere</strong>: <code>cubic-bezier(0.4, 0, 0.2, 1)</code></p>
+<p>This consistency creates a unified "breathing" feeling. When filters expand, dropdowns open, and cards dissolve, they all move to the same pulse.</p>
+<h2>Staggered Reveals</h2>
+<p>When showing multiple elements, stagger their appearance with CSS transition delays:</p>
+<pre><code class="language-css">.filter-row {
+    transition: all var(--motion-duration-core) var(--motion-easing) 0.1s;
+}
+
+.filter-tags {
+    transition: all var(--motion-duration-core) var(--motion-easing) 0.2s;
+}
+</code></pre>
+<p>The filter controls appear 100ms before the tag pills, creating a cascade that guides the eye downward naturally. This breathing expansion makes the interface feel like it's unfolding from a single surface.</p>
+<h2>Organic Boundaries</h2>
+<p>One unique pattern this blog uses: <strong>overflow nudging</strong>. When a dropdown list extends beyond the filter panel boundary, the entire block expands from its bottom edge, making room organically:</p>
+<pre><code class="language-css">.filters.expanded.dropdown-active {
+    padding-bottom: 5rem;
+}
+</code></pre>
+<p>JavaScript measures actual DOM overflow using <code>getBoundingClientRect()</code> and applies the class when needed. CSS handles the smooth expansion. The result feels like the page is aware of its own geometry and responds physically.</p>
+<h2>Theme Transitions</h2>
+<p>Switching between light and dark mode isn't just a color swap. It's an <strong>atmospheric lighting shift</strong>. The key is changing the theme FIRST, then enabling transitions:</p>
+<pre><code class="language-javascript">function applyTheme(theme, animated) {
+    if (animated) {
+        // Change theme immediately
+        document.documentElement.setAttribute('data-theme', theme);
+
+        // Force reflow
+        document.body.offsetHeight;
+
+        // Enable smooth transitions for 600ms
+        document.body.classList.add('theme-transitioning');
+
+        setTimeout(() =&gt; {
+            document.body.classList.remove('theme-transitioning');
+        }, 600);
+    }
+}
+</code></pre>
+<pre><code class="language-css">body.theme-transitioning * {
+    transition: background-color var(--motion-duration-ripple) var(--motion-easing),
+                color var(--motion-duration-ripple) var(--motion-easing),
+                border-color var(--motion-duration-ripple) var(--motion-easing);
+}
+</code></pre>
+<p>The effect: the entire page ripples through a new lighting state in 600ms, maintaining the illusion of a single continuous surface. No flash, no abrupt snaps.</p>
+<h2>FLIP: Animating Layout Changes</h2>
+<p>When filtering blog posts, cards need to reorganize smoothly. The <strong>FLIP technique</strong> (First, Last, Invert, Play) makes layout changes appear animated:</p>
+<p><strong>Two-Phase Choreography:</strong><br />
+1. <strong>Dissolve</strong>: Cards losing relevance fade out over 500ms<br />
+2. <strong>Reorganize</strong>: Remaining cards slide into new positions using FLIP</p>
+<pre><code class="language-javascript">// Phase 1: Capture initial positions
+const initialPositions = new Map();
+cards.forEach(card =&gt; {
+    const rect = card.getBoundingClientRect();
+    initialPositions.set(card, { top: rect.top, left: rect.left });
+});
+
+// Apply filter changes (cards removed from layout)
+cardsToHide.forEach(card =&gt; card.classList.add('filtering-out'));
+
+// Wait for dissolve to complete via transitionend event
+grid.addEventListener('transitionend', () =&gt; {
+    // Phase 2: Capture final positions
+    const finalPositions = new Map();
+    visibleCards.forEach(card =&gt; {
+        const rect = card.getBoundingClientRect();
+        finalPositions.set(card, { top: rect.top, left: rect.left });
+    });
+
+    // FLIP: Calculate deltas and animate
+    visibleCards.forEach(card =&gt; {
+        const deltaY = initial.top - final.top;
+        const deltaX = initial.left - final.left;
+
+        card.style.setProperty('--flip-x', `${deltaX}px`);
+        card.style.setProperty('--flip-y', `${deltaY}px`);
+        card.classList.add('flip-animating');
+    });
+});
+</code></pre>
+<pre><code class="language-css">.post-card.flip-animating {
+    transition: transform var(--motion-duration-core) var(--motion-easing);
+    transform: translate(var(--flip-x, 0), var(--flip-y, 0));
+    will-change: transform;
+}
+</code></pre>
+<p>The result: cards dissolve, then the grid smoothly contracts. No jarring jumps. JavaScript controls state; CSS controls visuals.</p>
+<h2>Practical Examples</h2>
+<p>Every interaction on this blog demonstrates these principles:</p>
+<ul>
+<li><strong>Card hover</strong>: <code>translateY(-2px)</code> lift with shadow bloom (300ms quick duration)</li>
+<li><strong>Tag pills</strong>: Gradient backgrounds with 3px lift, expanding shadows (500ms core duration)</li>
+<li><strong>Dropdown unfold</strong>: <code>max-height: 0 to 300px</code> with opacity fade (500ms)</li>
+<li><strong>Filter expansion</strong>: Staggered reveals (100ms, 200ms delays) with bottom-edge growth</li>
+<li><strong>Post morphing</strong>: View Transitions API for card-to-article transformation (500ms)</li>
+<li><strong>Theme ripple</strong>: All color properties transition together (600ms atmospheric shift)</li>
+<li><strong>Card filtering</strong>: Two-phase dissolve (500ms) then FLIP reorganization (500ms)</li>
+</ul>
+<p>Each animation answers: Where from? Where to? How does it relate? Nothing appears or disappears without spatial context.</p>
+<h2>Accessibility First</h2>
+<p>Always respect user preferences with the <code>prefers-reduced-motion</code> media query. Some users find animations distracting or disorienting:</p>
+<pre><code class="language-css">@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</code></pre>
+<p>Motion should enhance, never hinder. When a user signals they need reduced motion, honor that immediately.</p>
+<h2>The Result</h2>
+<p>CSS animations, when approached systematically, create interfaces that feel <strong>alive but calm</strong>. The goal isn't to impress with flashy transitions, but to build trust through spatial coherence.</p>
+<p>Every animation on this blog serves the same philosophy:<br />
+- <strong>Continuity</strong>: One uninterrupted surface<br />
+- <strong>Physical Plausibility</strong>: Motion that echoes real dynamics<br />
+- <strong>Calm Energy</strong>: Purposeful, never agitated</p>
+<p>Use CSS custom properties for shared timing. Let the browser handle sequencing via <code>transitionend</code> events. Apply <code>will-change</code> only during active animations. Always ask: Where from? Where to? How does it relate?</p>
+<p>The interface doesn't perform. It responds.</p>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="social-links">
+                <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/danielcavalli" target="_blank" rel="noopener" aria-label="GitHub">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/cavallidaniel/" target="_blank" rel="noopener" aria-label="LinkedIn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                </a>
+            </div>
+            <p class="copyright">© 2025 All Rights Reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
