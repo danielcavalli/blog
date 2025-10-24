@@ -10,14 +10,15 @@
 
 /* View Transitions API - Seamless Morphing */
 @supports (view-transition-name: none) {
-    /* Root transition - prevent white flash during page morphing */
+    /* Root should only animate, not morph - prevents "small block" glitch */
     ::view-transition-old(root),
     ::view-transition-new(root) {
         animation-duration: 0.35s;
         animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        mix-blend-mode: normal;
     }
     
-    /* Prevent white block overlay during transition */
+    /* Disable default slide/scale on root to prevent layout shift */
     ::view-transition-group(root) {
         animation-duration: 0.35s;
         animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -27,13 +28,28 @@
         isolation: auto;
     }
     
-    /* Smooth cross-fade for root */
+    /* Simple cross-fade for root - no position morphing */
     ::view-transition-old(root) {
         animation: fade-out 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     ::view-transition-new(root) {
         animation: fade-in 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Ensure new content fills viewport during transition - prevents "small block" glitch */
+    ::view-transition-new(root) {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+    }
+    
+    ::view-transition-old(root) {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
     }
     
     /* Card content container - expands to full article smoothly */
