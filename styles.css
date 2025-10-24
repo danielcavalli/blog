@@ -8,108 +8,178 @@
     box-sizing: border-box;
 }
 
-/* View Transitions API - Seamless Morphing */
+/* View Transitions API - Single Canvas Spatial Movement */
 @supports (view-transition-name: none) {
-    /* Root should only animate, not morph - prevents "small block" glitch */
+    /* Disable root morphing - we orchestrate everything manually */
     ::view-transition-old(root),
     ::view-transition-new(root) {
-        animation-duration: 0.35s;
-        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        mix-blend-mode: normal;
+        animation: none;
     }
     
-    /* Disable default slide/scale on root to prevent layout shift */
     ::view-transition-group(root) {
-        animation-duration: 0.35s;
+        animation-duration: 0s;
+    }
+    
+    /* Global timing - slower, more deliberate like breathing */
+    ::view-transition-group(*) {
+        animation-duration: 0.75s;
         animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     }
     
-    ::view-transition-image-pair(root) {
-        isolation: auto;
+    /* HEADER: Slides up behind nav bar when going to post, slides down when returning */
+    ::view-transition-old(blog-header) {
+        animation: slide-header-up 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
     
-    /* Simple cross-fade for root - no position morphing */
-    ::view-transition-old(root) {
-        animation: fade-out 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    ::view-transition-new(blog-header) {
+        animation: slide-header-down 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
     
-    ::view-transition-new(root) {
-        animation: fade-in 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    @keyframes slide-header-up {
+        from {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateY(-120%);
+            opacity: 0;
+        }
     }
     
-    /* Ensure new content fills viewport during transition - prevents "small block" glitch */
-    ::view-transition-new(root) {
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100vh;
+    @keyframes slide-header-down {
+        from {
+            transform: translateY(-120%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
     }
     
-    ::view-transition-old(root) {
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100vh;
+    /* FILTERS: Same upward scroll motion */
+    ::view-transition-old(blog-filters) {
+        animation: slide-filters-up 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
     
-    /* Card content container - expands to full article smoothly */
-    ::view-transition-old(post-content-1),
-    ::view-transition-new(post-content-1),
-    ::view-transition-old(post-content-2),
-    ::view-transition-new(post-content-2),
-    ::view-transition-old(post-content-3),
-    ::view-transition-new(post-content-3) {
-        animation-duration: 0.4s;
+    ::view-transition-new(blog-filters) {
+        animation: slide-filters-down 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    
+    @keyframes slide-filters-up {
+        from {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+    }
+    
+    @keyframes slide-filters-down {
+        from {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    /* POST CARDS: The active one expands, others fade slightly */
+    ::view-transition-group(post-container-1),
+    ::view-transition-group(post-container-2),
+    ::view-transition-group(post-container-3) {
+        animation-duration: 0.75s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    ::view-transition-old(post-container-1),
+    ::view-transition-new(post-container-1),
+    ::view-transition-old(post-container-2),
+    ::view-transition-new(post-container-2),
+    ::view-transition-old(post-container-3),
+    ::view-transition-new(post-container-3) {
+        animation-duration: 0.75s;
         animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         mix-blend-mode: normal;
     }
     
-    /* Title - stays anchored, morphs smoothly in place */
+    /* Title morphs smoothly within the expanding card */
+    ::view-transition-group(post-title-1),
+    ::view-transition-group(post-title-2),
+    ::view-transition-group(post-title-3) {
+        animation-duration: 0.75s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
     ::view-transition-old(post-title-1),
     ::view-transition-new(post-title-1),
     ::view-transition-old(post-title-2),
     ::view-transition-new(post-title-2),
     ::view-transition-old(post-title-3),
     ::view-transition-new(post-title-3) {
-        animation-duration: 0.4s;
+        animation-duration: 0.75s;
         animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         mix-blend-mode: normal;
     }
     
-    /* Date element - maintains position during card expansion */
+    /* Date morphs with title */
+    ::view-transition-group(post-date-1),
+    ::view-transition-group(post-date-2),
+    ::view-transition-group(post-date-3) {
+        animation-duration: 0.75s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
     ::view-transition-old(post-date-1),
     ::view-transition-new(post-date-1),
     ::view-transition-old(post-date-2),
     ::view-transition-new(post-date-2),
     ::view-transition-old(post-date-3),
     ::view-transition-new(post-date-3) {
-        animation-duration: 0.4s;
+        animation-duration: 0.75s;
         animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         mix-blend-mode: normal;
     }
     
-    /* Excerpt fades to full content gracefully */
+    /* Excerpt fades and morphs */
+    ::view-transition-group(post-excerpt-1),
+    ::view-transition-group(post-excerpt-2),
+    ::view-transition-group(post-excerpt-3) {
+        animation-duration: 0.75s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
     ::view-transition-old(post-excerpt-1),
     ::view-transition-new(post-excerpt-1),
     ::view-transition-old(post-excerpt-2),
     ::view-transition-new(post-excerpt-2),
     ::view-transition-old(post-excerpt-3),
     ::view-transition-new(post-excerpt-3) {
-        animation-duration: 0.4s;
+        animation-duration: 0.75s;
         animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         mix-blend-mode: normal;
     }
     
-    /* Smooth fade animations */
-    @keyframes fade-out {
+    /* Smooth cross-fade animations for different font sizes */
+    @keyframes fade-out-smooth {
+        from {
+            opacity: 1;
+        }
         to {
             opacity: 0;
         }
     }
     
-    @keyframes fade-in {
+    @keyframes fade-in-smooth {
         from {
             opacity: 0;
+        }
+        to {
+            opacity: 1;
         }
     }
 }
@@ -151,6 +221,7 @@
 /* Dark mode - explicit data attribute (user preference) */
 [data-theme="dark"] {
     --color-bg: #0a0a0a;
+    --color-bg-rgb: 10, 10, 10;
     --color-text: #ffffff;
     --color-text-secondary: #a0a0a0;
     --color-border: #2a2a2a;
@@ -161,6 +232,7 @@
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
         --color-bg: #0a0a0a;
+        --color-bg-rgb: 10, 10, 10;
         --color-text: #ffffff;
         --color-text-secondary: #a0a0a0;
         --color-border: #2a2a2a;
@@ -187,6 +259,17 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Theme Transition Ripple - Ambient Light Change */
+body.theme-transitioning,
+body.theme-transitioning * {
+    transition: background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                fill 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                stroke 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
 /* ==========================================
    NAVIGATION
    ========================================== */
@@ -196,7 +279,9 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    background-color: var(--color-bg);
+    background-color: rgba(var(--color-bg-rgb), 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-border);
     z-index: 1000;
     animation: slideDown 0.5s var(--transition-easing);
@@ -354,8 +439,18 @@ body {
    ========================================== */
 
 .page-header {
-    margin-bottom: 4rem;
+    margin-bottom: 2rem;
     animation: fadeInUp 0.65s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: margin-bottom 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* No longer needed - expansion happens on .filters instead */
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
 }
 
 @keyframes fadeInUp {
@@ -375,6 +470,52 @@ body {
     letter-spacing: -0.03em;
     line-height: 1.1;
     text-rendering: optimizeLegibility;
+    margin: 0;
+}
+
+/* Filter Toggle Button - Part of the Surface */
+.filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-hover);
+    border: 1px solid var(--color-border);
+    border-radius: 24px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.filter-toggle:hover {
+    background: var(--color-border);
+    color: var(--color-text);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.filter-toggle-icon {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-toggle.active .filter-toggle-icon {
+    transform: rotate(180deg);
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .filter-toggle {
+        align-self: stretch;
+        justify-content: center;
+    }
 }
 
 /* ==========================================
@@ -444,12 +585,6 @@ body {
     outline: none;
 }
 
-/* Smooth focus state for keyboard navigation */
-.post-link:focus-visible {
-    outline: 2px solid var(--color-text);
-    outline-offset: 4px;
-}
-
 .post-content {
     padding: var(--space-xl);
     border: 1px solid var(--color-border);
@@ -459,22 +594,22 @@ body {
     transition: all var(--transition-speed) var(--transition-easing);
     position: relative;
     overflow: hidden;
-    contain: layout style paint;
-    will-change: transform;
+    contain: paint layout style;
+    will-change: transform, opacity;
 }
 
-/* Hover effect - lifts card smoothly */
+/* Hover effect - elegant shadow and subtle highlight */
 .post-card:hover .post-content {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
     box-shadow: 
-        0 2px 4px rgba(0, 0, 0, 0.04),
-        0 8px 16px rgba(0, 0, 0, 0.06);
-    border-color: var(--color-text-secondary);
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        0 12px 32px rgba(0, 0, 0, 0.12);
+    background-color: var(--color-hover);
 }
 
 /* Active/press state for tactile feedback */
 .post-card:active .post-content {
-    transform: translateY(-1px);
+    transform: translateY(0px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     transition-duration: 0.08s;
 }
@@ -691,6 +826,348 @@ button:focus-visible {
 /* Remove outline for mouse users */
 :focus:not(:focus-visible) {
     outline: none;
+}
+
+/* ==========================================
+   FILTERS & TAGS - Breathing Layer
+   ========================================== */
+
+.filters {
+    margin: 0 0 3rem;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    background: transparent;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: top;
+}
+
+.filters.expanded {
+    max-height: 500px;
+    opacity: 1;
+    padding: 1.5rem;
+    margin: 1.5rem 0 3rem;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+/* Organic expansion when dropdown reaches boundary */
+.filters.expanded.dropdown-active {
+    padding-bottom: 5rem;
+}
+
+.filter-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s;
+    position: relative;
+    z-index: 10;
+}
+
+.filters.expanded .filter-row {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.filter-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s;
+    position: relative;
+    z-index: 1;
+}
+
+.filters.expanded .filter-tags {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Custom Dropdowns - text unfolding from the same surface */
+.custom-select {
+    position: relative;
+    flex: 1;
+    min-width: 150px;
+    z-index: 1000;
+}
+
+.select-trigger {
+    padding: 0.65rem 0.5rem;
+    padding-right: 2rem;
+    background: transparent;
+    color: var(--text-color);
+    border: none;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+    font-size: 0.95rem;
+    font-family: inherit;
+    font-weight: 400;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    
+    /* Subtle chevron - part of the text */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.25rem center;
+    background-size: 1rem;
+}
+
+[data-theme="dark"] .select-trigger {
+    border-bottom-color: rgba(200, 200, 200, 0.15);
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .select-trigger {
+        border-bottom-color: rgba(200, 200, 200, 0.15);
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    }
+}
+
+.select-trigger:hover {
+    border-bottom-color: rgba(128, 128, 128, 0.4);
+}
+
+[data-theme="dark"] .select-trigger:hover {
+    border-bottom-color: rgba(200, 200, 200, 0.3);
+}
+
+.custom-select.open .select-trigger {
+    border-bottom-color: var(--text-color);
+}
+
+/* Options list - sheet of text sliding down from the same surface */
+.select-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-bg);
+    border-left: 1px solid rgba(128, 128, 128, 0.15);
+    border-right: 1px solid rgba(128, 128, 128, 0.15);
+    border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .select-options {
+    background: var(--color-bg);
+    border-color: rgba(200, 200, 200, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .select-options {
+        background: var(--color-bg);
+        border-color: rgba(200, 200, 200, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+}
+
+.custom-select.open .select-options {
+    max-height: 300px;
+    opacity: 1;
+    overflow-y: auto;
+}
+
+/* Individual options - continuation of text hierarchy */
+.select-option {
+    padding: 0.65rem 0.5rem;
+    color: var(--text-color);
+    font-size: 0.95rem;
+    font-family: inherit;
+    font-weight: 400;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: background-color 0.15s ease,
+                color 0.15s ease;
+}
+
+.select-option:hover {
+    background-color: rgba(128, 128, 128, 0.08);
+}
+
+[data-theme="dark"] .select-option:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .select-option:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+}
+
+.select-option.selected {
+    font-weight: 500;
+}
+
+/* Scrollbar for options list - minimal, part of the surface */
+.select-options::-webkit-scrollbar {
+    width: 4px;
+}
+
+.select-options::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.select-options::-webkit-scrollbar-thumb {
+    background: rgba(128, 128, 128, 0.3);
+    border-radius: 2px;
+}
+
+[data-theme="dark"] .select-options::-webkit-scrollbar-thumb {
+    background: rgba(200, 200, 200, 0.3);
+}
+
+/* Old select styles - keep for fallback but hide */
+.filter-select {
+    display: none;
+}
+
+.filter-clear {
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.filter-clear:hover {
+    background: var(--accent-color);
+    color: var(--bg-color);
+}
+
+.filter-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-tag {
+    padding: 0.65rem 1.2rem;
+    background: linear-gradient(135deg, var(--color-hover) 0%, var(--color-bg) 100%);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 24px;
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: lowercase;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.filter-tag:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-hover) 100%);
+}
+
+.filter-tag.active {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #0056b3 100%);
+    color: white;
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.25);
+}
+
+.filter-tag.active:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(0, 123, 255, 0.35);
+}
+
+/* Tag pills on posts */
+.post-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+}
+
+.tag-pill {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    background: var(--bg-color);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    font-size: 0.8rem;
+    font-family: var(--font-mono);
+    text-transform: lowercase;
+    transition: all 0.2s ease;
+}
+
+.tag-pill:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+/* Post cards - filtering with two-phase choreography */
+.post-card {
+    /* Base transition for filtering fade */
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Phase 1: Dissolve - cards losing relevance fade out */
+.post-card.filtering-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Phase 2: After dissolve, remove from layout */
+.post-card.filtered-out {
+    display: none;
+}
+
+/* Posts grid maintains spatial continuity */
+.posts-grid {
+    position: relative;
+}
+
+/* Mobile responsive filters */
+@media (max-width: 768px) {
+    .filters.expanded {
+        padding: 1rem;
+        max-height: 600px;
+    }
+
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-select {
+        width: 100%;
+    }
+
+    .filter-clear {
+        width: 100%;
+    }
 }
 
 /* Improve touch targets on mobile */

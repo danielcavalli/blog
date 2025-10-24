@@ -28,21 +28,24 @@
     });
 
     // Navigate with View Transitions
-    function navigateTo(url) {
+    async function navigateTo(url) {
         if (isNavigating) return;
         isNavigating = true;
 
-        // Use native View Transitions API - CSS handles all animations
-        const transition = document.startViewTransition(async () => {
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('Navigation failed');
+        try {
+            // Fetch new page content BEFORE starting transition
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Navigation failed');
+            
+            const html = await response.text();
+            const parser = new DOMParser();
+            const newDoc = parser.parseFromString(html, 'text/html');
+            
+            // Now start the transition with the new content ready
+            const transition = document.startViewTransition(() => {
+                // This callback executes synchronously - DOM swap happens here
+                // Browser captures the "old" state, then we swap, then captures "new" state
                 
-                const html = await response.text();
-                const parser = new DOMParser();
-                const newDoc = parser.parseFromString(html, 'text/html');
-                
-                // Swap content smoothly
                 document.title = newDoc.title;
                 
                 // Update stylesheets if different
@@ -87,16 +90,16 @@
                 
                 // Scroll to top smoothly
                 window.scrollTo({ top: 0, behavior: 'instant' });
-            } catch (error) {
-                console.error('Navigation error:', error);
-                // Fallback to normal navigation
-                window.location.href = url;
-            }
-        });
+            });
 
-        transition.finished.finally(() => {
+            await transition.finished;
+        } catch (error) {
+            console.error('Navigation error:', error);
+            // Fallback to normal navigation
+            window.location.href = url;
+        } finally {
             isNavigating = false;
-        });
+        }
     }
 
     // Handle back/forward navigation

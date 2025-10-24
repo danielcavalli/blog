@@ -4,7 +4,7 @@ date: 2025-10-20
 excerpt: A somewhat technical blog on how GPU choice shapes what you can actually learn about CUDA, distributed training, and training optimization and the realities of running a personal ML workstation.
 slug: choosing-the-right-gpu-for-ai-learning
 order: 1
-tags: [cuda, pytorch, ddp, fsdp, blackwell, workstation, hardware]
+tags: [cuda, pytorch, learning material, workstation, hardware]
 image: /images/gpu-lab-hero.jpg
 canonical: https://example.com/blog/choosing-the-right-gpu-for-ai-learning
 ---

@@ -19,9 +19,24 @@
         return 'light';
     }
     
-    // Apply theme to document
-    function applyTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
+    // Apply theme to document with smooth ripple
+    function applyTheme(theme, animated = false) {
+        if (animated) {
+            // Add ripple effect class for smooth color transition
+            document.body.classList.add('theme-transitioning');
+            
+            // Apply theme after a brief delay for smoothness
+            requestAnimationFrame(() => {
+                document.documentElement.setAttribute('data-theme', theme);
+                
+                // Remove transition class after animation completes
+                setTimeout(() => {
+                    document.body.classList.remove('theme-transitioning');
+                }, 600);
+            });
+        } else {
+            document.documentElement.setAttribute('data-theme', theme);
+        }
     }
     
     // Toggle between light and dark
@@ -29,7 +44,7 @@
         const current = document.documentElement.getAttribute('data-theme') || 'light';
         const next = current === 'light' ? 'dark' : 'light';
         
-        applyTheme(next);
+        applyTheme(next, true); // Animated transition
         localStorage.setItem('theme-preference', next);
         
         // Announce to screen readers

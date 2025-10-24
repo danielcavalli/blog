@@ -360,6 +360,26 @@
 }
 
 /* ==========================================
+   ABOUT PAGE IMAGE
+   ========================================== */
+
+.about-image {
+    max-width: 400px;
+    width: 100%;
+    height: auto;
+    margin: 3rem auto;
+    display: block;
+    border-radius: var(--border-radius);
+}
+
+@media (max-width: 768px) {
+    .about-image {
+        max-width: 100%;
+        margin: 2rem auto;
+    }
+}
+
+/* ==========================================
    PRINT STYLES
    ========================================== */
 

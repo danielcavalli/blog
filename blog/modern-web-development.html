@@ -4,25 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modern Web Development - dan.rio</title>
-    <link rel="stylesheet" href="/blog/styles.css">
-    <link rel="stylesheet" href="/blog/post.css">
-    <link rel="preload" href="/blog/theme.js" as="script">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/post.css">
+    <link rel="preload" href="/theme.js" as="script">
     <style>
         @view-transition {
             navigation: auto;
         }
     </style>
-    <script src="/blog/theme.js"></script>
-    <script src="/blog/transitions.js" defer></script>
+    <script src="/theme.js"></script>
+    <script src="/transitions.js" defer></script>
 </head>
 <body>
     <nav class="nav">
         <div class="nav-container">
-            <a href="/blog/index.html" class="logo">dan.rio</a>
+            <a href="/index.html" class="logo">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="/blog/index.html" class="active">BLOG</a></li>
-                    <li><a href="/blog/about.html">ABOUT</a></li>
+                    <li><a href="/index.html" class="active">BLOG</a></li>
+                    <li><a href="/about.html">ABOUT</a></li>
                 </ul>
                 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -45,15 +45,16 @@
     </nav>
 
     <main class="container">
-        <article class="post" style="view-transition-name: post-content-3;">
+        <article class="post" style="view-transition-name: post-container-3;">
             <header class="post-header">
-                <a href="/blog/index.html" class="back-link">← Back to Blog</a>
+                <a href="/index.html" class="back-link">← Back to Blog</a>
                 <h1 class="post-title-large" style="view-transition-name: post-title-3;">MODERN WEB DEVELOPMENT</h1>
-                <div class="post-meta" style="view-transition-name: post-date-3;">
-                    <time class="post-date">October 20, 2025</time>
+                <div class="post-meta">
+                    <time class="post-date" style="view-transition-name: post-date-3;">October 20, 2025</time>
                     <span class="post-separator">•</span>
                     <span class="post-reading-time">2 min read</span>
                 </div>
+                <div class="post-tags"><span class="tag-pill">web</span><span class="tag-pill">css</span><span class="tag-pill">performance</span></div>
             </header>
 
             <div class="post-body">

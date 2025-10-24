@@ -5,25 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>dan.rio - Blog</title>
     <meta name="description" content="Personal blog by Daniel Cavalli on machine learning, CUDA, distributed training, and engineering.">
-    <link rel="stylesheet" href="/blog/styles.css">
-    <link rel="preload" href="/blog/theme.js" as="script">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="preload" href="/theme.js" as="script">
     <style>
         /* View Transitions API support */
         @view-transition {
             navigation: auto;
         }
     </style>
-    <script src="/blog/theme.js"></script>
-    <script src="/blog/transitions.js" defer></script>
+    <script src="/theme.js"></script>
+    <script src="/transitions.js" defer></script>
+    <script src="/filter.js" defer></script>
 </head>
 <body>
     <nav class="nav">
         <div class="nav-container">
-            <a href="/blog/index.html" class="logo">dan.rio</a>
+            <a href="/index.html" class="logo">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="/blog/index.html" class="active">BLOG</a></li>
-                    <li><a href="/blog/about.html">ABOUT</a></li>
+                    <li><a href="/index.html" class="active">BLOG</a></li>
+                    <li><a href="/about.html">ABOUT</a></li>
                 </ul>
                 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -46,40 +47,88 @@
     </nav>
 
     <main class="container">
-        <header class="page-header">
-            <h1 class="page-title">Latest Posts</h1>
+        <header class="page-header" style="view-transition-name: blog-header;">
+            <div class="header-content">
+                <h1 class="page-title">Latest Posts</h1>
+                <button id="filter-toggle" class="filter-toggle" aria-label="Toggle filters">
+                    <span class="filter-toggle-text">Filter</span>
+                    <svg class="filter-toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+            </div>
         </header>
 
+        <div class="filters" id="filters-panel" style="view-transition-name: blog-filters;">
+            <div class="filter-row">
+                <div class="custom-select" id="year-filter-wrapper">
+                    <div class="select-trigger" data-value="">
+                        <span class="select-label">All Years</span>
+                    </div>
+                    <div class="select-options">
+                        <div class="select-option" data-value="">All Years</div><div class="select-option" data-value="2025">2025</div>
+                    </div>
+                </div>
+                <div class="custom-select" id="month-filter-wrapper">
+                    <div class="select-trigger" data-value="">
+                        <span class="select-label">All Months</span>
+                    </div>
+                    <div class="select-options">
+                        <div class="select-option" data-value="">All Months</div><div class="select-option" data-value="October">October</div>
+                    </div>
+                </div>
+                <button id="clear-filters" class="filter-clear">Clear Filters</button>
+            </div>
+            <div class="filter-tags">
+                <button class="filter-tag" data-tag="animations">animations</button><button class="filter-tag" data-tag="css">css</button><button class="filter-tag" data-tag="cuda">cuda</button><button class="filter-tag" data-tag="hardware">hardware</button><button class="filter-tag" data-tag="learning material">learning material</button><button class="filter-tag" data-tag="performance">performance</button><button class="filter-tag" data-tag="pytorch">pytorch</button><button class="filter-tag" data-tag="web">web</button><button class="filter-tag" data-tag="workstation">workstation</button>
+            </div>
+        </div>
+
         <div class="posts-grid">
-            <article class="post-card">
-                <a href="/blog/blog/choosing-the-right-gpu-for-ai-learning.html" class="post-link">
-                    <div class="post-content" style="view-transition-name: post-content-1;">
-                        <h2 class="post-title" style="view-transition-name: post-title-1;">CHOOSING THE RIGHT GPU SETUP FOR AI ENGINEERING (AND LEARNING)</h2>
-                        <time class="post-date" style="view-transition-name: post-date-1;">2025-10-20</time>
+            <article class="post-card" 
+                     data-year="2025" 
+                     data-month="October" 
+                     data-tags="css,web,animations,performance"
+                     style="view-transition-name: post-container-1;">
+                <a href="/blog/css-animations-guide.html" class="post-link">
+                    <div class="post-content">
+                        <h2 class="post-title" style="view-transition-name: post-title-1;">THE ART OF CSS ANIMATIONS</h2>
+                        <time class="post-date" style="view-transition-name: post-date-1;">2025-10-23</time>
+                        <div class="post-tags"><span class="tag-pill">css</span><span class="tag-pill">web</span><span class="tag-pill">animations</span><span class="tag-pill">performance</span></div>
                         <p class="post-excerpt" style="view-transition-name: post-excerpt-1;">
+                            Creating smooth, performant animations using only CSS. A deep dive into building coherent motion systems for the modern web.
+                        </p>
+                    </div>
+                </a>
+            </article>
+
+            <article class="post-card" 
+                     data-year="2025" 
+                     data-month="October" 
+                     data-tags="cuda,pytorch,learning material,workstation,hardware"
+                     style="view-transition-name: post-container-2;">
+                <a href="/blog/choosing-the-right-gpu-for-ai-learning.html" class="post-link">
+                    <div class="post-content">
+                        <h2 class="post-title" style="view-transition-name: post-title-2;">CHOOSING THE RIGHT GPU SETUP FOR AI ENGINEERING (AND LEARNING)</h2>
+                        <time class="post-date" style="view-transition-name: post-date-2;">2025-10-20</time>
+                        <div class="post-tags"><span class="tag-pill">cuda</span><span class="tag-pill">pytorch</span><span class="tag-pill">learning material</span><span class="tag-pill">workstation</span><span class="tag-pill">hardware</span></div>
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-2;">
                             A somewhat technical blog on how GPU choice shapes what you can actually learn about CUDA, distributed training, and training optimization and the realities of running a personal ML workstation.
                         </p>
                     </div>
                 </a>
             </article>
 
-            <article class="post-card">
-                <a href="/blog/blog/css-animations-guide.html" class="post-link">
-                    <div class="post-content" style="view-transition-name: post-content-2;">
-                        <h2 class="post-title" style="view-transition-name: post-title-2;">THE ART OF CSS ANIMATIONS</h2>
-                        <time class="post-date" style="view-transition-name: post-date-2;">2025-10-15</time>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-2;">
-                            Creating smooth, performant animations using only CSS. No JavaScript required for beautiful interactions.
-                        </p>
-                    </div>
-                </a>
-            </article>
-
-            <article class="post-card">
-                <a href="/blog/blog/modern-web-development.html" class="post-link">
-                    <div class="post-content" style="view-transition-name: post-content-3;">
+            <article class="post-card" 
+                     data-year="2025" 
+                     data-month="October" 
+                     data-tags="web,css,performance"
+                     style="view-transition-name: post-container-3;">
+                <a href="/blog/modern-web-development.html" class="post-link">
+                    <div class="post-content">
                         <h2 class="post-title" style="view-transition-name: post-title-3;">MODERN WEB DEVELOPMENT</h2>
                         <time class="post-date" style="view-transition-name: post-date-3;">2025-10-20</time>
+                        <div class="post-tags"><span class="tag-pill">web</span><span class="tag-pill">css</span><span class="tag-pill">performance</span></div>
                         <p class="post-excerpt" style="view-transition-name: post-excerpt-3;">
                             Exploring the latest trends and best practices in modern web development, from performance optimization to user experience design.
                         </p>

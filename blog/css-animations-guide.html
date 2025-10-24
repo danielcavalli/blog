@@ -4,25 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Art of CSS Animations - dan.rio</title>
-    <link rel="stylesheet" href="/blog/styles.css">
-    <link rel="stylesheet" href="/blog/post.css">
-    <link rel="preload" href="/blog/theme.js" as="script">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/post.css">
+    <link rel="preload" href="/theme.js" as="script">
     <style>
         @view-transition {
             navigation: auto;
         }
     </style>
-    <script src="/blog/theme.js"></script>
-    <script src="/blog/transitions.js" defer></script>
+    <script src="/theme.js"></script>
+    <script src="/transitions.js" defer></script>
 </head>
 <body>
     <nav class="nav">
         <div class="nav-container">
-            <a href="/blog/index.html" class="logo">dan.rio</a>
+            <a href="/index.html" class="logo">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="/blog/index.html" class="active">BLOG</a></li>
-                    <li><a href="/blog/about.html">ABOUT</a></li>
+                    <li><a href="/index.html" class="active">BLOG</a></li>
+                    <li><a href="/about.html">ABOUT</a></li>
                 </ul>
                 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -45,39 +45,135 @@
     </nav>
 
     <main class="container">
-        <article class="post" style="view-transition-name: post-content-2;">
+        <article class="post" style="view-transition-name: post-container-1;">
             <header class="post-header">
-                <a href="/blog/index.html" class="back-link">← Back to Blog</a>
-                <h1 class="post-title-large" style="view-transition-name: post-title-2;">THE ART OF CSS ANIMATIONS</h1>
-                <div class="post-meta" style="view-transition-name: post-date-2;">
-                    <time class="post-date">October 15, 2025</time>
+                <a href="/index.html" class="back-link">← Back to Blog</a>
+                <h1 class="post-title-large" style="view-transition-name: post-title-1;">THE ART OF CSS ANIMATIONS</h1>
+                <div class="post-meta">
+                    <time class="post-date" style="view-transition-name: post-date-1;">October 23, 2025</time>
                     <span class="post-separator">•</span>
-                    <span class="post-reading-time">1 min read</span>
+                    <span class="post-reading-time">4 min read</span>
                 </div>
+                <div class="post-tags"><span class="tag-pill">css</span><span class="tag-pill">web</span><span class="tag-pill">animations</span><span class="tag-pill">performance</span></div>
             </header>
 
             <div class="post-body">
-                <p class="lead" style="view-transition-name: post-excerpt-2;">
-                    Creating smooth, performant animations using only CSS. No JavaScript required for beautiful interactions.
+                <p class="lead" style="view-transition-name: post-excerpt-1;">
+                    Creating smooth, performant animations using only CSS. A deep dive into building coherent motion systems for the modern web.
                 </p>
                 <h2>Why CSS Animations?</h2>
-<p>CSS animations offer several advantages over JavaScript-based animations. They're hardware-accelerated, more performant, and maintain smooth 60fps frame rates even on lower-end devices.</p>
+<p>CSS animations offer several advantages over JavaScript-based animations. They're hardware-accelerated, more performant, and maintain smooth 60fps frame rates even on lower-end devices. But more importantly, they enable a <strong>declarative approach to motion</strong> — you define what should happen, and the browser handles how.</p>
+<p>This blog is built entirely on CSS-first animations. JavaScript is used only to trigger state changes; the visual behavior lives in stylesheets.</p>
+<h2>The Philosophy of Motion</h2>
+<p>Before choosing animation techniques, consider what the motion <em>means</em>. Every transition should answer one question: <strong>Where did this come from, or where is it going?</strong></p>
+<p>On this site, animations serve three purposes:<br />
+1. <strong>Spatial continuity</strong> — showing that elements exist in the same shared canvas<br />
+2. <strong>State acknowledgment</strong> — confirming that the interface recognized an action<br />
+3. <strong>Organic response</strong> — making the page feel alive without being distracting</p>
+<p>Motion is never decoration. It's the interface breathing.</p>
 <h2>The Building Blocks</h2>
 <p>CSS provides three main ways to create animations:</p>
-<ul>
-<li><strong>Transitions</strong> - Smooth changes between states</li>
-<li><strong>Keyframe Animations</strong> - Complex, multi-step animations</li>
-<li><strong>Transform Properties</strong> - Efficient position and scale changes</li>
-</ul>
+<h3>Transitions</h3>
+<p>Smooth interpolations between states. Used for hover effects, theme changes, and dropdown expansions. The key is choosing the right easing curve — <code>cubic-bezier(0.4, 0, 0.2, 1)</code> creates a natural acceleration and deceleration that feels like physical momentum.</p>
+<pre><code class="language-css">.custom-select {
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+</code></pre>
+<h3>Keyframe Animations</h3>
+<p>Multi-step choreography for complex motions. This blog uses keyframes sparingly — only for initial page load animations where elements fade in and rise upward.</p>
+<pre><code class="language-css">@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</code></pre>
+<h3>Transform Properties</h3>
+<p>The performance backbone. <code>translateY</code>, <code>scale</code>, and <code>rotate</code> are hardware-accelerated and won't trigger expensive reflows. When the header slides behind the navigation bar, it uses <code>translateY(-120%)</code> — pure GPU work.</p>
+<h2>View Transitions API</h2>
+<p>Modern browsers support the <strong>View Transitions API</strong>, which enables seamless morphing between page navigations. This blog uses it to transform post cards into full articles:</p>
+<pre><code class="language-css">::view-transition-old(post-card-1),
+::view-transition-new(post-card-1) {
+    animation-duration: 0.6s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+</code></pre>
+<p>The critical insight: <strong>fetch content BEFORE calling <code>startViewTransition()</code></strong>. This ensures the browser captures the old state and new state synchronously, preventing flash-of-content issues.</p>
 <h2>Performance Matters</h2>
-<p>Not all CSS properties are created equal when it comes to animation performance. Properties like <code>transform</code> and <code>opacity</code> are hardware-accelerated and won't trigger repaints or reflows.</p>
+<p>Not all CSS properties are created equal when it comes to animation performance. </p>
+<p><strong>Hardware-accelerated (GPU):</strong><br />
+- <code>transform</code> (translate, scale, rotate)<br />
+- <code>opacity</code><br />
+- <code>filter</code> (with caution — can be expensive)</p>
+<p><strong>Avoid animating:</strong><br />
+- <code>width</code>, <code>height</code>, <code>margin</code>, <code>padding</code> — triggers layout<br />
+- <code>color</code>, <code>background-color</code> alone — triggers paint<br />
+- <code>box-shadow</code> — expensive, but acceptable for subtle hover states</p>
 <blockquote>
 <p>"The secret to great animation is knowing what NOT to animate."</p>
 </blockquote>
+<p>This is why the dropdown options list uses <code>max-height</code> and <code>opacity</code> instead of animating height directly — it's a compromise between performance and natural unfolding motion.</p>
+<h2>The Rhythm of Interaction</h2>
+<p>All animations on this site follow a consistent temporal rhythm:<br />
+- <strong>0.4–0.6 seconds</strong> for most transitions<br />
+- <strong>0.75 seconds</strong> for spatial scroll effects (header sliding behind nav)<br />
+- <strong>Same easing curve everywhere</strong> — <code>cubic-bezier(0.4, 0, 0.2, 1)</code></p>
+<p>This consistency creates a unified "breathing" feeling. When the filters panel expands, the dropdown opens, and the cards drift away — they all move to the same tempo.</p>
+<h2>Staggered Reveals</h2>
+<p>When showing multiple elements, stagger their appearance with CSS transition delays:</p>
+<pre><code class="language-css">.filter-row {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s;
+}
+
+.filter-tags {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s;
+}
+</code></pre>
+<p>The filter controls appear 100ms before the tag pills, creating a cascade that guides the eye downward naturally.</p>
+<h2>Organic Boundaries</h2>
+<p>One unique pattern this blog uses: <strong>overflow nudging</strong>. When a dropdown list reaches the boundary between sections, it doesn't just clip — the entire filter block expands from its bottom edge, as if making room:</p>
+<pre><code class="language-css">.filters.expanded.dropdown-active {
+    padding-bottom: 5rem;
+}
+</code></pre>
+<p>JavaScript detects the overflow and applies the class. CSS handles the motion. The result feels like the page is aware of its own geometry and responds organically.</p>
+<h2>Theme Transitions</h2>
+<p>Switching between light and dark mode isn't just a color swap — it's an <strong>atmospheric shift</strong>. All color properties transition simultaneously:</p>
+<pre><code class="language-css">body.theme-transitioning * {
+    transition: background-color 0.6s ease,
+                color 0.6s ease,
+                border-color 0.6s ease !important;
+}
+</code></pre>
+<p>The effect: the entire page ripples through a new lighting state, maintaining the illusion of a single continuous surface.</p>
 <h2>Practical Examples</h2>
-<p>The hover effects on this blog's cards use a combination of transforms, box-shadow, and color transitions. Each animation is carefully tuned with cubic-bezier easing functions for a natural feel.</p>
+<p>Every interaction on this blog demonstrates these principles:</p>
+<ul>
+<li><strong>Card hover</strong> — <code>translateY(-4px)</code> lift with shadow bloom</li>
+<li><strong>Tag pills</strong> — Gradient backgrounds with 3px lift and expanding shadows</li>
+<li><strong>Dropdown unfold</strong> — <code>max-height: 0 → 300px</code> with opacity fade</li>
+<li><strong>Filter expansion</strong> — Staggered reveals with bottom-edge growth</li>
+<li><strong>Post morphing</strong> — View Transitions API for card-to-article transformation</li>
+</ul>
+<p>Each animation is carefully tuned to feel inevitable, not decorative.</p>
 <h2>Accessibility First</h2>
-<p>Always respect user preferences with the <code>prefers-reduced-motion</code> media query. Some users find animations distracting or disorienting, and it's our responsibility to accommodate them.</p>
+<p>Always respect user preferences with the <code>prefers-reduced-motion</code> media query. Some users find animations distracting or disorienting:</p>
+<pre><code class="language-css">@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</code></pre>
+<p>Motion should enhance, never hinder. When a user signals they need reduced motion, honor that immediately.</p>
+<h2>The Result</h2>
+<p>CSS animations, when approached systematically, create interfaces that feel <strong>alive but calm</strong>. The goal isn't to impress with flashy transitions, but to build trust through visual coherence.</p>
+<p>Every animation on this blog serves the same philosophy: one continuous surface, breathing in response to interaction, maintaining spatial logic at all times.</p>
+<p>The interface doesn't perform. It responds.</p>
             </div>
         </article>
     </main>

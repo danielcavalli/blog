@@ -4,6 +4,7 @@ date: 2025-10-20
 excerpt: Exploring the latest trends and best practices in modern web development, from performance optimization to user experience design.
 slug: modern-web-development
 order: 2
+tags: [web, css, performance]
 ---
 
 ## The Evolution of Web Development
