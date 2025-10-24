@@ -23,7 +23,7 @@ Constants:
 
 # Base path for GitHub Pages deployment
 # Use "" for local development, "/blog" for GitHub Pages at username.github.io/blog/
-BASE_PATH = ""
+BASE_PATH = "/blog"
 
 # Bilingual support
 LANGUAGES = {
