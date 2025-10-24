@@ -487,6 +487,50 @@ body.theme-transitioning .post-title {
     margin: 0;
 }
 
+/* Header Controls - Groups filter button and order-by dropdown */
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Order Toggle Button - Morphing text on click */
+.order-toggle {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-hover);
+    border: 1px solid var(--color-border);
+    border-radius: 24px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--motion-duration-core) var(--motion-easing);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    position: relative;
+    overflow: hidden;
+}
+
+.order-toggle:hover {
+    background: var(--color-border);
+    color: var(--color-text);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.order-toggle-text {
+    display: inline-block;
+    transition: opacity var(--motion-duration-quick) var(--motion-easing),
+                transform var(--motion-duration-quick) var(--motion-easing);
+}
+
+.order-toggle.morphing .order-toggle-text {
+    opacity: 0;
+    transform: translateY(-8px);
+}
+
 /* Filter Toggle Button - Part of the Surface */
 .filter-toggle {
     display: flex;
@@ -526,9 +570,20 @@ body.theme-transitioning .post-title {
         align-items: flex-start;
     }
     
+    .header-controls {
+        width: 100%;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .order-toggle,
     .filter-toggle {
         align-self: stretch;
         justify-content: center;
+    }
+    
+    .header-controls .custom-select {
+        width: 100%;
     }
 }
 
@@ -570,7 +625,7 @@ body.theme-transitioning .post-title {
 
 /* Initial page load: Cards fade in with staggered timing (only on first load) */
 .posts-grid:not(.disable-animation) .post-card {
-    /* Animation handles opacity from 0 to 1 - don't set base opacity: 0 */
+    /* Start at opacity 0 for animation */
     animation: cardFadeIn 0.7s var(--motion-easing) forwards;
     animation-delay: calc(var(--card-index, 0) * 0.08s + 0.1s);
 }
@@ -1159,13 +1214,18 @@ button:focus-visible {
     /* Dissolve: Cards losing relevance fade from view
        From: visible (opacity: 1) → To: transparent (opacity: 0)
        Relate: Maintains spatial position during fade, removed after */
-    transition: opacity var(--motion-duration-core) var(--motion-easing);
+    opacity: 1;  /* Explicit base opacity - overridden by animation on load */
     will-change: auto; /* Default state - no performance hints */
+}
+
+/* Only apply filtering transitions after initial animation completes */
+.post-card.animation-complete {
+    transition: opacity var(--motion-duration-core) var(--motion-easing);
 }
 
 /* Phase 1: Dissolve - cards losing relevance fade out over 500ms */
 .post-card.filtering-out {
-    opacity: 0;
+    opacity: 0 !important;
     pointer-events: none;  /* Relate: No longer interactive during fade */
     will-change: opacity;  /* Optimize GPU compositing for fade */
 }

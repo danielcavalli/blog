@@ -6,6 +6,8 @@ Run this whenever you add or edit a blog post.
 
 import os
 import re
+import json
+import hashlib
 from pathlib import Path
 from datetime import datetime
 import markdown
@@ -17,10 +19,57 @@ POSTS_DIR = Path("blog-posts")
 OUTPUT_DIR = Path("blog")
 INDEX_FILE = Path("index.html")
 ABOUT_FILE = Path("about.html")
+METADATA_FILE = Path("post-metadata.json")
 
 # Ensure directories exist
 POSTS_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
+
+
+def load_metadata():
+    """Load post metadata (creation and update dates)"""
+    if METADATA_FILE.exists():
+        try:
+            with open(METADATA_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+
+def save_metadata(metadata):
+    """Save post metadata to JSON file"""
+    with open(METADATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(metadata, f, indent=2, ensure_ascii=False)
+
+
+def calculate_content_hash(content):
+    """Calculate MD5 hash of content for change detection"""
+    return hashlib.md5(content.encode('utf-8')).hexdigest()
+
+
+def update_post_metadata(slug, output_file, content_hash):
+    """Update metadata for a post (tracks creation and update dates)
+    Only updates the 'updated' timestamp if content actually changed"""
+    metadata = load_metadata()
+    now = datetime.now().isoformat()
+    
+    if slug not in metadata:
+        # New post - set creation date
+        metadata[slug] = {
+            'created': now,
+            'updated': now,
+            'content_hash': content_hash
+        }
+    else:
+        # Existing post - only update timestamp if content changed
+        if metadata[slug].get('content_hash') != content_hash:
+            metadata[slug]['updated'] = now
+            metadata[slug]['content_hash'] = content_hash
+        # If content hasn't changed, keep existing timestamps
+    
+    save_metadata(metadata)
+    return metadata[slug]
 
 
 def calculate_reading_time(content):
@@ -47,7 +96,18 @@ def generate_post_html(post, post_number):
         tag_pills = ''.join(f'<span class="tag-pill">{tag}</span>' for tag in post['tags'])
         tags_html = f'<div class="post-tags">{tag_pills}</div>'
     
-    return f"""<!DOCTYPE html>
+    # Format last updated date (only show if different from creation)
+    created_date = post.get('created_date', '')
+    updated_date = post.get('updated_date', '')
+    
+    last_updated_html = ''
+    if updated_date and created_date and updated_date != created_date:
+        # Parse the ISO datetime and format with date and time
+        updated_dt = datetime.fromisoformat(updated_date)
+        updated_formatted = updated_dt.strftime('%B %d, %Y at %I:%M %p')
+        last_updated_html = f'<div class="last-updated">Last updated: {updated_formatted}</div>'
+    
+    return f"""<!DOCTYPE html>>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -97,6 +157,7 @@ def generate_post_html(post, post_number):
         <article class="post" style="view-transition-name: post-container-{post_number};">
             <header class="post-header">
                 <a href="{BASE_PATH}/index.html" class="back-link">← Back to Blog</a>
+                {last_updated_html}
                 <h1 class="post-title-large" style="view-transition-name: post-title-{post_number};">{post['title'].upper()}</h1>
                 <div class="post-meta">
                     <time class="post-date" style="view-transition-name: post-date-{post_number};">{format_date(post['date'])}</time>
@@ -149,13 +210,17 @@ def generate_post_card(post, post_number):
         tag_pills = ''.join(f'<span class="tag-pill">{tag}</span>' for tag in post['tags'])
         tags_html = f'<div class="post-tags">{tag_pills}</div>'
     
-    # Create data attributes for filtering
+    # Create data attributes for filtering and sorting
     tags_attr = ','.join(post.get('tags', []))
+    created_timestamp = post.get('created_date', '')
+    updated_timestamp = post.get('updated_date', '')
     
     return f"""            <article class="post-card" 
                      data-year="{post['year']}" 
                      data-month="{post['month']}" 
                      data-tags="{tags_attr}"
+                     data-created="{created_timestamp}"
+                     data-updated="{updated_timestamp}"
                      style="view-transition-name: post-container-{post_number};">
                 <a href="{BASE_PATH}/blog/{post['slug']}.html" class="post-link">
                     <div class="post-content">
@@ -251,12 +316,17 @@ def generate_index_html(posts):
         <header class="page-header" style="view-transition-name: blog-header;">
             <div class="header-content">
                 <h1 class="page-title">Latest Posts</h1>
-                <button id="filter-toggle" class="filter-toggle" aria-label="Toggle filters">
-                    <span class="filter-toggle-text">Filter</span>
-                    <svg class="filter-toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                </button>
+                <div class="header-controls">
+                    <button id="order-toggle" class="order-toggle" data-order="updated" aria-label="Toggle sort order">
+                        <span class="order-toggle-text">Updated</span>
+                    </button>
+                    <button id="filter-toggle" class="filter-toggle" aria-label="Toggle filters">
+                        <span class="filter-toggle-text">Filter</span>
+                        <svg class="filter-toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -502,6 +572,29 @@ def parse_markdown_post(filepath):
     
     # Get filename without extension
     filename = filepath.stem
+    slug = post.get('slug', filename)
+    
+    # Calculate content hash for change detection
+    content_hash = calculate_content_hash(post.content)
+    
+    # Check if HTML output exists to determine if this is an update
+    output_file = OUTPUT_DIR / f"{slug}.html"
+    metadata = load_metadata()
+    
+    # Determine creation and update dates based on content hash
+    if slug in metadata:
+        created_date = metadata[slug]['created']
+        # Check if content actually changed
+        if metadata[slug].get('content_hash') == content_hash:
+            # Content unchanged - use existing updated date
+            updated_date = metadata[slug]['updated']
+        else:
+            # Content changed - set new updated date
+            updated_date = datetime.now().isoformat()
+    else:
+        # New post
+        created_date = datetime.now().isoformat()
+        updated_date = created_date
     
     # Convert markdown content to HTML
     html_content = markdown.markdown(
@@ -530,11 +623,14 @@ def parse_markdown_post(filepath):
         'year': year,
         'month': month,
         'excerpt': post.get('excerpt', ''),
-        'slug': post.get('slug', filename),
+        'slug': slug,
         'order': post.get('order', 0),
         'tags': tags,
         'reading_time': post.get('readingTime') or calculate_reading_time(post.content),
         'content': html_content,
+        'created_date': created_date,
+        'updated_date': updated_date,
+        'content_hash': content_hash,
     }
 
 
@@ -572,8 +668,8 @@ def build():
             print(f"   ✗ Error parsing {md_file.name}: {e}")
             return False
     
-    # Sort posts (by order, then by date)
-    posts.sort(key=lambda p: (-p['order'], p['date']), reverse=True)
+    # Sort posts (by order, then by updated date - most recently updated first)
+    posts.sort(key=lambda p: (-p['order'], p['updated_date']), reverse=True)
     
     print(f"\n🔨 Generating HTML files...\n")
     
@@ -583,6 +679,10 @@ def build():
             html = generate_post_html(post, i + 1)
             output_file = OUTPUT_DIR / f"{post['slug']}.html"
             output_file.write_text(html, encoding='utf-8')
+            
+            # Update metadata after successful generation (with content hash for change detection)
+            update_post_metadata(post['slug'], output_file, post['content_hash'])
+            
             print(f"   ✓ Generated: blog/{post['slug']}.html")
         except Exception as e:
             print(f"   ✗ Error generating {post['slug']}.html: {e}")

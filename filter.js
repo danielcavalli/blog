@@ -12,21 +12,38 @@
             month: '',
             tags: new Set()
         };
+        
+        let currentOrderBy = 'updated'; // Default to "Updated"
 
         // DOM elements
         const filterToggle = document.getElementById('filter-toggle');
         const filtersPanel = document.getElementById('filters-panel');
         const yearFilterWrapper = document.getElementById('year-filter-wrapper');
         const monthFilterWrapper = document.getElementById('month-filter-wrapper');
+        const orderToggle = document.getElementById('order-toggle');
         const clearButton = document.getElementById('clear-filters');
         const tagButtons = document.querySelectorAll('.filter-tag');
         const postCards = document.querySelectorAll('.post-card');
+        const postsGrid = document.querySelector('.posts-grid');
 
         if (!filterToggle || !filtersPanel) return; // Not on index page
 
         // Prevent re-initialization
         if (filterToggle.hasAttribute('data-filter-initialized')) return;
         filterToggle.setAttribute('data-filter-initialized', 'true');
+        
+        // Remove initial animations after they complete to allow filtering transitions
+        postCards.forEach((card, index) => {
+            const animationDelay = index * 0.08 + 0.1; // Match CSS animation delay
+            const animationDuration = 0.7; // Match CSS animation duration
+            const totalTime = (animationDelay + animationDuration) * 1000;
+            
+            setTimeout(() => {
+                card.style.animation = 'none';
+                card.style.opacity = '1'; // Explicitly set after animation
+                card.classList.add('animation-complete');
+            }, totalTime);
+        });
 
         // Custom dropdown functionality
         function setupCustomSelect(wrapper, onSelect) {
@@ -50,15 +67,18 @@
                 if (!isOpen) {
                     wrapper.classList.add('open');
                     
-                    // Check if dropdown will overflow the filters block
-                    // Use actual DOM measurements instead of magic numbers
+                    // Measure potential overflow immediately
+                    // Use requestAnimationFrame to ensure DOM update has happened
                     requestAnimationFrame(() => {
                         if (filtersPanel && options) {
+                            // Get the actual content height of the dropdown
+                            const optionsScrollHeight = options.scrollHeight;
                             const filtersRect = filtersPanel.getBoundingClientRect();
-                            const optionsRect = options.getBoundingClientRect();
+                            const triggerRect = trigger.getBoundingClientRect();
                             
-                            // Calculate actual overflow (dropdown bottom - filters bottom)
-                            const actualOverflow = optionsRect.bottom - filtersRect.bottom;
+                            // Calculate where dropdown bottom will be (trigger bottom + dropdown height)
+                            const dropdownBottom = triggerRect.bottom + optionsScrollHeight;
+                            const actualOverflow = dropdownBottom - filtersRect.bottom;
                             
                             // Only nudge if dropdown extends beyond filters boundary
                             if (actualOverflow > 0) {
@@ -148,10 +168,10 @@
 
             // Phase 1: Identify and start dissolving non-matching cards
             requestAnimationFrame(() => {
-                postCards.forEach((card) => {
+                postCards.forEach((card, index) => {
                     const cardYear = card.dataset.year;
                     const cardMonth = card.dataset.month;
-                    const cardTags = card.dataset.tags ? card.dataset.tags.split(',') : [];
+                    const cardTags = card.dataset.tags ? card.dataset.tags.split(',').map(t => t.trim()) : [];
 
                     // Check if card matches all active filters
                     const yearMatch = !activeFilters.year || cardYear === activeFilters.year;
@@ -276,18 +296,120 @@
             activeFilters.month = value;
             filterPosts();
         });
+        
+        // Order toggle button with morphing text
+        if (orderToggle) {
+            const textSpan = orderToggle.querySelector('.order-toggle-text');
+            
+            orderToggle.addEventListener('click', () => {
+                // Toggle order
+                currentOrderBy = currentOrderBy === 'updated' ? 'created' : 'updated';
+                
+                // Morph text (fade out, change, fade in)
+                orderToggle.classList.add('morphing');
+                
+                setTimeout(() => {
+                    textSpan.textContent = currentOrderBy === 'updated' ? 'Updated at' : 'Written at';
+                    orderToggle.dataset.order = currentOrderBy;
+                    orderToggle.classList.remove('morphing');
+                    
+                    // Sort posts with new order
+                    sortPosts();
+                }, 300); // Match motion-duration-quick
+            });
+        }
+        
+        // Sort posts by created or updated date
+        function sortPosts() {
+            if (!postsGrid) return;
+            
+            // Capture initial positions (FLIP: First)
+            const initialPositions = new Map();
+            const visibleCards = Array.from(postCards).filter(card => !card.classList.contains('filtered-out'));
+            
+            visibleCards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                initialPositions.set(card, { top: rect.top, left: rect.left });
+            });
+            
+            // Sort cards by selected order
+            const sortedCards = visibleCards.sort((a, b) => {
+                const aDate = parseInt(currentOrderBy === 'created' ? a.dataset.created : a.dataset.updated);
+                const bDate = parseInt(currentOrderBy === 'created' ? b.dataset.created : b.dataset.updated);
+                return bDate - aDate; // Newest first
+            });
+            
+            // Reorder DOM
+            sortedCards.forEach(card => {
+                postsGrid.appendChild(card);
+            });
+            
+            // Capture final positions after reorder (FLIP: Last)
+            requestAnimationFrame(() => {
+                const finalPositions = new Map();
+                visibleCards.forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    finalPositions.set(card, { top: rect.top, left: rect.left });
+                });
+                
+                // Animate the movement (FLIP: Invert & Play)
+                visibleCards.forEach(card => {
+                    const initial = initialPositions.get(card);
+                    const final = finalPositions.get(card);
+                    
+                    if (initial && final) {
+                        const deltaY = initial.top - final.top;
+                        const deltaX = initial.left - final.left;
+                        
+                        // Only animate if position changed
+                        if (Math.abs(deltaY) > 1 || Math.abs(deltaX) > 1) {
+                            // Set initial position (FLIP: Invert)
+                            card.classList.add('flip-measuring');
+                            card.style.setProperty('--flip-x', `${deltaX}px`);
+                            card.style.setProperty('--flip-y', `${deltaY}px`);
+                            
+                            // Force reflow
+                            card.offsetHeight;
+                            
+                            // Enable animation and slide to natural position (FLIP: Play)
+                            card.classList.remove('flip-measuring');
+                            card.classList.add('flip-animating');
+                            
+                            requestAnimationFrame(() => {
+                                card.style.setProperty('--flip-x', '0');
+                                card.style.setProperty('--flip-y', '0');
+                            });
+                        }
+                    }
+                });
+                
+                // Clean up after animation
+                setTimeout(() => {
+                    visibleCards.forEach(card => {
+                        card.classList.remove('flip-animating');
+                        card.style.removeProperty('--flip-x');
+                        card.style.removeProperty('--flip-y');
+                    });
+                }, 500); // Match motion-duration-core
+            });
+        }
 
         // Tag filter toggle
         tagButtons.forEach(button => {
             button.addEventListener('click', (e) => {
-                const tag = e.target.dataset.tag;
+                // Use currentTarget to always get the button element, not child elements
+                const tag = e.currentTarget.dataset.tag;
+                
+                if (!tag) {
+                    return;
+                }
                 
                 if (activeFilters.tags.has(tag)) {
                     activeFilters.tags.delete(tag);
-                    e.target.classList.remove('active');
+                    e.currentTarget.classList.remove('active');
                 } else {
                     activeFilters.tags.add(tag);
-                    e.target.classList.add('active');
+                    e.currentTarget.classList.add('active');
                 }
                 
                 filterPosts();

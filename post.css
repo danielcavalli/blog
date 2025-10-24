@@ -38,6 +38,16 @@
     transform: translateX(-4px);
 }
 
+.last-updated {
+    font-size: 0.65rem;
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    margin-bottom: 0.75rem;
+    opacity: 0.5;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+}
+
 .post-title-large {
     font-size: clamp(2rem, 5vw, 3.5rem);
     font-weight: 700;
