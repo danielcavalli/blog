@@ -268,13 +268,22 @@ def build():
     """Main build function"""
     print("🏗️  Building blog from Markdown...\n")
     
+    # Run validation first
+    try:
+        from validate import run_validation
+        if not run_validation(BASE_PATH, POSTS_DIR):
+            print("❌ Build aborted due to validation failures.\n")
+            return False
+    except ImportError:
+        print("⚠️  Skipping validation (validate.py not found)\n")
+    
     # Get all markdown files
     md_files = sorted(POSTS_DIR.glob("*.md"))
     
     if not md_files:
         print("⚠️  No markdown files found in blog-posts/")
         print("💡 Create .md files in blog-posts/ to get started!\n")
-        return
+        return False
     
     print(f"📝 Found {len(md_files)} markdown file(s)\n")
     
@@ -287,6 +296,7 @@ def build():
             print(f"   ✓ Parsed: {md_file.name}")
         except Exception as e:
             print(f"   ✗ Error parsing {md_file.name}: {e}")
+            return False
     
     # Sort posts (by order, then by date)
     posts.sort(key=lambda p: (-p['order'], p['date']), reverse=True)
@@ -295,18 +305,29 @@ def build():
     
     # Generate HTML for each post
     for i, post in enumerate(posts):
-        html = generate_post_html(post, i + 1)
-        output_file = OUTPUT_DIR / f"{post['slug']}.html"
-        output_file.write_text(html, encoding='utf-8')
-        print(f"   ✓ Generated: blog/{post['slug']}.html")
+        try:
+            html = generate_post_html(post, i + 1)
+            output_file = OUTPUT_DIR / f"{post['slug']}.html"
+            output_file.write_text(html, encoding='utf-8')
+            print(f"   ✓ Generated: blog/{post['slug']}.html")
+        except Exception as e:
+            print(f"   ✗ Error generating {post['slug']}.html: {e}")
+            return False
     
     # Generate index.html
-    index_html = generate_index_html(posts)
-    INDEX_FILE.write_text(index_html, encoding='utf-8')
-    print(f"   ✓ Generated: index.html")
+    try:
+        index_html = generate_index_html(posts)
+        INDEX_FILE.write_text(index_html, encoding='utf-8')
+        print(f"   ✓ Generated: index.html")
+    except Exception as e:
+        print(f"   ✗ Error generating index.html: {e}")
+        return False
     
     print(f"\n🎉 Build complete! {len(posts)} post(s) compiled.\n")
+    return True
 
 
 if __name__ == "__main__":
-    build()
+    import sys
+    success = build()
+    sys.exit(0 if success else 1)

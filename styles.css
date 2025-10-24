@@ -13,14 +13,14 @@
     /* Root transition - prevent white flash during page morphing */
     ::view-transition-old(root),
     ::view-transition-new(root) {
-        animation-duration: 0.55s;
-        animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+        animation-duration: 0.35s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     /* Prevent white block overlay during transition */
     ::view-transition-group(root) {
-        animation-duration: 0.55s;
-        animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+        animation-duration: 0.35s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     ::view-transition-image-pair(root) {
@@ -29,11 +29,11 @@
     
     /* Smooth cross-fade for root */
     ::view-transition-old(root) {
-        animation: fade-out 0.55s cubic-bezier(0.23, 1, 0.32, 1);
+        animation: fade-out 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     ::view-transition-new(root) {
-        animation: fade-in 0.55s cubic-bezier(0.23, 1, 0.32, 1);
+        animation: fade-in 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     /* Card content container - expands to full article smoothly */
@@ -43,8 +43,8 @@
     ::view-transition-new(post-content-2),
     ::view-transition-old(post-content-3),
     ::view-transition-new(post-content-3) {
-        animation-duration: 0.58s;
-        animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+        animation-duration: 0.4s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         mix-blend-mode: normal;
     }
     
@@ -55,8 +55,8 @@
     ::view-transition-new(post-title-2),
     ::view-transition-old(post-title-3),
     ::view-transition-new(post-title-3) {
-        animation-duration: 0.58s;
-        animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+        animation-duration: 0.4s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         mix-blend-mode: normal;
     }
     
@@ -67,8 +67,8 @@
     ::view-transition-new(post-date-2),
     ::view-transition-old(post-date-3),
     ::view-transition-new(post-date-3) {
-        animation-duration: 0.58s;
-        animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+        animation-duration: 0.4s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         mix-blend-mode: normal;
     }
     
@@ -79,8 +79,8 @@
     ::view-transition-new(post-excerpt-2),
     ::view-transition-old(post-excerpt-3),
     ::view-transition-new(post-excerpt-3) {
-        animation-duration: 0.58s;
-        animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+        animation-duration: 0.4s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         mix-blend-mode: normal;
     }
     
@@ -444,23 +444,23 @@ body {
     position: relative;
     overflow: hidden;
     contain: layout style paint;
+    will-change: transform;
 }
 
 /* Hover effect - lifts card smoothly */
 .post-card:hover .post-content {
-    transform: translateY(-6px);
+    transform: translateY(-4px);
     box-shadow: 
-        0 4px 8px rgba(0, 0, 0, 0.04),
-        0 12px 24px rgba(0, 0, 0, 0.06),
-        0 24px 48px rgba(0, 0, 0, 0.08);
+        0 2px 4px rgba(0, 0, 0, 0.04),
+        0 8px 16px rgba(0, 0, 0, 0.06);
     border-color: var(--color-text-secondary);
 }
 
 /* Active/press state for tactile feedback */
 .post-card:active .post-content {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition-duration: 0.1s;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition-duration: 0.08s;
 }
 
 /* Subtle gradient overlay on hover */

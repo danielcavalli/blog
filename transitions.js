@@ -71,8 +71,11 @@
                 const currentPath = new URL(url).pathname;
                 document.querySelectorAll('.nav-links a').forEach(link => {
                     const linkPath = new URL(link.href).pathname;
-                    if (linkPath === currentPath || 
-                        (currentPath.includes('/blog/') && linkPath.includes('index.html'))) {
+                    // Match exact path or index.html paths
+                    const isActive = linkPath === currentPath || 
+                        (linkPath.endsWith('index.html') && currentPath.endsWith('index.html'));
+                    
+                    if (isActive) {
                         link.classList.add('active');
                     } else {
                         link.classList.remove('active');
