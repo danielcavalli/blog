@@ -833,7 +833,7 @@ body {
     border-radius: var(--border-radius);
     height: 100%;
     background-color: var(--color-bg);
-    /* Separate transitions: quick motion, ambient colors */
+    /* Permanent transitions - no conditional gating to prevent flicker */
     transition: transform var(--motion-duration-quick) var(--motion-easing),
                 box-shadow var(--motion-duration-quick) var(--motion-easing),
                 opacity var(--motion-duration-quick) var(--motion-easing),
@@ -1426,11 +1426,6 @@ button:focus-visible {
     transition: transform var(--motion-duration-core) var(--motion-easing);
     transform: translate(var(--flip-x, 0), var(--flip-y, 0));
     will-change: transform;  /* Optimize GPU compositing */
-}
-
-/* After FLIP completes, clean up performance hints */
-.post-card:not(.flip-animating) {
-    will-change: auto;
 }
 
 /* Posts grid maintains spatial continuity */

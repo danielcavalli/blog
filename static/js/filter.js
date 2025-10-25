@@ -72,6 +72,8 @@
      * @returns {void}
      */
     function initFilters() {
+        console.log('[FILTER] initFilters() called');
+        
         // State
         const activeFilters = {
             year: '',
@@ -92,24 +94,68 @@
         const postCards = document.querySelectorAll('.post-card');
         const postsGrid = document.querySelector('.posts-grid');
 
-        if (!filterToggle || !filtersPanel) return; // Not on index page
+        console.log('[FILTER] Found', postCards.length, 'post cards');
+        console.log('[FILTER] Posts grid:', postsGrid);
+
+        if (!filterToggle || !filtersPanel) {
+            console.log('[FILTER] Not on index page, returning');
+            return;
+        }
 
         // Prevent re-initialization
-        if (filterToggle.hasAttribute('data-filter-initialized')) return;
+        if (filterToggle.hasAttribute('data-filter-initialized')) {
+            console.log('[FILTER] Already initialized, returning');
+            return;
+        }
         filterToggle.setAttribute('data-filter-initialized', 'true');
+        console.log('[FILTER] Marked as initialized');
         
         // Remove initial animations after they complete to allow filtering transitions
-        postCards.forEach((card, index) => {
-            const animationDelay = index * 0.08 + 0.1; // Match CSS animation delay
-            const animationDuration = 0.7; // Match CSS animation duration
-            const totalTime = (animationDelay + animationDuration) * 1000;
-            
-            setTimeout(() => {
+        // Only needed on FIRST LOAD - navigation already disables animations via transitions.js
+        // Check if posts-grid has disable-animation class (added during View Transitions navigation)
+        const postsGridHasDisableAnimation = postsGrid && postsGrid.classList.contains('disable-animation');
+        
+        // Also check if this is a navigation (not initial page load)
+        // If navigated from another page, don't animate
+        const isNavigation = document.referrer && new URL(document.referrer).origin === window.location.origin;
+        
+        console.log('[FILTER] Posts grid has disable-animation:', postsGridHasDisableAnimation);
+        console.log('[FILTER] Is navigation (has same-origin referrer):', isNavigation);
+        
+        if (!postsGridHasDisableAnimation && !isNavigation) {
+            console.log('[FILTER] Initial page load - scheduling animation removal for', postCards.length, 'cards');
+            // This is initial page load - animations are running
+            // Schedule removal after they complete
+            postCards.forEach((card, index) => {
+                const animationDelay = index * 0.08 + 0.1; // Match CSS animation delay
+                const animationDuration = 0.7; // Match CSS animation duration
+                const totalTime = (animationDelay + animationDuration) * 1000;
+                
+                console.log(`[FILTER] Card ${index}: scheduling animation removal in ${totalTime}ms`);
+                
+                setTimeout(() => {
+                    console.log(`[FILTER] Card ${index}: removing animation (RAF)`);
+                    // Use RAF to prevent flicker from style recalculation
+                    requestAnimationFrame(() => {
+                        card.style.animation = 'none';
+                        card.style.opacity = '1'; // Explicitly set after animation
+                        card.classList.add('animation-complete');
+                        console.log(`[FILTER] Card ${index}: animation removed, classes:`, card.classList.toString());
+                    });
+                }, totalTime);
+            });
+        } else {
+            console.log('[FILTER] Navigation or disable-animation present - adding disable-animation and skipping animations');
+            if (postsGrid && !postsGridHasDisableAnimation) {
+                postsGrid.classList.add('disable-animation');
+            }
+            // Immediately mark cards as complete
+            postCards.forEach(card => {
                 card.style.animation = 'none';
-                card.style.opacity = '1'; // Explicitly set after animation
+                card.style.opacity = '1';
                 card.classList.add('animation-complete');
-            }, totalTime);
-        });
+            });
+        }
 
         /**
          * Setup custom dropdown functionality for year/month filters
@@ -166,12 +212,13 @@
                     });
                 } else {
                     // Check if any dropdowns remain open
-                    setTimeout(() => {
+                    // Use RAF to avoid triggering style recalc during animation
+                    requestAnimationFrame(() => {
                         const anyOpen = document.querySelector('.custom-select.open');
                         if (!anyOpen && filtersPanel) {
                             filtersPanel.classList.remove('dropdown-active');
                         }
-                    }, 50);
+                    });
                 }
             });
             
@@ -194,12 +241,13 @@
                     wrapper.classList.remove('open');
                     
                     // Contract filters block when dropdown closes
-                    setTimeout(() => {
+                    // Use RAF to avoid triggering style recalc during animation
+                    requestAnimationFrame(() => {
                         const anyOpen = document.querySelector('.custom-select.open');
                         if (!anyOpen && filtersPanel) {
                             filtersPanel.classList.remove('dropdown-active');
                         }
-                    }, 50);
+                    });
                     
                     // Callback
                     if (onSelect) onSelect(value);
@@ -395,11 +443,19 @@
                     });
 
                     // Clean up FLIP classes after animation completes
+                    // Use double RAF + class removal strategy to prevent flicker
                     setTimeout(() => {
-                        postCards.forEach(card => {
-                            card.classList.remove('flip-animating');
-                            card.style.removeProperty('--flip-x');
-                            card.style.removeProperty('--flip-y');
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                postCards.forEach(card => {
+                                    // Remove the class first to prevent CSS transitions from firing
+                                    card.classList.remove('flip-animating');
+                                    // Then clean up custom properties and inline styles
+                                    // These no longer trigger transitions since flip-animating is removed
+                                    card.style.removeProperty('--flip-x');
+                                    card.style.removeProperty('--flip-y');
+                                });
+                            });
                         });
                     }, 500); // Match motion-duration-core
                 });
@@ -438,13 +494,16 @@
                 const labelUpdated = orderToggle.dataset.labelUpdated || 'Last Updated';
                 const labelCreated = orderToggle.dataset.labelCreated || 'Published At';
                 
+                // Use RAF to prevent flicker from DOM updates during opacity transition
                 setTimeout(() => {
-                    textSpan.textContent = currentOrderBy === 'updated' ? labelUpdated : labelCreated;
-                    orderToggle.dataset.order = currentOrderBy;
-                    orderToggle.classList.remove('morphing');
-                    
-                    // Sort posts with new order
-                    sortPosts();
+                    requestAnimationFrame(() => {
+                        textSpan.textContent = currentOrderBy === 'updated' ? labelUpdated : labelCreated;
+                        orderToggle.dataset.order = currentOrderBy;
+                        orderToggle.classList.remove('morphing');
+                        
+                        // Sort posts with new order
+                        sortPosts();
+                    });
                 }, 300); // Match motion-duration-quick
             });
         }
@@ -536,11 +595,17 @@
                 });
                 
                 // Clean up after animation
+                // Use double RAF + batched removals to prevent flicker
                 setTimeout(() => {
-                    visibleCards.forEach(card => {
-                        card.style.transform = '';
-                        card.style.transition = '';
-                        card.style.willChange = '';
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            visibleCards.forEach(card => {
+                                // Remove all inline styles at once to minimize repaints
+                                card.style.transform = '';
+                                card.style.transition = '';
+                                card.style.willChange = '';
+                            });
+                        });
                     });
                 }, 500); // Match motion-duration-core
             });
@@ -608,31 +673,38 @@
 
         // Hide clear button initially
         if (clearButton) {
+            console.log('[FILTER] Hiding clear button');
             clearButton.style.display = 'none';
         }
+        
+        console.log('[FILTER] initFilters() complete');
     }
 
     // Initialize on load
+    console.log('[FILTER] Document ready state:', document.readyState);
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initFilters);
+        console.log('[FILTER] Waiting for DOMContentLoaded');
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[FILTER] DOMContentLoaded fired');
+            initFilters();
+        });
     } else {
+        console.log('[FILTER] Document already loaded, calling initFilters immediately');
         initFilters();
     }
 
-    // Re-initialize after navigation (View Transitions API compatibility)
-    // Create a MutationObserver to detect when the filter toggle is back in the DOM
-    const observer = new MutationObserver((mutations) => {
-        // Check if filter toggle exists and needs initialization
+    // Re-initialize after View Transitions navigation
+    // Listen for custom event dispatched by transitions.js after DOM swap completes
+    // This replaces MutationObserver to prevent interference during transitions
+    document.addEventListener('page-navigation-complete', () => {
+        console.log('[FILTER] page-navigation-complete event received');
         const filterToggle = document.getElementById('filter-toggle');
         if (filterToggle && !filterToggle.hasAttribute('data-filter-initialized')) {
+            console.log('[FILTER] Filter toggle exists and not initialized, calling initFilters');
             initFilters();
+        } else {
+            console.log('[FILTER] Filter toggle already initialized or missing');
         }
-    });
-    
-    // Start observing
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
     });
 
 })();

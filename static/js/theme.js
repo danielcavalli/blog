@@ -96,11 +96,14 @@
         
         document.body.appendChild(announcement);
         
-        // Remove after screen readers have announced (but use longer timeout to avoid DOM removal during transition)
+        // Remove after screen readers have announced
+        // Use RAF to prevent flicker from DOM removal
         setTimeout(() => {
-            if (announcement.parentNode) {
-                announcement.parentNode.removeChild(announcement);
-            }
+            requestAnimationFrame(() => {
+                if (announcement.parentNode) {
+                    announcement.parentNode.removeChild(announcement);
+                }
+            });
         }, 2000); // Wait 2s - well after 600ms transition completes
     }
     
@@ -120,24 +123,30 @@
      * Sets up MutationObserver to keep ARIA labels synchronized with theme state.
      */
     function init() {
+        console.log('[THEME] init() called');
         let toggleButton = document.getElementById('theme-toggle');
         if (toggleButton) {
+            console.log('[THEME] Found theme toggle button');
             // Remove old listener if it exists by replacing the button with a clone
             // This prevents duplicate event listeners after navigation
             if (toggleButton.hasAttribute('data-theme-initialized')) {
+                console.log('[THEME] Button already initialized, replacing with clone');
                 const newButton = toggleButton.cloneNode(true);
                 toggleButton.parentNode.replaceChild(newButton, toggleButton);
                 toggleButton = newButton;
+                console.log('[THEME] Button replaced');
             }
             
             toggleButton.setAttribute('data-theme-initialized', 'true');
             toggleButton.addEventListener('click', toggleTheme);
+            console.log('[THEME] Event listener attached');
             
             // Set initial ARIA label
             const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
             toggleButton.setAttribute('aria-label', 
                 `Switch to ${currentTheme === 'light' ? 'dark' : 'light'} mode`
             );
+            console.log('[THEME] Initial ARIA label set for theme:', currentTheme);
             
             // Update ARIA label on theme change
             const observer = new MutationObserver(() => {
@@ -151,6 +160,8 @@
                 attributes: true,
                 attributeFilter: ['data-theme']
             });
+            
+            console.log('[THEME] MutationObserver set up');
         }
         
         // Listen for system theme changes
@@ -162,15 +173,26 @@
                 }
             });
         }
+        
+        console.log('[THEME] init() complete');
     }
     
     // Initialize
+    console.log('[THEME] Document ready state:', document.readyState);
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        console.log('[THEME] Waiting for DOMContentLoaded');
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[THEME] DOMContentLoaded fired');
+            init();
+        });
     } else {
+        console.log('[THEME] Document already loaded, calling init immediately');
         init();
     }
     
     // Re-initialize after View Transitions navigation
-    document.addEventListener('page-navigation-complete', init);
+    document.addEventListener('page-navigation-complete', () => {
+        console.log('[THEME] page-navigation-complete event received, calling init');
+        init();
+    });
 })();
