@@ -10,14 +10,20 @@
 
 /* View Transitions API - Single Canvas Spatial Movement */
 @supports (view-transition-name: none) {
-    /* Disable root morphing - we orchestrate everything manually */
+    /* CRITICAL: Hide root transition to prevent flash of both old and new content
+       Only our named elements should participate in transitions */
     ::view-transition-old(root),
     ::view-transition-new(root) {
-        animation: none;
+        display: none;
     }
     
     ::view-transition-group(root) {
-        animation-duration: 0s;
+        animation: none;
+    }
+    
+    /* Ensure transition images are captured as isolated layers */
+    ::view-transition-image-pair(root) {
+        isolation: isolate;
     }
     
     /* Global timing - consistent with motion system core duration */
@@ -26,13 +32,22 @@
         animation-timing-function: var(--motion-easing);
     }
     
+    /* Ensure all transition images are isolated to prevent bleed-through */
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        mix-blend-mode: normal;
+        backface-visibility: hidden;
+    }
+    
     /* HEADER: Slides up behind nav bar when going to post, slides down when returning */
     ::view-transition-old(blog-header) {
         animation: slide-header-up var(--motion-duration-core) var(--motion-easing) forwards;
+        animation-fill-mode: both;
     }
     
     ::view-transition-new(blog-header) {
         animation: slide-header-down var(--motion-duration-core) var(--motion-easing) forwards;
+        animation-fill-mode: both;
     }
     
     @keyframes slide-header-up {
@@ -60,10 +75,12 @@
     /* FILTERS: Same upward scroll motion */
     ::view-transition-old(blog-filters) {
         animation: slide-filters-up var(--motion-duration-core) var(--motion-easing) forwards;
+        animation-fill-mode: both;
     }
     
     ::view-transition-new(blog-filters) {
         animation: slide-filters-down var(--motion-duration-core) var(--motion-easing) forwards;
+        animation-fill-mode: both;
     }
     
     @keyframes slide-filters-up {
@@ -88,80 +105,83 @@
         }
     }
     
-    /* POST CARDS: The active one expands, others fade slightly */
+    /* POST CARDS: Morphing choreography for all cards
+       The clicked card expands into article, others fade elegantly */
     ::view-transition-group(post-container-1),
     ::view-transition-group(post-container-2),
-    ::view-transition-group(post-container-3) {
+    ::view-transition-group(post-container-3),
+    ::view-transition-group(post-container-4),
+    ::view-transition-group(post-container-5),
+    ::view-transition-group(post-container-6),
+    ::view-transition-group(post-container-7),
+    ::view-transition-group(post-container-8) {
         animation-duration: var(--motion-duration-core);
         animation-timing-function: var(--motion-easing);
     }
     
+    /* Old state: cards on index fade out, active one morphs to article */
     ::view-transition-old(post-container-1),
-    ::view-transition-new(post-container-1),
     ::view-transition-old(post-container-2),
-    ::view-transition-new(post-container-2),
     ::view-transition-old(post-container-3),
-    ::view-transition-new(post-container-3) {
-        animation-duration: var(--motion-duration-core);
-        animation-timing-function: var(--motion-easing);
-        mix-blend-mode: normal;
+    ::view-transition-old(post-container-4),
+    ::view-transition-old(post-container-5),
+    ::view-transition-old(post-container-6),
+    ::view-transition-old(post-container-7),
+    ::view-transition-old(post-container-8) {
+        animation: fade-out-smooth var(--motion-duration-core) var(--motion-easing);
+        animation-fill-mode: both; /* Maintain animation state before and after */
     }
     
-    /* Title morphs smoothly within the expanding card */
+    /* New state: article morphs back to card, other cards fade in */
+    ::view-transition-new(post-container-1),
+    ::view-transition-new(post-container-2),
+    ::view-transition-new(post-container-3),
+    ::view-transition-new(post-container-4),
+    ::view-transition-new(post-container-5),
+    ::view-transition-new(post-container-6),
+    ::view-transition-new(post-container-7),
+    ::view-transition-new(post-container-8) {
+        animation: fade-in-smooth var(--motion-duration-core) var(--motion-easing);
+        animation-fill-mode: both; /* Start invisible, end visible */
+    }
+    
+    /* Title morphs smoothly - text flowing between contexts */
     ::view-transition-group(post-title-1),
     ::view-transition-group(post-title-2),
-    ::view-transition-group(post-title-3) {
+    ::view-transition-group(post-title-3),
+    ::view-transition-group(post-title-4),
+    ::view-transition-group(post-title-5),
+    ::view-transition-group(post-title-6),
+    ::view-transition-group(post-title-7),
+    ::view-transition-group(post-title-8) {
         animation-duration: var(--motion-duration-core);
         animation-timing-function: var(--motion-easing);
     }
     
-    ::view-transition-old(post-title-1),
-    ::view-transition-new(post-title-1),
-    ::view-transition-old(post-title-2),
-    ::view-transition-new(post-title-2),
-    ::view-transition-old(post-title-3),
-    ::view-transition-new(post-title-3) {
-        animation-duration: var(--motion-duration-core);
-        animation-timing-function: var(--motion-easing);
-        mix-blend-mode: normal;
-    }
-    
-    /* Date morphs with title */
+    /* Date anchors and morphs */
     ::view-transition-group(post-date-1),
     ::view-transition-group(post-date-2),
-    ::view-transition-group(post-date-3) {
+    ::view-transition-group(post-date-3),
+    ::view-transition-group(post-date-4),
+    ::view-transition-group(post-date-5),
+    ::view-transition-group(post-date-6),
+    ::view-transition-group(post-date-7),
+    ::view-transition-group(post-date-8) {
         animation-duration: var(--motion-duration-core);
         animation-timing-function: var(--motion-easing);
     }
     
-    ::view-transition-old(post-date-1),
-    ::view-transition-new(post-date-1),
-    ::view-transition-old(post-date-2),
-    ::view-transition-new(post-date-2),
-    ::view-transition-old(post-date-3),
-    ::view-transition-new(post-date-3) {
-        animation-duration: var(--motion-duration-core);
-        animation-timing-function: var(--motion-easing);
-        mix-blend-mode: normal;
-    }
-    
-    /* Excerpt fades and morphs */
+    /* Excerpt fades as it transforms to/from article lead */
     ::view-transition-group(post-excerpt-1),
     ::view-transition-group(post-excerpt-2),
-    ::view-transition-group(post-excerpt-3) {
+    ::view-transition-group(post-excerpt-3),
+    ::view-transition-group(post-excerpt-4),
+    ::view-transition-group(post-excerpt-5),
+    ::view-transition-group(post-excerpt-6),
+    ::view-transition-group(post-excerpt-7),
+    ::view-transition-group(post-excerpt-8) {
         animation-duration: var(--motion-duration-core);
         animation-timing-function: var(--motion-easing);
-    }
-    
-    ::view-transition-old(post-excerpt-1),
-    ::view-transition-new(post-excerpt-1),
-    ::view-transition-old(post-excerpt-2),
-    ::view-transition-new(post-excerpt-2),
-    ::view-transition-old(post-excerpt-3),
-    ::view-transition-new(post-excerpt-3) {
-        animation-duration: var(--motion-duration-core);
-        animation-timing-function: var(--motion-easing);
-        mix-blend-mode: normal;
     }
     
     /* Smooth cross-fade animations for different font sizes */
@@ -781,10 +801,11 @@ body {
 }
 
 /* ==========================================
-   POST CARD - The Magic Happens Here!
+   POST CARD - Pure CSS Morphing
    ========================================== */
 
-/* Staggered animation for cards - only on initial load */
+/* Staggered entrance for initial page load only
+   Uses animation-range to detect document-level view transitions */
 @keyframes cardFadeIn {
     from {
         opacity: 0;
@@ -796,26 +817,26 @@ body {
     }
 }
 
-/* Initial page load: Cards fade in with staggered timing (only on first load) */
-.posts-grid:not(.disable-animation) .post-card {
-    /* Start at opacity 0 for animation */
-    animation: cardFadeIn 0.7s var(--motion-easing) forwards;
-    animation-delay: calc(var(--card-index, 0) * 0.08s + 0.1s);
+/* Cards start visible for View Transitions, animate on initial load */
+.post-card {
+    opacity: 1;
 }
 
-.posts-grid:not(.disable-animation) .post-card:nth-child(1) { --card-index: 0; }
-.posts-grid:not(.disable-animation) .post-card:nth-child(2) { --card-index: 1; }
-.posts-grid:not(.disable-animation) .post-card:nth-child(3) { --card-index: 2; }
-.posts-grid:not(.disable-animation) .post-card:nth-child(4) { --card-index: 3; }
-.posts-grid:not(.disable-animation) .post-card:nth-child(5) { --card-index: 4; }
-.posts-grid:not(.disable-animation) .post-card:nth-child(6) { --card-index: 5; }
-.posts-grid:not(.disable-animation) .post-card:nth-child(7) { --card-index: 6; }
-.posts-grid:not(.disable-animation) .post-card:nth-child(8) { --card-index: 7; }
-
-/* Cards should be visible immediately when navigating back */
-.posts-grid.disable-animation .post-card {
-    opacity: 1;
-    animation: none;
+/* Initial page load stagger - only when NOT in a view transition */
+@supports not (view-transition-name: none) {
+    .post-card {
+        animation: cardFadeIn 0.7s var(--motion-easing) forwards;
+        animation-delay: calc(var(--card-index, 0) * 0.08s + 0.1s);
+    }
+    
+    .post-card:nth-child(1) { --card-index: 0; }
+    .post-card:nth-child(2) { --card-index: 1; }
+    .post-card:nth-child(3) { --card-index: 2; }
+    .post-card:nth-child(4) { --card-index: 3; }
+    .post-card:nth-child(5) { --card-index: 4; }
+    .post-card:nth-child(6) { --card-index: 5; }
+    .post-card:nth-child(7) { --card-index: 6; }
+    .post-card:nth-child(8) { --card-index: 7; }
 }
 
 .post-link {
@@ -1387,45 +1408,17 @@ button:focus-visible {
     opacity: 0.9;
 }
 
-/* Post cards - two-phase filtering choreography */
+/* Post cards - filtering with native CSS transitions
+   JavaScript only toggles display/hidden state, CSS handles the motion */
 .post-card {
-    /* Dissolve: Cards losing relevance fade from view
-       From: visible (opacity: 1) → To: transparent (opacity: 0)
-       Relate: Maintains spatial position during fade, removed after */
-    opacity: 1;  /* Explicit base opacity - overridden by animation on load */
-    will-change: auto; /* Default state - no performance hints */
+    opacity: 1;
+    transition: opacity var(--motion-duration-core) var(--motion-easing),
+                transform var(--motion-duration-core) var(--motion-easing);
 }
 
-/* Only apply filtering transitions after initial animation completes */
-.post-card.animation-complete {
-    transition: opacity var(--motion-duration-core) var(--motion-easing);
-}
-
-/* Phase 1: Dissolve - cards losing relevance fade out over 500ms */
-.post-card.filtering-out {
-    opacity: 0 !important;
-    pointer-events: none;  /* Relate: No longer interactive during fade */
-    will-change: opacity;  /* Optimize GPU compositing for fade */
-}
-
-/* Phase 2: After dissolve completes, remove from layout flow */
-.post-card.filtered-out {
-    display: none;  /* Where to: Outside spatial canvas, truly gone */
-}
-
-/* FLIP Animation - Smooth reorganization after filtering */
-.post-card.flip-measuring {
-    /* Freeze transitions to capture instant position snapshot */
-    transition: none !important;
-}
-
-.post-card.flip-animating {
-    /* Reorganization: Cards slide into new grid positions
-       From: old position (via transform offset) → To: natural position (transform: none)
-       Relate: Maintains visual continuity during grid reflow */
-    transition: transform var(--motion-duration-core) var(--motion-easing);
-    transform: translate(var(--flip-x, 0), var(--flip-y, 0));
-    will-change: transform;  /* Optimize GPU compositing */
+/* Cards being filtered out - fade elegantly */
+.post-card[hidden] {
+    display: none;
 }
 
 /* Posts grid maintains spatial continuity */

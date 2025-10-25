@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conteúdo da Postagem Faltando - dan.rio</title>
+    <title>Sistema Estático Vivo - dan.rio</title>
     <link rel="stylesheet" href="/blog/static/css/styles.css">
     <link rel="stylesheet" href="/blog/static/css/post.css">
     <link rel="preload" href="/blog/static/js/theme.js" as="script">
@@ -55,33 +55,129 @@
             <header class="post-header">
                 <a href="/blog/pt/index.html" class="back-link">← Back to Blog</a>
                 
-                <h1 class="post-title-large" style="view-transition-name: post-title-1;">CONTEÚDO DA POSTAGEM FALTANDO</h1>
+                <h1 class="post-title-large" style="view-transition-name: post-title-1;">SISTEMA ESTÁTICO VIVO</h1>
                 <div class="post-meta">
                     <time class="post-date" style="view-transition-name: post-date-1;">October 25, 2025</time>
                     <span class="post-separator">•</span>
                     <span class="post-reading-time">11 min read</span>
                 </div>
-                <div class="post-tags"><span class="tag-pill">conteúdo</span><span class="tag-pill">faltando</span><span class="tag-pill">tradução</span><span class="tag-pill">instrução</span></div>
+                <div class="post-tags"><span class="tag-pill">Desenvolvimento Web</span><span class="tag-pill">View Transitions API</span><span class="tag-pill">Sites Estáticos</span><span class="tag-pill">Python</span></div>
             </header>
 
             <div class="post-body">
                 <p class="lead" style="view-transition-name: post-excerpt-1;">
-                    Para iniciar a tradução e localização, por favor, forneça o conteúdo completo da postagem de blog em inglês que você gostaria que eu traduzisse.
+                    Por dentro de um site estático bilíngue que se move como uma única superfície: um build em Python, um pipeline de tradução, e transições nativas que mantêm o espaço contínuo.
                 </p>
-                Prezado(a) usuário(a),
+                <p>O sistema começou como uma pergunta: o quão pouco um blog precisa para parecer vivo. Não animado por si só, mas vivo da forma como uma maré avança — inevitável, contínua, sem fronteiras. O que surgiu foi um gerador estático que escreve dois espelhos de si mesmo, um em inglês e um em português, e uma fina camada de motion que nunca rompe a superfície. As páginas não trocam. O espaço se reorganiza.</p>
+<h2>O Build Pipeline</h2>
+<p>O build é uma única passagem de trabalho deliberado. O Markdown entra por uma porta estreita. O front matter é lido, o content é parsed, e um page model é montado com estrutura suficiente apenas para renderizar exatamente o que é necessário e nada mais. O script não orquestra um framework. Ele compõe arquivos.</p>
+<p>Dentro de <code>_source/build.py</code>, os posts são descobertos percorrendo o diretório <code>_source/posts</code>. Cada arquivo markdown é parsed com a library <code>frontmatter</code>, que separa os metadados YAML do body content. O body flui através da library <code>markdown</code> do Python, com extensions para fenced code blocks e tables. O que sai do outro lado é HTML limpo, envolvido em um template que sabe exatamente onde vai o title, onde fica a date, e como a navigation deve respirar.</p>
+<p>O único cache que importa é aquele que respeita a mudança. Um content hash é computado a partir da fonte em inglês usando MD5, e qualquer transformação que se segue herda essa decisão. O hash vive no próprio front matter, escrito de volta no arquivo markdown após o parsing:</p>
+<pre><code class="language-python">def parse_markdown_post(filepath):
+    post = frontmatter.load(filepath)
+    content_hash = calculate_content_hash(post.content)
 
-Estou pronto para prosseguir com a tradução e localização do seu blog post, aplicando todos os princípios detalhados nas instruções. No entanto, o texto em inglês da postagem a ser traduzida não foi fornecido.
+    stored_hash = post.get('content_hash')
+    needs_update = False
 
-Para que eu possa iniciar o trabalho, peço gentilmente que você forneça o conteúdo completo da postagem de blog em inglês. Assim que o conteúdo for disponibilizado, farei a tradução e localização completa, entregando-o no formato de saída especificado e garantindo:
+    if not created_at:
+        # New post - set creation date
+        post['created_at'] = now
+        post['content_hash'] = content_hash
+        needs_update = True
+    elif stored_hash != content_hash:
+        # Content changed - update timestamp
+        post['updated_at'] = now
+        post['content_hash'] = content_hash
+        needs_update = True
+</code></pre>
+<p>Quando nada mudou, nada faz rebuild. Quando uma frase se move, o pipeline acorda e se move com ela. O build script escreve para dois diretórios de output, <code>/en</code> e <code>/pt</code>, ambos na raiz do projeto. Ambos são sites completos. Ambos são first-class. Não há fallback nem runtime fetch.</p>
+<h2>Tradução como um Espelho</h2>
+<p>A tradução não é uma decoração. É uma segunda superfície desenhada com a mesma mão. O inglês entra; o português sai através do Gemini com constraints que preservam code blocks, technical terminology e o tom do original.</p>
+<p>O translator é inicializado com uma API key do environment. Ele mantém um arquivo JSON cache em <code>_cache/translation-cache.json</code>, indexado pelo slug de cada post e pelo content hash. A regra é simples: se a source não mudou, a tradução já é válida. Se o hash difere, uma nova tradução é solicitada e o cache é atualizado atomicamente.</p>
+<p>O translation prompt não é uma instrução simples. É um contrato:</p>
+<blockquote>
+<p>Você é um technical writer bilíngue brasileiro, traduzindo um blog post em inglês para um português brasileiro natural e localizado. Sua tarefa não é realizar uma tradução literal, mas sim localizar o texto—transformando-o em algo que soe como se tivesse sido originalmente escrito em português pelo mesmo autor.</p>
+</blockquote>
+<p>O prompt continua com princípios: preserve technical terms que brasileiros usam em inglês (<code>framework</code>, <code>build</code>, <code>pipeline</code>, <code>deploy</code>), mas localize o conteúdo narrativo e pessoal para soar fluente e culturalmente preciso. O translator respeita a essência do original enquanto faz cada frase respirar naturalmente na segunda língua.</p>
+<pre><code class="language-python">translated = translator.translate_post(
+    slug, frontmatter, content
+)
+</code></pre>
+<p>O resultado é cached, e o próximo build pula a API call inteiramente. É assim que um site bilíngue pode fazer rebuild em segundos, em vez de minutos. O cache é a memória do que já foi dito.</p>
+<h2>Navegação como Espaço Contínuo</h2>
+<p>A navegação se comporta como se o documento fosse um único plano que aprende novas formas. No browser, a View Transitions API não é um special effect. É uma memória do antes e depois. O novo HTML é fetched antecipadamente. O swap acontece dentro de um único synchronous callback, e o browser captura dois states do mesmo espaço. O código é pequeno porque o browser está fazendo o que foi projetado para fazer.</p>
+<p>A função <code>navigateTo</code> em <code>static/js/transitions.js</code> intercepta clicks em internal links. Ela faz fetch da nova página, a parses em um document fragment, e prepara o swap. Antes do transition começar, ela remove os atributos <code>view-transition-name</code> dos post cards no novo documento. Isso impede o browser de criar pseudo-elements extras que piscarão durante o cleanup. Então o transition começa:</p>
+<pre><code class="language-javascript">const transition = document.startViewTransition(() =&gt; {
+  document.title = newDoc.title;
 
-*   **Preservação de Termos Técnicos e Anglicismos:** Manterei termos como `machine learning`, `GPU`, `API`, `debug`, `commit`, `pipeline` e outros jargões comuns e naturalmente utilizados na área de tecnologia brasileira.
-*   **Localização para Fluidez Natural:** Adaptarei a sintaxe, as expressões e o ritmo para garantir que o texto soe como se tivesse sido originalmente escrito em Português do Brasil por um profissional de tecnologia, evitando traduções literais que soariam artificiais ou "robotizadas".
-*   **Manutenção de Tom, Lógica e Estilo:** A voz do autor será preservada, garantindo que a versão em português reflita o mesmo tom calmo, preciso e direto, a mesma lógica e o mesmo estilo do original.
-*   **Preservação de Formatação e Estrutura:** Toda a formatação Markdown (cabeçalhos, listas, blocos de código, links, ênfases), assim como snippets de código, comandos, variáveis e nomes de arquivos, serão mantidos intactos.
-*   **Autenticidade Cultural:** A tradução será exclusivamente em Português do Brasil, utilizando expressões e idiomatismos que são naturais e fluidos para um público brasileiro na área de tecnologia.
-*   **Consistência e Fidelidade:** O significado, a ordem lógica e a argumentação do texto original serão respeitados sem omissões, acréscimos ou reinterpretações, ajustando apenas onde necessário para a máxima fluidez e adequação cultural.
+  const main = document.querySelector('main');
+  const newMain = newDoc.querySelector('main');
+  if (main &amp;&amp; newMain) main.replaceWith(newMain);
 
-Aguardo seu conteúdo para iniciar a tradução!
+  history.pushState(null, '', url);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+});
+
+await transition.finished;
+</code></pre>
+<p>A coreografia é escrita em CSS, não em JavaScript. O código acima apenas decide quando a superfície deve se lembrar. Todo o resto vive nos styles: easing curves compartilhadas entre interações, durations que rimam, e pseudo-elements <code>::view-transition</code> que permitem que os titles façam morph sem nunca desaparecer. As motion constants ficam em um só lugar e não negociam com o resto do design:</p>
+<pre><code class="language-css">:root {
+  --motion-duration-core: 500ms;
+  --motion-duration-quick: 300ms;
+  --motion-duration-ripple: 600ms;
+  --motion-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+</code></pre>
+<p>Toda interaction no site usa essas variáveis. Os post cards levantam no hover por 300ms. As theme transitions fazem ripple por 600ms. As view transitions fazem morph por 500ms. A consistência não é um acidente. É o som do mesmo relógio batendo em todo lugar.</p>
+<h2>Filtragem Sem Surpresas</h2>
+<p>Os cards na index page aprendem a se comportar como bons cidadãos. O primeiro dever deles é aparecer, e então ficar parados. Sorting e filtering são feitos com FLIP, não com surpresa. FLIP significa First, Last, Invert, Play: mede onde cada card começa, aplica o filter ou sort, mede onde cada card termina, e então anima o delta.</p>
+<p>A implementação em <code>static/js/filter.js</code> captura os initial bounding rectangles de todos os cards visíveis, aplica a filter logic para esconder ou mostrar cards, e então captura as final positions. Cada card que se moveu recebe um CSS transform para invertê-lo de volta à sua starting position, e então o transform é removido ao longo da animation duration. O card parece deslizar suavemente da old position para a new one.</p>
+<pre><code class="language-javascript">const rects = new Map();
+cards.forEach(card =&gt; {
+  rects.set(card, card.getBoundingClientRect());
+});
+
+// Apply filter (hides/shows cards, layout reflows)
+applyFilter();
+
+cards.forEach(card =&gt; {
+  const oldRect = rects.get(card);
+  const newRect = card.getBoundingClientRect();
+  const dx = oldRect.left - newRect.left;
+  const dy = oldRect.top - newRect.top;
+
+  card.style.transform = `translate(${dx}px, ${dy}px)`;
+  requestAnimationFrame(() =&gt; {
+    card.style.transition = 'transform 500ms var(--motion-easing)';
+    card.style.transform = 'none';
+  });
+});
+</code></pre>
+<p>O grid nunca pula. Ele exala. Quando a navigation chega de outro lugar, o initial keyframe reveal é bypassado inteiramente. O script detecta navigation verificando <code>document.referrer</code> pelo mesmo origin. Se o referrer corresponde, ele assume que o usuário navegou de outra página no site, e imediatamente desabilita a intro animation adicionando <code>disable-animation</code> ao posts grid e configurando <code>animation: none</code> em cada card. O resultado é tranquilo: nada pisca, nada reseta, nada se afirma depois do fato.</p>
+<h2>Troca de Idioma como Overlay de Tradução</h2>
+<p>Uma das continuidades mais sutis do sistema é como a language switching se manifesta. Quando você clica no language toggle, você não está saindo da page. Você está traduzindo a superfície que já está lendo. A scroll position é preservada. O filter state é preservado. A URL muda de <code>/en/index.html</code> para <code>/pt/index.html</code>, mas seu lugar no documento não.</p>
+<p>Isso é tratado em <code>transitions.js</code> detectando um language switch: a path structure é idêntica, exceto pelo segmento <code>en</code> ou <code>pt</code>. Se esse pattern é detectado, a scroll position é capturada antes do fetch, e restaurada após o DOM swap. Se você estava na metade de um artigo longo em inglês e troca para português, você permanece na metade do mesmo artigo. O content muda, mas o espaço não.</p>
+<p>O mesmo princípio se estende ao filter state na index page. Se você filtrou posts por ano ou tag e muda de idioma, o filter permanece ativo. Os translated posts aparecem, mas os selection criteria são preservados. É assim que um site bilíngue parece um único documento visto por duas lentes, em vez de dois sites separados.</p>
+<h2>Customização Sem Scaffolding</h2>
+<p>A customização respeita a natureza do sistema. O entry point é a configuração e o texto, não o scaffolding. Abra <code>_source/config.py</code> e você encontrará tudo que pode mudar: base path, language definitions, site metadata, UI strings para ambos os idiomas. Mude o base path e o build escreve links que obedecem. Ajuste as typographic variables em <code>static/css/styles.css</code> e toda a superfície se ajusta ou se solta uniformemente.</p>
+<p>O language set é a única assumption embutida. O inglês é a source of truth. O português é uma tradução fiel. Se uma terceira língua for necessária, a regra se estende: adicione um segundo mirror, dê a ele um cache, mantenha os hashes honestos. O builder é um script que você pode ler de uma vez só. Se você pode lê-lo, você pode mudá-lo. Não há magia. Não há hidden layers. O sistema é exatamente tão complexo quanto o problema que ele resolve.</p>
+<h2>Por que Nenhum Framework</h2>
+<p>Recusar um framework aqui não é nostalgia. É um alinhamento com o problema. Um blog é texto, algumas imagens, e a sensação de que navegar por ele deve parecer virar uma página sem perder a linha que você estava lendo. As native browser capabilities já são suficientes. O Python já é suficiente. As dependencies são escolhidas como ferramentas em uma pequena bancada: se uma ferramenta não torna o corte mais limpo, ela fica na gaveta.</p>
+<p>A ausência de maquinário não é uma ideologia. É maintenance praticada com antecedência. Cada line of code neste sistema é código que terei que ler novamente em seis meses ou seis anos. Cada dependency é uma potencial future incompatibility. Cada abstraction é um imposto sobre a compreensão. Então o sistema permanece pequeno. Permanece readable. Permanece changeable.</p>
+<p>A View Transitions API é nativa do Chromium. Não requer polyfill, nem wrapper, nem build step. O browser já sabe como capturar dois states do DOM e animar entre eles. Meu trabalho é decidir quando isso deve acontecer e evitar que o resto da page interfira. O CSS que descreve o motion é declarativo. Ele se lê como uma partitura de coreografia, não como um programa.</p>
+<p>As libraries <code>frontmatter</code> e <code>markdown</code> do Python fazem exatamente uma coisa cada: parsear YAML e converter Markdown para HTML. Elas fazem isso bem. Não tentam ser build systems. Não tentam ser routers. Elas parseiam texto. Isso é tudo que preciso que façam.</p>
+<h2>A Filosofia do Movimento</h2>
+<p>A filosofia do movimento é a filosofia da atenção. Nada deve insistir. Transitions respondem a três perguntas: de onde, para onde, e como este state se relaciona com o anterior. As theme changes fazem ripple como uma nuvem passando sobre o sol. Um card levanta alguns pixels quando você faz hover, e então retorna ao repouso. A superfície nunca mente sobre o que se moveu ou porquê.</p>
+<p>Quando algo precisa ser removido, ele se dissolve ao longo de 500 milissegundos. Quando algo precisa chegar, ele emerge de onde plausivelmente poderia ter estado. O post card na index se expande no artigo completo. O title permanece no lugar e cresce. A date se ancora no canto. O layout respira para fora sem quebrar a continuity. Quando você aperta back, o artigo se contrai no card novamente. O espaço é conservado.</p>
+<p>A easing curve é a mesma em todo lugar: <code>cubic-bezier(0.4, 0, 0.2, 1)</code>. Essa não é uma escolha aleatória. É o standard ease do Material Design, escolhido porque parece natural para a percepção humana. O motion começa com intenção, acelera suavemente e desacelera conforme se completa. Nada estala. Nada desliza em velocidade constante. Tudo se move como se tivesse peso.</p>
+<h2>O Contrato com o Leitor</h2>
+<p>Para quem quiser adaptá-lo, o contrato é pequeno e explícito. Markdown entra, HTML sai. Um translator que respeita o code e a voz. Uma navigation layer que nunca bloqueia paints com trabalho que poderia ter feito antes. Styles que codificam o ritmo uma vez e o reutilizam em todo lugar. Se você mudar uma coisa, deve parecer que você mudou exatamente uma coisa, e o resto do sistema deve responder com calma proporcional.</p>
+<p>A única inteligência está em saber quando parar. O sistema poderia fazer mais. Poderia ter um CMS. Poderia ter real-time preview. Poderia ter analytics e A/B testing e social sharing widgets. Ele não faz nenhuma dessas coisas porque nenhuma delas torna a experiência de leitura melhor. O objetivo não é construir uma platform. O objetivo é escrever, e deixar a escrita ser lida sem interferência.</p>
+<h2>O Que o Sistema Sabe</h2>
+<p>Esta não é uma demonstração. É a versão mais simples de um documento vivo que eu poderia fazer sem mentir sobre o que a web já pode fazer. Na maioria das noites eu escrevo com as janelas abertas em Copacabana e o som da avenida se dobrando no mar. O sistema aprende esse ritmo e o mantém. As coisas fluem, não porque são rápidas, mas porque não atrapalham a si mesmas.</p>
+<p>O cache se lembra do que não mudou. O translator preserva o que não deve ser traduzido. A navigation mantém onde você estava olhando quando o idioma foi trocado. O motion system codifica quanto tempo as coisas devem levar e se recusa a discutir sobre isso. Cada decisão que o sistema toma está a serviço de uma única ideia: o documento é contínuo. Quando você se move por ele, o espaço se reorganiza, mas nunca se rompe.</p>
+<p>É isso que significa para um static site parecer vivo.</p>
             </div>
         </article>
     </main>

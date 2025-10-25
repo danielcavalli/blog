@@ -253,24 +253,8 @@
             const parser = new DOMParser();
             const newDoc = parser.parseFromString(html, 'text/html');
             
-            // CRITICAL: Remove view-transition-names from cards in NEW document BEFORE starting transition
-            // This prevents the browser from creating pseudo-elements that cause flash on cleanup
-            const newPostCards = newDoc.querySelectorAll('.post-card');
-            if (newPostCards.length > 0) {
-                console.log('[TRANSITIONS] Removing view-transition-names from', newPostCards.length, 'cards in new document');
-                newPostCards.forEach(card => {
-                    card.removeAttribute('style'); // Remove inline style with view-transition-name
-                    // Also remove from children
-                    card.querySelectorAll('[style*="view-transition-name"]').forEach(el => {
-                        el.removeAttribute('style');
-                    });
-                });
-            }
-            
-            // Now start the transition with the new content ready
+            // Start the transition - view-transition-names are ESSENTIAL for morphing
             const transition = document.startViewTransition(() => {
-                // This callback executes synchronously - DOM swap happens here
-                // Browser captures the "old" state, then we swap, then captures "new" state
                 
                 document.title = newDoc.title;
                 
@@ -292,23 +276,8 @@
                 const main = document.querySelector('main');
                 const newMain = newDoc.querySelector('main');
                 
-                console.log('[TRANSITIONS] Swapping main content');
-                
                 if (main && newMain) {
                     main.replaceWith(newMain);
-                    console.log('[TRANSITIONS] Main content swapped');
-                    
-                    // CRITICAL: Disable card animations immediately after DOM swap
-                    // This prevents CSS animations from being applied to cards during navigation
-                    const postsGrid = document.querySelector('.posts-grid');
-                    if (postsGrid) {
-                        console.log('[TRANSITIONS] Found posts-grid, adding disable-animation class');
-                        postsGrid.classList.add('disable-animation');
-                        const postCards = document.querySelectorAll('.post-card');
-                        console.log('[TRANSITIONS] Posts grid now has', postCards.length, 'cards');
-                    } else {
-                        console.log('[TRANSITIONS] No posts-grid found');
-                    }
                 }
                 
                 // Update entire navigation to get language-specific links
@@ -338,26 +307,17 @@
                 }
             });
 
-            console.log('[TRANSITIONS] Waiting for transition to finish...');
             await transition.finished;
-            console.log('[TRANSITIONS] View Transition finished');
             
             // Restore filter state for language switches
             if (isLanguageSwitch && filterState) {
-                console.log('[TRANSITIONS] Restoring filter state for language switch');
                 restoreFilterState(filterState);
             }
             
             // Re-initialize scripts after DOM replacement
-            // Use double RAF to defer reinitialization until after paint cycle completes
-            // This prevents flicker from DOM mutations (replaceChild, setAttribute) during rendering
-            console.log('[TRANSITIONS] Scheduling reinitializeScripts with double RAF');
             requestAnimationFrame(() => {
-                console.log('[TRANSITIONS] First RAF complete');
                 requestAnimationFrame(() => {
-                    console.log('[TRANSITIONS] Second RAF complete, calling reinitializeScripts');
                     reinitializeScripts();
-                    console.log('[TRANSITIONS] reinitializeScripts complete');
                 });
             });
         } catch (error) {
@@ -383,10 +343,7 @@
      * @returns {void}
      */
     function reinitializeScripts() {
-        // Dispatch event for theme.js and filter.js to reinitialize
-        console.log('[TRANSITIONS] Dispatching page-navigation-complete event');
         document.dispatchEvent(new CustomEvent('page-navigation-complete'));
-        console.log('[TRANSITIONS] page-navigation-complete event dispatched');
     }
 
     // Handle back/forward navigation

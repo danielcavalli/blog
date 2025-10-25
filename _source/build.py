@@ -13,7 +13,7 @@ from datetime import datetime
 import markdown
 import frontmatter
 from config import BASE_PATH, SITE_NAME, SITE_DESCRIPTION, AUTHOR_BIO, LANGUAGES, DEFAULT_LANGUAGE
-from translator import GeminiTranslator
+from translator import MultiAgentTranslator
 
 # Project structure paths
 PROJECT_ROOT = Path(__file__).parent.parent  # Go up from _source to project root
@@ -42,19 +42,49 @@ for lang_dir in LANG_DIRS.values():
 
 
 def calculate_content_hash(content):
-    """Calculate MD5 hash of content for change detection"""
+    """Calculate MD5 hash of content for change detection.
+    
+    Used to determine if post content has changed since last build,
+    enabling incremental rebuilds and cache invalidation.
+    
+    Args:
+        content (str): Post content to hash.
+    
+    Returns:
+        str: MD5 hexadecimal digest string.
+    """
     return hashlib.md5(content.encode('utf-8')).hexdigest()
 
 
 def calculate_reading_time(content):
-    """Estimate reading time based on word count"""
+    """Estimate reading time based on word count.
+    
+    Assumes average reading speed of 200 words per minute.
+    Minimum reading time is 1 minute.
+    
+    Args:
+        content (str): Post content to analyze.
+    
+    Returns:
+        str: Reading time estimate (e.g., "5 min read").
+    """
     words = len(content.split())
     minutes = max(1, round(words / 200))
     return f"{minutes} min read"
 
 
 def format_date(date_str):
-    """Format date string nicely"""
+    """Format date string to readable format.
+    
+    Converts YYYY-MM-DD format to full month name format.
+    Falls back to original string if parsing fails.
+    
+    Args:
+        date_str (str): Date string in YYYY-MM-DD format.
+    
+    Returns:
+        str: Formatted date (e.g., "January 15, 2024").
+    """
     try:
         date = datetime.strptime(str(date_str), "%Y-%m-%d")
         return date.strftime("%B %d, %Y")
@@ -63,7 +93,17 @@ def format_date(date_str):
 
 
 def format_iso_date(iso_str):
-    """Format ISO datetime string to readable date"""
+    """Format ISO datetime string to readable date.
+    
+    Converts ISO 8601 datetime to full month name format.
+    Falls back to original string if parsing fails.
+    
+    Args:
+        iso_str (str): ISO 8601 datetime string.
+    
+    Returns:
+        str: Formatted date (e.g., "January 15, 2024").
+    """
     try:
         dt = datetime.fromisoformat(iso_str)
         return dt.strftime("%B %d, %Y")
@@ -151,7 +191,19 @@ def generate_lang_toggle_html(current_lang: str, current_page: str) -> str:
 
 
 def generate_post_html(post, post_number, lang='en'):
-    """Generate HTML for a single blog post"""
+    """Generate HTML for individual blog post page.
+    
+    Creates complete HTML page with post content, metadata, navigation,
+    theme toggle, language toggle, and view transition support.
+    
+    Args:
+        post (Dict): Post data with title, content, excerpt, tags, dates, etc.
+        post_number (int): Sequential post number for ordering.
+        lang (str): Language code ('en' or 'pt').
+    
+    Returns:
+        str: Complete HTML document for the post.
+    """
     # Generate language-specific paths
     lang_dir = LANGUAGES[lang]['dir']
     current_page = f"blog/{post['slug']}.html"
@@ -266,7 +318,19 @@ def generate_post_html(post, post_number, lang='en'):
 
 
 def generate_post_card(post, post_number, lang='en'):
-    """Generate HTML card for the index page"""
+    """Generate HTML card for post on index page.
+    
+    Creates post preview card with view transition naming for smooth
+    morphing animation when navigating to full post.
+    
+    Args:
+        post (Dict): Post data with title, excerpt, tags, dates, slug, etc.
+        post_number (int): Sequential post number for view transition naming.
+        lang (str): Language code ('en' or 'pt').
+    
+    Returns:
+        str: HTML article element for the post card.
+    """
     # Generate tags HTML
     tags_html = ''
     if post.get('tags'):
@@ -302,7 +366,18 @@ def generate_post_card(post, post_number, lang='en'):
 
 
 def generate_index_html(posts, lang='en'):
-    """Generate the main index.html page"""
+    """Generate main blog index page with filtering.
+    
+    Creates index.html with post cards, filter controls (year/month/tag),
+    sort controls (newest/oldest/updated), and bilingual navigation.
+    
+    Args:
+        posts (List[Dict]): List of all posts to display.
+        lang (str): Language code ('en' or 'pt').
+    
+    Returns:
+        str: Complete HTML document for the index page.
+    """
     lang_toggle_html = generate_lang_toggle_html(lang, 'index.html')
     ui = LANGUAGES[lang]['ui']
     posts_html = '\n\n'.join(generate_post_card(post, i + 1, lang) for i, post in enumerate(posts))
@@ -456,7 +531,17 @@ def generate_index_html(posts, lang='en'):
 
 
 def generate_about_html(lang='en'):
-    """Generate the about.html page"""
+    """Generate About page with translated content.
+    
+    Creates about.html page with author bio content from config,
+    translated for the specified language.
+    
+    Args:
+        lang (str): Language code ('en' or 'pt').
+    
+    Returns:
+        str: Complete HTML document for the About page.
+    """
     lang_toggle_html = generate_lang_toggle_html(lang, 'about.html')
     ui = LANGUAGES[lang]['ui']
     about = LANGUAGES[lang]['about']
@@ -551,7 +636,20 @@ def generate_about_html(lang='en'):
 
 
 def parse_markdown_post(filepath):
-    """Parse a markdown file with frontmatter and update metadata in place"""
+    """Parse Markdown file with YAML frontmatter.
+    
+    Extracts metadata and content from post, updates creation/modification
+    timestamps in frontmatter if needed, and generates HTML from Markdown.
+    
+    Automatically writes back to file if timestamps are added or updated.
+    
+    Args:
+        filepath (Path): Path to Markdown file to parse.
+    
+    Returns:
+        Dict: Post data with title, excerpt, tags, dates, content, etc.
+              Returns None if file doesn't exist or fails to parse.
+    """
     post = frontmatter.load(filepath)
     
     # Get filename without extension
@@ -705,44 +803,59 @@ def generate_root_index():
 
 
 def build():
-    """Main build function with bilingual support"""
-    print("🏗️  Building bilingual blog from Markdown...\n")
+    """Main build function orchestrating entire site generation.
+    
+    Workflow:
+        1. Validate post structure and metadata
+        2. Parse all Markdown posts
+        3. Translate posts to Portuguese (with caching)
+        4. Translate About page (with caching)
+        5. Generate HTML files for both languages
+        6. Generate root index and landing pages
+    
+    Returns:
+        bool: True if build succeeds, False if validation or translation fails.
+    """
+    print("Building bilingual blog from Markdown...\n")
     
     # Run validation first
     try:
         from validate import run_validation
         if not run_validation(BASE_PATH, POSTS_DIR):
-            print("❌ Build aborted due to validation failures.\n")
+            print("Build aborted due to validation failures.\n")
             return False
     except ImportError:
-        print("⚠️  Skipping validation (validate.py not found)\n")
+        print("Skipping validation (validate.py not found)\n")
     
     # Initialize translator
     try:
-        translator = GeminiTranslator()
-        print("🌐 Translation system initialized\n")
+        translator = MultiAgentTranslator(enable_critique=True)
+        print("Translation system initialized\n")
         
         # Translate About page content
         about_en = LANGUAGES['en']['about']
         about_pt_translated = translator.translate_about(about_en, force=False)
         
-        # Update Portuguese config with translated content
+        # Must have translation
+        if not about_pt_translated:
+            raise Exception("About page translation failed")
+        
         LANGUAGES['pt']['about'] = about_pt_translated
         
     except Exception as e:
-        print(f"⚠️  Translation system unavailable: {e}")
-        print("   Continuing with English-only build\n")
-        translator = None
+        print(f"Translation system error: {e}")
+        print("   Build aborted - fix translation issues and retry\n")
+        return False
     
     # Get all markdown files
     md_files = sorted(POSTS_DIR.glob("*.md"))
     
     if not md_files:
-        print("⚠️  No markdown files found in blog-posts/")
-        print("💡 Create .md files in blog-posts/ to get started!\n")
+        print("No markdown files found in blog-posts/")
+        print("Create .md files in blog-posts/ to get started!\n")
         return False
     
-    print(f"📝 Found {len(md_files)} markdown file(s)\n")
+    print(f"Found {len(md_files)} markdown file(s)\n")
     
     # Parse all posts (English versions)
     posts_en = []
@@ -753,39 +866,36 @@ def build():
             # Parse English version
             post_en = parse_markdown_post(md_file)
             posts_en.append(post_en)
-            print(f"   ✓ Parsed: {md_file.name} (EN)")
+            print(f"   Parsed: {md_file.name} (EN)")
             
             # Translate to Portuguese if translator available
             if translator:
-                try:
-                    post_pt = translator.translate_if_needed(post_en, 'pt')
-                    posts_pt.append(post_pt)
-                    print(f"   ✓ Translated: {md_file.name} (PT)")
-                except Exception as e:
-                    print(f"   ⚠️  Translation failed for {md_file.name}: {e}")
-                    # Use English version as fallback
-                    posts_pt.append(post_en)
+                post_pt = translator.translate_if_needed(post_en, 'pt')
+                if not post_pt:
+                    raise Exception(f"Translation failed for {md_file.name}")
+                posts_pt.append(post_pt)
+                print(f"   Translated: {md_file.name} (PT)")
         except Exception as e:
-            print(f"   ✗ Error parsing {md_file.name}: {e}")
+            print(f"   Error: {e}")
             return False
     
     # Sort posts (by order, then by updated date)
     posts_en.sort(key=lambda p: (-p['order'], p['updated_date']), reverse=True)
     posts_pt.sort(key=lambda p: (-p['order'], p['updated_date']), reverse=True)
     
-    print(f"\n🔨 Generating HTML files...\n")
+    print(f"\nGenerating HTML files...\n")
     
     # Generate English site
-    print("   📄 English version:")
+    print("   English version:")
     for i, post in enumerate(posts_en):
         try:
             html = generate_post_html(post, i + 1, lang='en')
             output_file = LANG_DIRS['en'] / 'blog' / f"{post['slug']}.html"
             output_file.write_text(html, encoding='utf-8')
             
-            print(f"      ✓ blog/{post['slug']}.html")
+            print(f"      blog/{post['slug']}.html")
         except Exception as e:
-            print(f"      ✗ Error generating {post['slug']}.html: {e}")
+            print(f"      Error generating {post['slug']}.html: {e}")
             return False
     
     # Generate English index
@@ -793,9 +903,9 @@ def build():
         index_html = generate_index_html(posts_en, lang='en')
         index_file = LANG_DIRS['en'] / 'index.html'
         index_file.write_text(index_html, encoding='utf-8')
-        print(f"      ✓ index.html")
+        print(f"      index.html")
     except Exception as e:
-        print(f"      ✗ Error generating index.html: {e}")
+        print(f"      Error generating index.html: {e}")
         return False
     
     # Generate English about
@@ -803,22 +913,22 @@ def build():
         about_html = generate_about_html(lang='en')
         about_file = LANG_DIRS['en'] / 'about.html'
         about_file.write_text(about_html, encoding='utf-8')
-        print(f"      ✓ about.html")
+        print(f"      about.html")
     except Exception as e:
-        print(f"      ✗ Error generating about.html: {e}")
+        print(f"      Error generating about.html: {e}")
         return False
     
     # Generate Portuguese site (if translations available)
     if posts_pt:
-        print("\n   📄 Portuguese version:")
+        print("\n   Portuguese version:")
         for i, post in enumerate(posts_pt):
             try:
                 html = generate_post_html(post, i + 1, lang='pt')
                 output_file = LANG_DIRS['pt'] / 'blog' / f"{post['slug']}.html"
                 output_file.write_text(html, encoding='utf-8')
-                print(f"      ✓ blog/{post['slug']}.html")
+                print(f"      blog/{post['slug']}.html")
             except Exception as e:
-                print(f"      ✗ Error generating {post['slug']}.html: {e}")
+                print(f"      Error generating {post['slug']}.html: {e}")
                 return False
         
         # Generate Portuguese index
@@ -826,9 +936,9 @@ def build():
             index_html = generate_index_html(posts_pt, lang='pt')
             index_file = LANG_DIRS['pt'] / 'index.html'
             index_file.write_text(index_html, encoding='utf-8')
-            print(f"      ✓ index.html")
+            print(f"      index.html")
         except Exception as e:
-            print(f"      ✗ Error generating index.html: {e}")
+            print(f"      Error generating index.html: {e}")
             return False
         
         # Generate Portuguese about
@@ -836,35 +946,35 @@ def build():
             about_html = generate_about_html(lang='pt')
             about_file = LANG_DIRS['pt'] / 'about.html'
             about_file.write_text(about_html, encoding='utf-8')
-            print(f"      ✓ about.html")
+            print(f"      about.html")
         except Exception as e:
-            print(f"      ✗ Error generating about.html: {e}")
+            print(f"      Error generating about.html: {e}")
             return False
     
     # Generate landing page
-    print("\n   🎨 Landing page:")
+    print("\n   Landing page:")
     try:
         landing_html = generate_landing_html()
         landing_file = Path("landing.html")
         landing_file.write_text(landing_html, encoding='utf-8')
-        print(f"      ✓ landing.html")
+        print(f"      landing.html")
     except Exception as e:
-        print(f"      ✗ Error generating landing.html: {e}")
+        print(f"      Error generating landing.html: {e}")
         return False
     
     # Generate root index.html with redirect to landing
-    print("\n   🌐 Root redirect:")
+    print("\n   Root redirect:")
     try:
         root_html = generate_root_index()
         root_index = Path("index.html")
         root_index.write_text(root_html, encoding='utf-8')
-        print(f"      ✓ index.html (redirect)")
+        print(f"      index.html (redirect)")
     except Exception as e:
-        print(f"      ✗ Error generating root index.html: {e}")
+        print(f"      Error generating root index.html: {e}")
         return False
     
     lang_count = 2 if posts_pt else 1
-    print(f"\n🎉 Build complete! {len(posts_en)} post(s) in {lang_count} language(s).\n")
+    print(f"\nBuild complete! {len(posts_en)} post(s) in {lang_count} language(s).\n")
     return True
 
 

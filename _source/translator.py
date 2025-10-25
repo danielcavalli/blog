@@ -1,104 +1,68 @@
 #!/usr/bin/env python3
 """
-Translation Module - Gemini-powered PT-BR translation for blog posts
-Implements incremental translation with caching to avoid redundant API calls
-"""
+Multi-Agent Translation Pipeline for Brazilian Portuguese
 
-"""Gemini API Translation System with JSON-based Caching
-
-Provides automatic translation of blog content (Markdown and HTML) from English to
-Portuguese (PT-BR) using Google's Gemini 2.5 Flash model. Implements a persistent
-JSON cache to avoid redundant API calls for previously translated content.
-
-Environment Variables:
-    GEMINI_API_KEY: Required. Google Gemini API key for authentication.
-
-Translation Strategy:
-    - Preserves natural Anglicisms (e.g., "frontend", "backend", "framework")
-    - Maintains code blocks and technical terminology
-    - Translates metadata (title, summary) and body content
-    - Uses structured prompts for consistent, natural Portuguese output
-
-Cache Architecture:
-    - JSON file storage (translation-cache.json)
-    - Keyed by SHA-256 hash of English content
-    - Includes timestamp for cache age tracking
-    - Atomic write operations with error handling
-
-Typical Usage:
-    translator = GeminiTranslator(api_key=os.getenv('GEMINI_API_KEY'))
-    post_data = translator.translate_markdown_post(
-        markdown_content,
-        frontmatter={'title': 'Post Title', 'summary': 'Summary'}
-    )
-    # Returns: {'markdown': '...', 'metadata': {...}}
-
-Classes:
-    TranslationCache: JSON-based persistent cache for translations
-    GeminiTranslator: Gemini API client with translation methods
-
-External Dependencies:
-    - google-generativeai: Gemini API client library
-    - json: Cache persistence
-    - hashlib: Content hashing for cache keys
+Three-stage pipeline:
+1. Translation Agent: Translates English to PT-BR
+2. Critique Agent: Reviews translation quality and semantic alignment
+3. Refinement Agent: Applies feedback to improve translation
 """
 
 import os
 import json
 import hashlib
+import time
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 import google.generativeai as genai
 from dotenv import load_dotenv
+from config import GEMINI_MODEL
 
-# Load environment variables
 load_dotenv()
 
-# Configuration - cache stored in _cache directory
 PROJECT_ROOT = Path(__file__).parent.parent
 TRANSLATION_CACHE_FILE = PROJECT_ROOT / "_cache" / "translation-cache.json"
-GEMINI_MODEL = "gemini-2.5-flash"  # Using gemini-2.5-flash as requested
+
+# Rate limiting: gemini-2.0-flash-exp = 10 RPM
+# With 3 calls per post (translate + critique + refine), we can do ~3 posts/min
+# Use longer intervals to avoid hitting limits
+MIN_REQUEST_INTERVAL = 10.0  # seconds between API calls (safer margin)
+
 
 class TranslationCache:
-    """Manages JSON-based translation cache to avoid redundant Gemini API calls
+    """Persistent cache for translated content using content hashing.
     
-    Cache Structure:
+    Stores translations indexed by post slug and content hash to avoid
+    unnecessary API calls when content hasn't changed. Cache is saved
+    as JSON to survive between build runs.
+    
+    The cache structure:
         {
             "post-slug": {
-                "content_hash": "sha256...",
-                "translation": { ... }
+                "hash": "sha256_hash_of_content",
+                "translation": {
+                    "title": "Translated Title",
+                    "excerpt": "Translated excerpt",
+                    "tags": ["tag1", "tag2"],
+                    "content": "<p>Translated HTML content</p>"
+                }
             }
         }
     
-    The cache is keyed by post slug and uses SHA-256 content hashes to detect changes.
-    If content hash matches, cached translation is returned. Otherwise, a fresh API call
-    is made and the cache is updated.
-    
     Attributes:
-        cache (Dict): In-memory cache dictionary loaded from JSON file
-    
-    Cache File:
-        _cache/translation-cache.json
-    
-    Thread Safety:
-        Not thread-safe. Assumes single-process build script usage.
+        cache (Dict): In-memory cache dictionary loaded from JSON file.
     """
     
     def __init__(self):
-        """Initialize cache by loading from disk
-        
-        If cache file doesn't exist or is corrupted, starts with empty cache.
-        """
+        """Initialize cache by loading from disk if available."""
         self.cache = self._load_cache()
     
     def _load_cache(self) -> Dict:
-        """Load existing translation cache from JSON file
+        """Load cache from JSON file.
         
         Returns:
-            Dict: Cache dictionary, or empty dict if file doesn't exist or is corrupted
-        
-        Error Handling:
-            Silently returns empty dict on JSON parse errors or file read errors
+            Dict: Loaded cache dictionary, or empty dict if file doesn't exist
+                  or is corrupted.
         """
         if TRANSLATION_CACHE_FILE.exists():
             try:
@@ -109,337 +73,594 @@ class TranslationCache:
         return {}
     
     def save(self):
-        """Save translation cache to disk atomically
+        """Persist cache to disk as JSON with UTF-8 encoding.
         
-        Writes cache to translation-cache.json with UTF-8 encoding and proper formatting.
-        Uses ensure_ascii=False to preserve Portuguese characters.
-        
-        Side Effects:
-            Overwrites _cache/translation-cache.json file
-        
-        Raises:
-            OSError: If file write fails (permissions, disk full, etc.)
+        Writes the entire cache dictionary to the cache file, overwriting
+        any existing content. Uses indent=2 for human readability and
+        ensure_ascii=False to preserve Unicode characters.
         """
         with open(TRANSLATION_CACHE_FILE, 'w', encoding='utf-8') as f:
             json.dump(self.cache, f, indent=2, ensure_ascii=False)
     
     def get_translation(self, slug: str, content_hash: str) -> Optional[Dict]:
-        """Get cached translation if content hasn't changed
-        
-        Checks if slug exists in cache and if content hash matches. If both conditions
-        are true, returns cached translation. Otherwise returns None to trigger fresh API call.
+        """Retrieve cached translation if content hasn't changed.
         
         Args:
-            slug (str): Post slug identifier (e.g., "modern-web-development")
-            content_hash (str): SHA-256 hash of current English content
+            slug (str): Post identifier (filename without extension).
+            content_hash (str): SHA256 hash of current content.
         
         Returns:
-            Optional[Dict]: Cached translation dict if found and hash matches, else None
-        
-        Cache Miss Scenarios:
-            - Slug not in cache (new post)
-            - Content hash mismatch (post edited)
+            Optional[Dict]: Translation dict if found and hash matches,
+                           None otherwise.
         """
-        if slug in self.cache:
-            cached = self.cache[slug]
-            if cached.get('content_hash') == content_hash:
-                return cached.get('translation')
+        entry = self.cache.get(slug)
+        if entry and isinstance(entry, dict) and entry.get('hash') == content_hash:
+            return entry.get('translation')
         return None
     
-    def set_translation(self, slug: str, content_hash: str, translation: Dict):
-        """Cache translation with content hash
-        
-        Stores translation in cache with associated content hash for future validation.
-        Immediately writes cache to disk to ensure persistence across build runs.
+    def store_translation(self, slug: str, content_hash: str, translation: Dict):
+        """Store translation in cache and persist to disk.
         
         Args:
-            slug (str): Post slug identifier
-            content_hash (str): SHA-256 hash of English content
-            translation (Dict): Translation result from Gemini API
-        
-        Side Effects:
-            Updates self.cache in memory
-            Writes updated cache to translation-cache.json via save()
+            slug (str): Post identifier.
+            content_hash (str): SHA256 hash of source content.
+            translation (Dict): Translation result containing title, excerpt,
+                              tags, and content.
         """
         self.cache[slug] = {
-            'content_hash': content_hash,
+            'hash': content_hash,
             'translation': translation
         }
         self.save()
 
 
-class GeminiTranslator:
-    """Handles translation using Google's Gemini 2.5 Flash API
+class MultiAgentTranslator:
+    """Three-stage translation pipeline using Gemini API.
     
-    Provides methods for translating:
-    - Markdown blog posts with frontmatter metadata
-    - Plain text content (for About page, etc.)
-    - HTML content
+    This translator uses a multi-agent approach:
+        1. Translation Agent: Translates English content to Brazilian Portuguese
+        2. Critique Agent: Reviews translation for semantic accuracy and naturalness
+        3. Refinement Agent: Applies feedback to improve translation quality
     
-    Translation Philosophy:
-        - Natural, fluent Brazilian Portuguese
-        - Preserves common Anglicisms in tech context (e.g., "framework", "frontend")
-        - Maintains code blocks and technical terminology unchanged
-        - Respects Markdown formatting and structure
+    The pipeline includes:
+        - Content-based caching to avoid redundant API calls
+        - Rate limiting to respect API quotas (10 requests per minute)
+        - Automatic retry with exponential backoff for rate limit errors
+        - Natural Brazilian Portuguese output with technical terms in English
     
     Attributes:
-        api_key (str): Gemini API key from GEMINI_API_KEY environment variable
-        project_id (str): Optional Gemini project ID from GEMINI_PROJECT_ID
-        model (GenerativeModel): Configured Gemini 2.5 Flash model instance
-    
-    Environment:
-        GEMINI_API_KEY: Required. API key for Google Gemini.
-        GEMINI_PROJECT_ID: Optional. Project identifier for billing/quotas.
-    
-    Raises:
-        ValueError: If GEMINI_API_KEY not found in environment
-    
-    API Model:
-        gemini-2.5-flash (fast, cost-effective, high-quality translations)
+        api_key (str): Gemini API key from environment.
+        model: Configured Gemini generative model.
+        cache (TranslationCache): Persistent translation cache.
+        enable_critique (bool): Whether to run critique/refinement stages.
+        last_api_call (float): Timestamp of last API call for rate limiting.
     """
     
-    def __init__(self):
-        """Initialize Gemini translator with API configuration
+    def __init__(self, enable_critique: bool = True):
+        """Initialize translator with API credentials and cache.
         
-        Loads GEMINI_API_KEY from environment, configures Gemini API client,
-        and initializes translation cache.
+        Args:
+            enable_critique (bool): If True, runs full 3-stage pipeline.
+                                   If False, skips critique and refinement.
         
         Raises:
-            ValueError: If GEMINI_API_KEY environment variable not found
-        
-        Side Effects:
-            Calls genai.configure() to set global Gemini API configuration
-            Creates TranslationCache instance (loads translation-cache.json)
+            ValueError: If GEMINI_API_KEY environment variable is not set.
         """
         self.api_key = os.getenv('GEMINI_API_KEY')
-        self.project_id = os.getenv('GEMINI_PROJECT_ID')
-        
         if not self.api_key:
-            raise ValueError(
-                "GEMINI_API_KEY not found in environment. "
-                "Please create a .env file with your API key. "
-                "See .env.example for template."
-            )
+            raise ValueError("GEMINI_API_KEY not found")
         
-        # Configure Gemini
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel(GEMINI_MODEL)
         self.cache = TranslationCache()
+        self.enable_critique = enable_critique
+        self.last_api_call = 0
     
-    def _calculate_content_hash(self, content: str) -> str:
-        """Calculate SHA-256 hash of content for change detection
-        
-        Used to determine if cached translation is still valid. If content hash
-        differs from cached hash, translation is re-generated.
+    def _calculate_hash(self, content: str) -> str:
+        """Calculate SHA256 hash of content for cache validation.
         
         Args:
-            content (str): English content to hash
+            content (str): Content to hash (typically post content + frontmatter).
         
         Returns:
-            str: Hexadecimal SHA-256 hash digest
-        
-        Note:
-            Uses SHA-256 (not MD5 as originally implemented) for better collision resistance
+            str: Hexadecimal SHA256 hash string.
         """
-        return hashlib.md5(content.encode('utf-8')).hexdigest()
+        return hashlib.sha256(content.encode('utf-8')).hexdigest()
     
-    def translate_post(self, slug: str, frontmatter: Dict, content: str, force: bool = False) -> Dict:
-        """Translate a blog post from English to PT-BR with caching
+    def _rate_limit(self):
+        """Enforce minimum interval between API calls.
         
-        Main translation method for Markdown blog posts. Checks cache first, calls Gemini API
-        if needed, parses response, and caches result.
+        Blocks execution if insufficient time has passed since last API call.
+        Uses MIN_REQUEST_INTERVAL (10 seconds) to stay under API rate limits.
+        """
+        elapsed = time.time() - self.last_api_call
+        if elapsed < MIN_REQUEST_INTERVAL:
+            sleep_time = MIN_REQUEST_INTERVAL - elapsed
+            time.sleep(sleep_time)
+        self.last_api_call = time.time()
+    
+    def _call_api(self, prompt: str, retries: int = 10) -> Optional[str]:
+        """Call Gemini API with rate limiting and retry logic.
+        
+        Handles rate limits by waiting 90 seconds for quota reset.
+        For other errors, retries with 10-second delays.
         
         Args:
-            slug (str): Post identifier (e.g., "modern-web-development")
-            frontmatter (Dict): Post metadata dict with keys: title, excerpt, tags
-            content (str): Markdown content body (without frontmatter)
-            force (bool): If True, bypass cache and force fresh translation. Default False.
+            prompt (str): Translation prompt to send to Gemini.
+            retries (int): Maximum number of retry attempts (default: 10).
         
         Returns:
-            Dict: Translated post with keys:
-                - title (str): Translated post title
-                - excerpt (str): Translated post excerpt/summary
-                - content (str): Translated Markdown body
-                - tags (List[str]): Translated tag list
+            Optional[str]: API response text, or None if all retries exhausted.
         
-        Side Effects:
-            - Prints cache hit/miss messages to stdout
-            - Calls Gemini API if cache miss
-            - Updates translation cache if API call succeeds
-        
-        Error Handling:
-            On Gemini API failure, returns original English content as fallback
-            and prints error message to stdout
-        
-        Translation Flow:
-            1. Calculate content hash
-            2. Check cache (unless force=True)
-            3. If cache miss: build prompt → call Gemini → parse response → cache result
-            4. Return translated dict
+        Raises:
+            Exception: If API fails after all retries or encounters fatal error.
         """
-        # Check cache unless forcing re-translation
-        content_hash = self._calculate_content_hash(content)
+        for attempt in range(retries):
+            try:
+                self._rate_limit()
+                response = self.model.generate_content(prompt)
+                return response.text
+            except Exception as e:
+                error_msg = str(e)
+                # Log the error received from Gemini
+                print(f"      Gemini API error: {error_msg[:500]}")
+                
+                # Check if it's a rate limit error
+                if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "quota" in error_msg.lower():
+                    # Wait 90 seconds for rate limits to reset
+                    print(f"      Rate limit detected - waiting 90s for quota to reset...")
+                    time.sleep(90)
+                    continue
+                
+                # For other errors, retry with delay
+                if attempt < retries - 1:
+                    print(f"      Retrying in 10s ({attempt + 2}/{retries})...")
+                    time.sleep(10)
+                else:
+                    print(f"      FATAL: API failed after {retries} attempts")
+                    raise Exception(f"Translation API failed: {error_msg}")
+        
+        raise Exception("Translation API exhausted all retries")
+    
+    def translate_post(self, slug: str, frontmatter: Dict, content: str, force: bool = False) -> Optional[Dict]:
+        """Multi-agent translation pipeline for blog posts.
+        
+        Orchestrates the three-stage translation process:
+            1. Initial translation to Brazilian Portuguese
+            2. Quality critique (if enabled)
+            3. Refinement based on feedback (if needed)
+        
+        Uses cache to avoid retranslating unchanged content. Automatically
+        retranslates if cached translation has empty content field.
+        
+        Args:
+            slug (str): Post identifier (filename without extension).
+            frontmatter (Dict): Post metadata (title, excerpt, tags).
+            content (str): Post body content in Markdown/HTML.
+            force (bool): If True, bypasses cache and forces new translation.
+        
+        Returns:
+            Optional[Dict]: Translation dict with title, excerpt, tags, content.
+                           None if translation fails.
+        """
+        content_hash = self._calculate_hash(content + str(frontmatter))
+        
         if not force:
             cached = self.cache.get_translation(slug, content_hash)
             if cached:
-                print(f"   ↻ Using cached translation for: {slug}")
-                return cached
+                # Check if cached translation has empty content - if so, retranslate
+                if not cached.get('content', '').strip():
+                    print(f"   Cached translation has empty content, retranslating: {slug}")
+                    force = True
+                else:
+                    print(f"   Content unchanged: {slug}")
+                    return cached
         
-        print(f"   ⚡ Translating with Gemini: {slug}")
+        print(f"   Translating: {slug}")
         
-        # Prepare translation prompt
+        translation = self._translate(frontmatter, content)
+        if not translation:
+            return None
+        
+        if not self.enable_critique:
+            print(f"      Translation complete (critique disabled)")
+            self.cache.store_translation(slug, content_hash, translation)
+            return translation
+        
+        print(f"      Reviewing translation...")
+        
+        critique_result, feedback = self._critique(frontmatter, content, translation)
+        
+        if critique_result == "OK":
+            print(f"      Translation approved")
+            self.cache.store_translation(slug, content_hash, translation)
+            return translation
+        
+        print(f"      Refining based on feedback...")
+        
+        refined = self._refine(frontmatter, content, translation, feedback)
+        
+        if refined:
+            print(f"      Translation refined")
+            self.cache.store_translation(slug, content_hash, refined)
+            return refined
+        
+        print(f"      Using initial translation")
+        self.cache.store_translation(slug, content_hash, translation)
+        return translation
+    
+    def _translate(self, frontmatter: Dict, content: str) -> Optional[Dict]:
+        """Stage 1: Initial translation agent.
+        
+        Translates English blog post to Brazilian Portuguese with focus on:
+        - Natural, culturally appropriate language
+        - Technical term conventions (keeping known terms in English)
+        - Proper translation of title, excerpt, tags, and content
+        
+        Args:
+            frontmatter (Dict): Post metadata with title, excerpt, tags.
+            content (str): Post body content to translate.
+        
+        Returns:
+            Optional[Dict]: Dict with translated title, excerpt, tags, content.
+                           None if API call fails or response can't be parsed.
+        """
         prompt = self._build_translation_prompt(frontmatter, content)
         
-        try:
-            # Call Gemini API
-            response = self.model.generate_content(prompt)
-            translated_text = response.text
-            
-            # Parse response to extract translated components
-            translated = self._parse_translation_response(translated_text, frontmatter)
-            
-            # Cache the translation
-            self.cache.set_translation(slug, content_hash, translated)
-            
-            return translated
-            
-        except Exception as e:
-            print(f"   ✗ Translation failed for {slug}: {e}")
-            # Return original content as fallback
-            return {
-                'title': frontmatter.get('title', ''),
-                'excerpt': frontmatter.get('excerpt', ''),
-                'content': content,
-                'tags': frontmatter.get('tags', [])
-            }
+        response_text = self._call_api(prompt)
+        if not response_text:
+            return None
+        
+        parsed = self._parse_response(response_text, frontmatter)
+        return parsed
     
-    def translate_if_needed(self, post: Dict, target_lang: str = 'pt') -> Dict:
-        """
-        Translate a complete post dictionary
+    def _critique(self, frontmatter: Dict, content: str, translation: Dict) -> Tuple[str, str]:
+        """Stage 2: Quality critique agent.
+        
+        Reviews translation quality by checking:
+        - Semantic alignment with original meaning
+        - Natural Brazilian Portuguese usage
+        - Technical term conventions
+        - Formatting preservation
         
         Args:
-            post: Complete post dict from parse_markdown_post
-            target_lang: Target language code
+            frontmatter (Dict): Original English metadata.
+            content (str): Original English content.
+            translation (Dict): Translated Portuguese version.
         
         Returns:
-            New post dict with translated content
+            Tuple[str, str]: (status, feedback) where:
+                - status: "OK" if approved, "FEEDBACK" if needs refinement
+                - feedback: Empty if OK, improvement suggestions if FEEDBACK
         """
-        if target_lang != 'pt':
-            return post  # Only Portuguese translation supported
+        prompt = self._build_critique_prompt(frontmatter, content, translation)
         
-        # Extract content for translation
-        frontmatter = {
-            'title': post.get('title', ''),
-            'excerpt': post.get('excerpt', ''),
-            'tags': post.get('tags', [])
+        response_text = self._call_api(prompt)
+        if not response_text:
+            # If critique fails, assume OK
+            return ("OK", "")
+        
+        result = response_text.strip()
+        
+        if result.startswith("OK"):
+            return ("OK", "")
+        elif result.startswith("FEEDBACK:"):
+            feedback = result.replace("FEEDBACK:", "").strip()
+            return ("FEEDBACK", feedback)
+        else:
+            # Unclear response, assume OK
+            return ("OK", "")
+    
+    def _refine(self, frontmatter: Dict, content: str, translation: Dict, feedback: str) -> Optional[Dict]:
+        """Stage 3: Refinement agent.
+        
+        Applies critique feedback to improve translation while maintaining:
+        - Original semantic meaning
+        - Brazilian Portuguese naturalness
+        - All formatting and structure
+        
+        Args:
+            frontmatter (Dict): Original English metadata.
+            content (str): Original English content.
+            translation (Dict): Current Portuguese translation.
+            feedback (str): Improvement suggestions from critique agent.
+        
+        Returns:
+            Optional[Dict]: Refined translation dict, or None if refinement fails.
+        """
+        prompt = self._build_refinement_prompt(frontmatter, content, translation, feedback)
+        
+        response_text = self._call_api(prompt)
+        if not response_text:
+            return None
+        
+        return self._parse_response(response_text, frontmatter)
+    
+    def _build_translation_prompt(self, frontmatter: Dict, content: str) -> str:
+        """Build prompt for Stage 1 translation agent.
+        
+        Creates detailed prompt with translation rules, technical conventions,
+        and strict output formatting requirements.
+        
+        Args:
+            frontmatter (Dict): Post metadata (title, excerpt, tags).
+            content (str): Post content to translate.
+        
+        Returns:
+            str: Formatted translation prompt for Gemini API.
+        """
+        title = frontmatter.get('title', '')
+        excerpt = frontmatter.get('excerpt', '')
+        tags = ', '.join(frontmatter.get('tags', []))
+        
+        return f"""Translate this technical blog post to natural Brazilian Portuguese.
+
+TRANSLATION RULES:
+- Write as a bilingual Brazilian engineer would naturally speak
+- Keep technical terms in English: machine learning, GPU, CUDA, API, pipeline, frontend, backend, debug, commit, deploy, framework, view transition, morphing, build, cache, etc.
+- Use Brazilian idioms: "I am Daniel" = "Me chamo Daniel" (not "Sou Daniel")
+- Preserve ALL Markdown syntax, code blocks, and formatting EXACTLY
+- Do NOT add explanations, notes, or JSON blocks
+- Output ONLY the sections below in the exact format shown
+
+INPUT:
+Title: {title}
+Excerpt: {excerpt}
+Tags: {tags}
+
+Content:
+{content}
+
+OUTPUT FORMAT (provide ONLY these sections, nothing else):
+
+TITLE:
+[translated title here]
+
+EXCERPT:
+[translated excerpt here]
+
+TAGS:
+[comma-separated translated tags]
+
+CONTENT:
+[full translated content with all markdown preserved]"""
+    
+    def _build_critique_prompt(self, frontmatter: Dict, content: str, translation: Dict) -> str:
+        """Build prompt for Stage 2 critique agent.
+        
+        Creates comparison prompt asking agent to review translation quality,
+        semantic alignment, and naturalness.
+        
+        Args:
+            frontmatter (Dict): Original English metadata.
+            content (str): Original English content.
+            translation (Dict): Translated Portuguese version.
+        
+        Returns:
+            str: Formatted critique prompt for Gemini API.
+        """
+        return f"""Compare the English original with the Portuguese translation.
+
+Check if they convey the same ideas, tone, and meaning.
+
+ORIGINAL ENGLISH:
+Title: {frontmatter.get('title', '')}
+Excerpt: {frontmatter.get('excerpt', '')}
+Content: {content[:1500]}...
+
+PORTUGUESE TRANSLATION:
+Title: {translation.get('title', '')}
+Excerpt: {translation.get('excerpt', '')}
+Content: {translation.get('content', '')[:1500]}...
+
+If the translation is semantically aligned and sounds natural, respond:
+OK
+
+If there are issues (wrong meaning, unnatural phrasing, missing content, wrong tone), respond:
+FEEDBACK: [specific issues to fix]
+
+Your response:"""
+    
+    def _build_refinement_prompt(self, frontmatter: Dict, content: str, translation: Dict, feedback: str) -> str:
+        """Build prompt for Stage 3 refinement agent.
+        
+        Creates prompt asking agent to apply critique feedback while
+        maintaining translation quality and formatting.
+        
+        Args:
+            frontmatter (Dict): Original English metadata (unused but kept for consistency).
+            content (str): Original English content.
+            translation (Dict): Current Portuguese translation.
+            feedback (str): Critique feedback to address.
+        
+        Returns:
+            str: Formatted refinement prompt for Gemini API.
+        """
+        return f"""Improve this Portuguese translation based on feedback.
+
+ORIGINAL ENGLISH:
+{content}
+
+CURRENT TRANSLATION:
+{translation.get('content', '')}
+
+FEEDBACK:
+{feedback}
+
+Apply the feedback while maintaining natural Brazilian Portuguese.
+
+OUTPUT:
+
+TITLE:
+{translation.get('title', '')}
+
+EXCERPT:
+{translation.get('excerpt', '')}
+
+TAGS:
+{', '.join(translation.get('tags', []))}
+
+CONTENT:
+[improved translation]"""
+    
+    def _parse_response(self, response: str, original: Dict) -> Dict:
+        """Parse structured response from translation/refinement agents.
+        
+        Handles multiple output formats:
+        1. Section headers on separate lines (TITLE:\\n[text])
+        2. Inline sections (TITLE: [text])
+        3. Stops parsing at JSON blocks, code fences, or explanatory text
+        
+        Falls back to original values if sections are missing/empty.
+        
+        Args:
+            response (str): API response text with structured sections.
+            original (Dict): Original metadata for fallback values.
+        
+        Returns:
+            Dict: Parsed translation with title, excerpt, tags, content.
+        """
+        result = {
+            'title': original.get('title', ''),
+            'excerpt': original.get('excerpt', ''),
+            'tags': original.get('tags', []),
+            'content': ''
         }
         
-        translated = self.translate_post(
-            post['slug'],
-            frontmatter,
-            post['content'],
-            force=False
-        )
+        lines = response.strip().split('\n')
+        current = None
+        buffer = []
         
-        # Create new post with translated content
-        translated_post = post.copy()
-        translated_post['title'] = translated['title']
-        translated_post['excerpt'] = translated['excerpt']
-        translated_post['content'] = translated['content']
-        translated_post['tags'] = translated['tags']
+        for line in lines:
+            stripped = line.strip()
+            upper = stripped.upper()
+            
+            # Skip empty lines when not in a section
+            if not stripped and not current:
+                continue
+            
+            # Skip "OUTPUT:" header if present
+            if upper == 'OUTPUT:':
+                continue
+            
+            # Check for section markers (with or without trailing content)
+            if upper.startswith('TITLE:'):
+                # Save previous section
+                if current == 'content' and buffer:
+                    result['content'] = '\n'.join(buffer).strip()
+                elif current == 'excerpt' and buffer:
+                    result['excerpt'] = ' '.join(buffer).strip()
+                elif current == 'tags' and buffer:
+                    result['tags'] = [t.strip() for t in ' '.join(buffer).split(',') if t.strip()]
+                
+                current = 'title'
+                buffer = []
+                # Check if title is on same line
+                if len(stripped) > 6:
+                    title_text = stripped[6:].strip()
+                    if title_text:
+                        buffer.append(title_text)
+                continue
+                
+            elif upper.startswith('EXCERPT:'):
+                if current == 'title' and buffer:
+                    result['title'] = ' '.join(buffer).strip()
+                current = 'excerpt'
+                buffer = []
+                # Check if excerpt is on same line
+                if len(stripped) > 8:
+                    excerpt_text = stripped[8:].strip()
+                    if excerpt_text:
+                        buffer.append(excerpt_text)
+                continue
+                
+            elif upper.startswith('TAGS:'):
+                if current == 'excerpt' and buffer:
+                    result['excerpt'] = ' '.join(buffer).strip()
+                current = 'tags'
+                buffer = []
+                # Check if tags are on same line
+                if len(stripped) > 5:
+                    tags_text = stripped[5:].strip()
+                    if tags_text:
+                        buffer.append(tags_text)
+                continue
+                
+            elif upper.startswith('CONTENT:'):
+                if current == 'tags' and buffer:
+                    result['tags'] = [t.strip() for t in ' '.join(buffer).split(',') if t.strip()]
+                current = 'content'
+                buffer = []
+                continue
+            
+            # Accumulate content for current section
+            if current:
+                # Stop if we hit JSON or markdown code block markers (common in model output)
+                if stripped.startswith('```') or stripped.startswith('{'):
+                    break
+                buffer.append(line)
         
-        return translated_post
+        # Process final section
+        if current == 'content' and buffer:
+            result['content'] = '\n'.join(buffer).strip()
+        elif current == 'title' and buffer:
+            result['title'] = ' '.join(buffer).strip()
+        elif current == 'excerpt' and buffer:
+            result['excerpt'] = ' '.join(buffer).strip()
+        elif current == 'tags' and buffer:
+            result['tags'] = [t.strip() for t in ' '.join(buffer).split(',') if t.strip()]
+        
+        return result
     
-    def translate_about(self, about_text: Dict, force: bool = False) -> Dict:
-        """
-        Translate About section text
+    def translate_about(self, about_text: Dict, force: bool = False) -> Optional[Dict]:
+        """Translate About page content.
+        
+        Translates About page paragraphs with cache validation. Automatically
+        retranslates if any paragraph is empty in cached version.
         
         Args:
-            about_text: Dict with 'title' and 'p1', 'p2', 'p3', 'p4' keys
-            force: Force re-translation even if cached
+            about_text (Dict): About page content with p1-p4 paragraph keys.
+            force (bool): If True, bypasses cache and forces new translation.
         
         Returns:
-            Dict with translated about text
+            Optional[Dict]: Translation dict with p1-p4 keys for paragraphs.
+                           None if translation fails.
         """
-        # Create content string from paragraphs
-        content = '\n\n'.join([
-            about_text.get('p1', ''),
-            about_text.get('p2', ''),
-            about_text.get('p3', ''),
-            about_text.get('p4', '')
-        ])
-        
-        # Check cache
-        content_hash = self._calculate_content_hash(content)
+        content = json.dumps(about_text, sort_keys=True)
+        content_hash = self._calculate_hash(content)
         slug = 'about-page'
         
         if not force:
             cached = self.cache.get_translation(slug, content_hash)
             if cached:
-                print(f"   ↻ Using cached translation for: About page")
-                return cached
+                # Check if any paragraph is empty - if so, retranslate
+                has_empty = any(not cached.get(f'p{i}', '').strip() for i in range(1, 5))
+                if has_empty:
+                    print(f"   Cached About has empty content, retranslating")
+                    force = True
+                else:
+                    print(f"   Content unchanged: About")
+                    return cached
         
-        print(f"   ⚡ Translating About page with Gemini")
+        print(f"   Translating: About")
         
-        # Build specialized prompt for About section
-        prompt = self._build_about_translation_prompt(about_text)
-        
-        try:
-            # Call Gemini API
-            response = self.model.generate_content(prompt)
-            translated_text = response.text
-            
-            # Parse response
-            translated = self._parse_about_translation_response(translated_text, about_text)
-            
-            # Cache the translation
-            self.cache.set_translation(slug, content_hash, translated)
-            
-            return translated
-            
-        except Exception as e:
-            print(f"   ✗ About translation failed: {e}")
-            # Return original as fallback
-            return about_text
-    
-    def _build_about_translation_prompt(self, about_text: Dict) -> str:
-        """Build translation prompt specifically for About page"""
-        return f"""You are a bilingual Brazilian technical writer translating an About/Bio section to Brazilian Portuguese.
+        prompt = f"""Translate this About page content to natural Brazilian Portuguese.
 
-**TRANSLATION PHILOSOPHY:**
-This is personal, biographical text. It should sound natural and authentic in Brazilian Portuguese while preserving the author's voice and any technical terminology they use.
+RULES:
+- Keep technical terms and company names (Nubank, CUDA, etc.) in original language
+- Use natural Brazilian expressions and idioms
+- "I'm Daniel" = "Me chamo Daniel" (not "Eu sou Daniel")
+- Do NOT add explanations or extra text
+- Output ONLY the sections below
 
-**CORE PRINCIPLES:**
-
-1. **Preserve Technical & Professional Terms:**
-   - Keep job titles and company names: "Machine Learning Engineer", "Nubank"
-   - Keep technical terms that are standard in Brazilian tech: CUDA kernel, distributed training, efficiency, systems, workflow
-   - Keep proper nouns: Moana, Copacabana
-
-2. **Translate Personal & Narrative Content:**
-   - Fully translate personal reflections, descriptions, and narrative text
-   - Use natural Brazilian expressions for everyday concepts
-   - Maintain the calm, direct tone of the original
-
-3. **Voice & Authenticity:**
-   - Mirror the author's personality — technical but grounded
-   - Keep the same level of informality/formality
-   - Sound like a Brazilian engineer writing about themselves, not a translated text
-
-**INPUT:**
-
+INPUT:
 Title: {about_text.get('title', '')}
+P1: {about_text.get('p1', '')}
+P2: {about_text.get('p2', '')}
+P3: {about_text.get('p3', '')}
+P4: {about_text.get('p4', '')}
 
-Paragraph 1: {about_text.get('p1', '')}
-
-Paragraph 2: {about_text.get('p2', '')}
-
-Paragraph 3: {about_text.get('p3', '')}
-
-Paragraph 4: {about_text.get('p4', '')}
-
-**OUTPUT FORMAT:**
-Provide the translation in this exact structure:
+OUTPUT FORMAT (provide ONLY these sections):
 
 TITLE:
 [translated title]
@@ -454,14 +675,29 @@ P3:
 [translated paragraph 3]
 
 P4:
-[translated paragraph 4]
-
-Begin translation now:"""
-    
-    def _parse_about_translation_response(self, response: str, original: Dict) -> Dict:
-        """Parse Gemini's About page translation response"""
-        lines = response.strip().split('\n')
+[translated paragraph 4]"""
         
+        response_text = self._call_api(prompt)
+        if not response_text:
+            return None
+        
+        translated = self._parse_about_response(response_text, about_text)
+        self.cache.store_translation(slug, content_hash, translated)
+        return translated
+    
+    def _parse_about_response(self, response: str, original: Dict) -> Dict:
+        """Parse About page translation response.
+        
+        Extracts translated title and paragraphs (p1-p4) from structured response.
+        Falls back to original values if sections are missing.
+        
+        Args:
+            response (str): API response with TITLE:/P1:/P2:/P3:/P4: sections.
+            original (Dict): Original About content for fallback values.
+        
+        Returns:
+            Dict: Parsed translation with title and p1-p4 paragraph keys.
+        """
         result = {
             'title': original.get('title', ''),
             'p1': original.get('p1', ''),
@@ -470,233 +706,102 @@ Begin translation now:"""
             'p4': original.get('p4', '')
         }
         
-        current_section = None
-        content_lines = []
+        lines = response.strip().split('\n')
+        current = None
+        buffer = []
         
         for line in lines:
-            line_upper = line.strip().upper()
+            upper = line.strip().upper()
             
-            if line_upper == 'TITLE:':
-                current_section = 'title'
-                continue
-            elif line_upper == 'P1:':
-                current_section = 'p1'
-                content_lines = []
-                continue
-            elif line_upper == 'P2:':
-                if current_section == 'p1':
-                    result['p1'] = '\n'.join(content_lines).strip()
-                current_section = 'p2'
-                content_lines = []
-                continue
-            elif line_upper == 'P3:':
-                if current_section == 'p2':
-                    result['p2'] = '\n'.join(content_lines).strip()
-                current_section = 'p3'
-                content_lines = []
-                continue
-            elif line_upper == 'P4:':
-                if current_section == 'p3':
-                    result['p3'] = '\n'.join(content_lines).strip()
-                current_section = 'p4'
-                content_lines = []
-                continue
-            
-            if current_section == 'title' and line.strip():
-                result['title'] = line.strip()
-                current_section = None
-            elif current_section in ['p1', 'p2', 'p3', 'p4']:
-                content_lines.append(line)
+            if upper == 'TITLE:':
+                if current and buffer:
+                    result[current] = '\n'.join(buffer).strip()
+                current = 'title'
+                buffer = []
+            elif upper == 'P1:':
+                if current == 'title' and buffer:
+                    result['title'] = ' '.join(buffer).strip()
+                current = 'p1'
+                buffer = []
+            elif upper == 'P2:':
+                if current and buffer:
+                    result[current] = '\n'.join(buffer).strip()
+                current = 'p2'
+                buffer = []
+            elif upper == 'P3:':
+                if current and buffer:
+                    result[current] = '\n'.join(buffer).strip()
+                current = 'p3'
+                buffer = []
+            elif upper == 'P4:':
+                if current and buffer:
+                    result[current] = '\n'.join(buffer).strip()
+                current = 'p4'
+                buffer = []
+            else:
+                if current:
+                    buffer.append(line)
         
-        # Capture last paragraph
-        if current_section == 'p4' and content_lines:
-            result['p4'] = '\n'.join(content_lines).strip()
+        if current and buffer:
+            result[current] = '\n'.join(buffer).strip()
         
         return result
-
-    def _build_translation_prompt(self, frontmatter: Dict, content: str) -> str:
-        """Build comprehensive translation prompt for Gemini"""
-        return f"""You are a bilingual Brazilian technical writer translating an English blog post into **natural, localized Brazilian Portuguese**.
-
-Your task is not to perform a literal translation but to **localize** the text — transforming it into something that reads as if it were originally written in Portuguese by the same author.  
-The translation must preserve the **tone, message, rhythm, structure, and writing style** of the original while adapting expressions, syntax, and phrasing so they sound fully natural to a Brazilian reader.  
-Your output should feel fluent, human, and culturally accurate — never mechanical, over-translated, or detached.
-
-
-## TRANSLATION PHILOSOPHY
-
-The goal is **authentic, localized Brazilian Portuguese** that reflects how bilingual professionals in tech actually write and speak.  
-This is not an independent rewrite or reinterpretation: you must keep the original logic, mood, and structure intact.  
-However, when a literal translation would sound foreign or unnatural, you must rewrite the sentence in a way that feels idiomatic, fluid, and culturally correct in Portuguese.
-
-Think like a **bilingual Brazilian engineer** who understands both linguistic worlds and writes with precision, naturalness, and respect for tone.
-
-## CORE PRINCIPLES
-
-### 1. Preserve English Technical Terms and Anglicisms
-Keep all established technical terms, acronyms, and engineering jargon that are naturally used by Brazilian tech professionals.  
-Examples include:  
-`machine learning, deep learning, GPU, CUDA, pipeline, workflow, build, backend, frontend, API, debug, commit, pull request, merge, branch, layout, viewport, toggle, deploy, benchmark, latency, throughput, cache`  
-Translate only when the Portuguese equivalent is common, natural, and does not distort meaning.
-
-### 2. Localize When Literal Translation Sounds Unnatural
-When a direct translation would sound odd, choose the most natural Brazilian phrasing that conveys the same intent and tone.  
-Examples:  
-- “I am Daniel.” → *“Me chamo Daniel.”*  
-- “This is how I work.” → *“É assim que eu trabalho.”*  
-- “Let’s dive deeper.” → *“Vamos nos aprofundar.”*  
-
-Avoid word-for-word translations like *“Sou Daniel”* or *“Vamos mergulhar mais fundo”*, which sound artificial in written Brazilian Portuguese.  
-The goal is **fluency and authenticity**, not strict lexical equivalence.
-
-### 3. Maintain Tone, Logic, and Style
-- Mirror the original tone exactly — calm, precise, and direct.  
-- Preserve paragraph rhythm, sentence length, and reading flow.  
-- Keep the same level of formality and narrative distance.  
-- Do not embellish, simplify, or reinterpret. You are localizing the *voice*, not rewriting it.  
-
-The translated version must feel like the same author expressing themselves naturally in Portuguese.
-
-### 4. Preserve Formatting and Structure
-- Keep all Markdown syntax identical: headers, lists, code blocks, links, emphasis.  
-- Never translate or modify code snippets, commands, variable names, or file paths.  
-- Maintain capitalization, paragraph spacing, and punctuation structure.  
-
-Formatting fidelity is essential — the translation should fit seamlessly into the same Markdown document.
-
-### 5. Cultural Authenticity
-- Use Brazilian Portuguese exclusively (never European Portuguese).  
-- Use natural expressions from tech writing in Brazil: *rodar o script*, *debugar*, *deployar*, *dar merge*, *commit*, *branch*, *buildar*.  
-- Prefer natural rhythm, punctuation, and idioms Brazilians use when mixing English and Portuguese fluently.  
-
-You are writing as a **Brazilian engineer who lives in both languages**, not as a translator converting between them.
-
-### 6. Consistency and Fidelity
-- Maintain logical order and argumentation exactly as in the English text.  
-- Do not omit, add, or reinterpret meaning.  
-- Only adjust where necessary for fluency and cultural fit.  
-- Respect Markdown formatting and output structure at all times.  
-
-### OUTPUT FORMAT
-
-TITLE:  
-[translated title]
-
-EXCERPT:  
-[translated excerpt]
-
-TAGS:  
-[translated tags, comma-separated]
-
-CONTENT:  
-[translated markdown content]
-
-Begin translation now:
-"""
     
-    def _parse_translation_response(self, response: str, original_frontmatter: Dict) -> Dict:
-        """Parse Gemini's response into structured translation
+    def translate_if_needed(self, post: Dict, target_lang: str = 'pt') -> Optional[Dict]:
+        """Translate complete post - returns translated post with Portuguese content"""
+        if target_lang != 'pt':
+            return post  # Return original for non-PT languages
         
-        Handles both formats:
-        1. Section markers on separate lines (TITLE: on one line, content on next)
-        2. Section markers with content on same line (TITLE: Content here)
-        """
-        lines = response.strip().split('\n')
-        
-        result = {
-            'title': original_frontmatter.get('title', ''),
-            'excerpt': original_frontmatter.get('excerpt', ''),
-            'tags': original_frontmatter.get('tags', []),
-            'content': ''
+        frontmatter = {
+            'title': post.get('title', ''),
+            'excerpt': post.get('excerpt', ''),
+            'tags': post.get('tags', [])
         }
         
-        current_section = None
-        content_lines = []
+        translated = self.translate_post(
+            post['slug'],
+            frontmatter,
+            post['content'],
+            force=False
+        )
         
-        i = 0
-        while i < len(lines):
-            line = lines[i]
-            line_stripped = line.strip()
-            line_upper = line_stripped.upper()
-            
-            # Check if this is a section marker
-            if line_upper.startswith('TITLE:'):
-                # Handle both "TITLE:" and "TITLE: Content on same line"
-                remainder = line_stripped[6:].strip()
-                if remainder:
-                    result['title'] = remainder
-                    current_section = None
-                else:
-                    current_section = 'title'
-                i += 1
-                continue
-                
-            elif line_upper.startswith('EXCERPT:'):
-                remainder = line_stripped[8:].strip()
-                if remainder:
-                    result['excerpt'] = remainder
-                    current_section = None
-                else:
-                    current_section = 'excerpt'
-                i += 1
-                continue
-                
-            elif line_upper.startswith('TAGS:'):
-                remainder = line_stripped[5:].strip()
-                if remainder:
-                    result['tags'] = [tag.strip() for tag in remainder.split(',')]
-                    current_section = None
-                else:
-                    current_section = 'tags'
-                i += 1
-                continue
-                
-            elif line_upper.startswith('CONTENT:'):
-                # Content section - everything after this marker is content
-                remainder = line_stripped[8:].strip()
-                if remainder:
-                    # Content starts on same line as marker
-                    content_lines.append(remainder)
-                current_section = 'content'
-                i += 1
-                continue
-            
-            # Process content based on current section
-            if current_section == 'title' and line_stripped:
-                result['title'] = line_stripped
-                current_section = None
-            elif current_section == 'excerpt' and line_stripped:
-                result['excerpt'] = line_stripped
-                current_section = None
-            elif current_section == 'tags' and line_stripped:
-                result['tags'] = [tag.strip() for tag in line_stripped.split(',')]
-                current_section = None
-            elif current_section == 'content':
-                # Collect all lines for content, including empty lines
-                content_lines.append(line)
-            
-            i += 1
+        # If translation failed, return None
+        if not translated:
+            return None
         
-        result['content'] = '\n'.join(content_lines).strip()
+        # Build translated post from translation results (works for both new and cached)
+        translated_post = post.copy()
+        translated_post['title'] = translated.get('title', post['title'])
+        translated_post['excerpt'] = translated.get('excerpt', post['excerpt'])
+        translated_post['content'] = translated.get('content', post['content'])
+        translated_post['tags'] = translated.get('tags', post['tags'])
         
-        return result
+        return translated_post
 
 
 def translate_if_needed(slug: str, frontmatter: Dict, content: str, force: bool = False) -> Optional[Dict]:
-    """
-    Main translation entry point
+    """Entry point for post translation from build system.
     
-    Returns translated content or None if translation not available/needed
+    Convenience function that creates MultiAgentTranslator instance and
+    handles initialization errors gracefully.
+    
+    Args:
+        slug (str): Post identifier (filename without extension).
+        frontmatter (Dict): Post metadata (title, excerpt, tags).
+        content (str): Post content in Markdown/HTML.
+        force (bool): If True, bypasses cache and forces new translation.
+    
+    Returns:
+        Optional[Dict]: Translation dict with title/excerpt/tags/content,
+                       or None if GEMINI_API_KEY not set or translation fails.
     """
     try:
-        translator = GeminiTranslator()
+        translator = MultiAgentTranslator()
         return translator.translate_post(slug, frontmatter, content, force=force)
     except ValueError as e:
-        # API key not configured - skip translation
         if "GEMINI_API_KEY" in str(e):
             return None
         raise
     except Exception as e:
         print(f"Translation error: {e}")
         return None
-

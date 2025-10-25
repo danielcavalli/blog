@@ -12,6 +12,7 @@ Environment:
 
 Constants:
     BASE_PATH (str): Root path prefix for all generated links
+    GEMINI_MODEL (str): Gemini model to use for translations
     LANGUAGES (dict): Bilingual configuration with EN/PT UI strings and metadata
     DEFAULT_LANGUAGE (str): Fallback language code (en)
     SITE_NAME (str): Display name for the blog
@@ -24,6 +25,9 @@ Constants:
 # Base path for GitHub Pages deployment
 # Use "" for local development, "/blog" for GitHub Pages at username.github.io/blog/
 BASE_PATH = "/blog"
+
+# Gemini translation model
+GEMINI_MODEL = "gemini-2.5-flash"
 
 # Bilingual support
 LANGUAGES = {
@@ -52,10 +56,10 @@ LANGUAGES = {
         },
         'about': {
             'title': 'ABOUT',
-            'p1': "I'm Daniel Cavalli. I like understanding how things work by taking them apart. It doesn't matter if it's a CUDA kernel, a surfboard, or a bike crankset. The process is the same: break it open, study the pieces, build it better.",
-            'p2': "I work as a Machine Learning Engineer at Nubank, where I care about efficiency. I like when systems are clean and do what they should without noise. My work is an extension of that mindset, finding simpler paths that make everything move faster and with less friction.",
-            'p3': "Writing helps me think. It forces precision and makes me see where my ideas actually hold.",
-            'p4': "Outside of work I stay close to the ocean. I surf, bike, build things with my hands, and spend time with Moana, my dog. I live in Copacabana, where the sea is part of the background of everything."
+            'p1': "My name is Daniel Cavalli, and I’ve always been drawn to understanding how things work. I like to take things apart, whether it’s a CUDA kernel, a surfboard, or a washing machine, and see what makes them move. There’s something deeply satisfying about breaking something open, learning its logic, and putting it back together in a way that feels cleaner, more honest, more complete.",
+            'p2': "I work as a Machine Learning Engineer at Nubank, where I spend most of my time making systems faster, simpler, and easier to understand. I care about efficiency, but not the kind that strips things down until they lose meaning. What I look for is clarity, the kind of simplicity where everything has a purpose and moves with intention. I like when things just work, quietly and well.",
+            'p3': "This blog is an extension of that way of thinking. Building and writing are how I make sense of the world. When I put ideas into code or words, I can see their edges more clearly, what holds, what doesn’t, and what needs to be rebuilt. It’s less about publishing and more about refining my own understanding of how things connect.",
+            'p4': "Outside of work, I try to keep my life close to the ocean. I surf, bike, build things with my hands, and spend time with Moana, my dog. I live in Copacabana, where the sea is part of the backdrop of everything. Here, even an ordinary day ends with people standing by the water, just watching the light fade. That rhythm, fast, grounded and sometimes even chaotic, is what I try to keep in everything I do.",
         }
     },
     'pt': {
