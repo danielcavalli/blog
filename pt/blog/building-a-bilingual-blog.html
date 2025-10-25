@@ -3,15 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Construindo um Blog Bilíngue com View Transitions - dan.rio</title>
+    <title>Building a Bilingual Blog with View Transitions - dan.rio</title>
     <link rel="stylesheet" href="/blog/static/css/styles.css">
     <link rel="stylesheet" href="/blog/static/css/post.css">
     <link rel="preload" href="/blog/static/js/theme.js" as="script">
-    <style>
-        @view-transition {
-            navigation: auto;
-        }
-    </style>
     <script src="/blog/static/js/theme.js"></script>
     <script src="/blog/static/js/transitions.js" defer></script>
 </head>
@@ -56,113 +51,24 @@
     </nav>
 
     <main class="container">
-        <article class="post" style="view-transition-name: post-container-1;">
+        <article class="post" style="view-transition-name: post-container-2;">
             <header class="post-header">
                 <a href="/blog/pt/index.html" class="back-link">← Back to Blog</a>
-                <div class="last-updated">Last updated: October 24, 2025 at 03:24 PM</div>
-                <h1 class="post-title-large" style="view-transition-name: post-title-1;">CONSTRUINDO UM BLOG BILÍNGUE COM VIEW TRANSITIONS</h1>
+                
+                <h1 class="post-title-large" style="view-transition-name: post-title-2;">BUILDING A BILINGUAL BLOG WITH VIEW TRANSITIONS</h1>
                 <div class="post-meta">
-                    <time class="post-date" style="view-transition-name: post-date-1;">October 23, 2025</time>
+                    <time class="post-date" style="view-transition-name: post-date-2;">October 25, 2025</time>
                     <span class="post-separator">•</span>
-                    <span class="post-reading-time">4 min read</span>
+                    <span class="post-reading-time">11 min read</span>
                 </div>
-                <div class="post-tags"><span class="tag-pill">Desenvolvimento Web</span><span class="tag-pill">View Transitions API</span><span class="tag-pill">Gemini AI</span><span class="tag-pill">Sites Estáticos</span></div>
+                <div class="post-tags"><span class="tag-pill">Web Development</span><span class="tag-pill">View Transitions API</span><span class="tag-pill">Gemini AI</span><span class="tag-pill">Static Sites</span></div>
             </header>
 
             <div class="post-body">
-                <p class="lead" style="view-transition-name: post-excerpt-1;">
-                    Como este blog funciona: geração estática com Python, tradução automática com Gemini AI, View Transitions API para navegação fluida e uma filosofia de construir com padrões web nativos.
+                <p class="lead" style="view-transition-name: post-excerpt-2;">
+                    How this blog works: Python static generation, automatic Gemini translation, View Transitions API for seamless navigation, and a philosophy of building with native web standards.
                 </p>
-                <h1>Construindo um Blog Bilíngue com View Transitions</h1>
-<p>Este blog é uma plataforma minimalista, com carregamento rápido, construída com geração de sites estáticos em Python, tradução automática via Gemini AI e transições de página fluidas usando a View Transitions API. Sem frameworks, sem dependências pesadas — apenas padrões web nativos fazendo o trabalho de verdade.</p>
-<h1>Construindo um Blog Bilíngue com View Transitions</h1>
-<p>Este blog é uma plataforma minimalista, com carregamento rápido, construída com geração de sites estáticos em Python, tradução automática via Gemini AI e transições de página fluidas usando a View Transitions API. Sem frameworks, sem dependências pesadas — apenas padrões web nativos fazendo o trabalho de verdade.</p>
-<h2>Visão Geral da Arquitetura</h2>
-<p><strong>Static Site Generator</strong>: Um script Python (<code>build.py</code>) faz o parse dos posts em Markdown, extrai o frontmatter e gera HTML limpo. Rápido, simples, fácil de manter.</p>
-<p><strong>Tradução Automática</strong>: Cada post escrito em inglês é traduzido automaticamente para português do Brasil usando a Gemini 2.5 Flash API do Google. Um cache de tradução (`translation-cache.json`) usa hashes SHA-256 — as traduções só são regeradas quando a fonte em inglês muda.</p>
-<p><strong>View Transitions</strong>: A View Transitions API do Chromium cria transições contínuas e fluidas entre as páginas. Os cards do blog se expandem para artigos completos. A navegação parece uma reorganização de elementos em uma única superfície, e não saltos entre páginas.</p>
-<h2>Funcionalidades Principais</h2>
-<h3>Geração de Conteúdo Bilíngue</h3>
-<pre><code class="language-python">translator = GeminiTranslator(api_key=os.getenv('GEMINI_API_KEY'))
-translated = translator.translate_post(
-    slug, frontmatter, content
-)
-</code></pre>
-<p>O tradutor preserva anglicismos naturais (framework, backend, API), mantém os code blocks inalterados e produz português do Brasil fluente. Caching inteligente significa rebuilds rápidos — apenas o conteúdo alterado é retraduzido.</p>
-<h3>Navegação de Página Fluida</h3>
-<p>A View Transitions API permite transições fluidas entre as páginas:</p>
-<ol>
-<li>JavaScript intercepta cliques de navegação</li>
-<li>Novo HTML da página é obtido</li>
-<li><code>document.startViewTransition()</code> captura estados antes/depois</li>
-<li>O browser anima o diff automaticamente</li>
-</ol>
-<p>Todo o comportamento de animação é definido em CSS usando pseudo-elementos `::view-transition-*`. JavaScript apenas aciona a API.</p>
-<pre><code class="language-css">::view-transition-old(blog-header) {
-    animation: slide-header-up 500ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-</code></pre>
-<h3>Design de UI Ambiente</h3>
-<p>O toggle de idioma mostra um ícone de globo com "EN / PT". O idioma ativo tem um **brilho ambiente suave** criado com gradientes radiais e filtros de blur:</p>
-<pre><code class="language-css">.lang-en.active::before {
-'';
-    position: absolute;
-    background: radial-gradient(circle, rgba(0, 123, 255, 0.12) 0%, transparent 70%);
-    filter: blur(10px);
-}
-</code></pre>
-<p>O toggle de tema usa um efeito ripple — transições de cor de 600ms em todos os elementos criam mudanças de iluminação atmosféricas. O objetivo: interação calma e contínua.</p>
-<h3>Filtragem de Posts com FLIP</h3>
-<p>A página de índice filtra posts por ano, mês e tags. A reorganização do layout usa a técnica FLIP (First, Last, Invert, Play):</p>
-<ol>
-<li>Captura as posições iniciais dos cards</li>
-<li>Aplica os filtros</li>
-<li>Captura as posições finais</li>
-<li>Anima os cards das posições antigas → novas</li>
-</ol>
-<p>Animação em duas fases: dissolve cards ocultos (500ms), depois reorganiza cards visíveis (500ms). Continuidade espacial fluida sem saltos bruscos.</p>
-<h2>Sistema de Movimento</h2>
-<p>Todas as animações seguem constantes de tempo unificadas:</p>
-<pre><code class="language-css">--motion-duration-core: 500ms;
---motion-duration-quick: 300ms;
---motion-duration-ripple: 600ms;
---motion-easing: cubic-bezier(0.4, 0, 0.2, 1);
-</code></pre>
-<p>Cada interação compartilha o mesmo ritmo. Os cards de posts levantam no hover (300ms), os headers do blog deslizam para fora (500ms), as mudanças de tema têm um efeito ripple (600ms). A consistência cria coesão.</p>
-<h2>Engenharia Anti-Flicker</h2>
-<p>Um desafio: prevenir o flicker visual durante View Transitions. A solução:</p>
-<p><strong>Remover classes CSS conflitantes antes de iniciar as transições:</strong></p>
-<pre><code class="language-javascript">// Clean up theme transition class before View Transition
-document.body.classList.remove('theme-transitioning');
-document.startViewTransition(() =&gt; {
-    updateDOM(newContent);
-});
-</code></pre>
-<p>A classe `theme-transitioning` aplica transições de cor de 600ms globalmente. Se ativa durante View Transitions, os dois sistemas de animação entram em conflito — flicker visível. A limpeza antes da navegação elimina isso.</p>
-<h2>Compatibilidade com Browser</h2>
-<p><strong>Alvo: Apenas Chromium</strong> (Chrome, Edge, Brave, Arc). A View Transitions API é exclusiva do Chromium. Degradação graciosa: se a API não estiver disponível, a navegação funciona normalmente sem os efeitos de morphing.</p>
-<p>Essa abordagem focada permite funcionalidades de ponta sem polyfills ou compromissos.</p>
-<h2>Por Que Essa Abordagem?</h2>
-<p><strong>Dependências Mínimas</strong>: Sem React, Next.js ou framework bloat. APIs web nativas, Python, design cuidadoso.</p>
-<p><strong>Educacional</strong>: Cada linha é legível e documentada. O codebase ensina View Transitions, animações FLIP, CSS moderno.</p>
-<p><strong>Rápido</strong>: HTML estático com caching agressivo. Sem parsing pesado de JavaScript. Carregamentos quase instantâneos.</p>
-<p><strong>Acessível</strong>: Navegação por teclado, focus states, suporte a screen reader, HTML semântico em toda parte.</p>
-<p><strong>Manutenível</strong>: Script de build Python simples. Sem toolchains complexas.</p>
-<h2>Estrutura de Arquivos</h2>
-<pre><code>blog/
-├── build.py                 # Main build script
-├── translator.py            # Gemini translation
-├── styles.css              # View Transitions CSS
-├── theme.js                # Dark/light mode
-├── transitions.js          # View Transitions navigation
-├── filter.js               # FLIP filtering
-├── blog-posts/             # Markdown sources
-├── en/                     # Generated English site
-└── pt/                     # Generated Portuguese site
-</code></pre>
-<h2>Conclusão</h2>
-<p>O desenvolvimento web moderno pode ser simples, elegante, poderoso — sem frameworks pesados. Ao alavancar APIs nativas do browser (View Transitions), geração de sites estáticos e um design cuidadoso, criamos experiências polidas com código mínimo.</p>
-<p>O design é calmo. A user experience é contínua. O código é mínimo. Esse é o objetivo: um blog que não atrapalhe e deixe o conteúdo brilhar.</p>
+                
             </div>
         </article>
     </main>

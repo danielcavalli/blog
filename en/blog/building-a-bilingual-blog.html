@@ -7,11 +7,6 @@
     <link rel="stylesheet" href="/blog/static/css/styles.css">
     <link rel="stylesheet" href="/blog/static/css/post.css">
     <link rel="preload" href="/blog/static/js/theme.js" as="script">
-    <style>
-        @view-transition {
-            navigation: auto;
-        }
-    </style>
     <script src="/blog/static/js/theme.js"></script>
     <script src="/blog/static/js/transitions.js" defer></script>
 </head>
@@ -56,113 +51,134 @@
     </nav>
 
     <main class="container">
-        <article class="post" style="view-transition-name: post-container-1;">
+        <article class="post" style="view-transition-name: post-container-2;">
             <header class="post-header">
                 <a href="/blog/en/index.html" class="back-link">← Back to Blog</a>
-                <div class="last-updated">Last updated: October 24, 2025 at 03:24 PM</div>
-                <h1 class="post-title-large" style="view-transition-name: post-title-1;">BUILDING A BILINGUAL BLOG WITH VIEW TRANSITIONS</h1>
+                
+                <h1 class="post-title-large" style="view-transition-name: post-title-2;">BUILDING A BILINGUAL BLOG WITH VIEW TRANSITIONS</h1>
                 <div class="post-meta">
-                    <time class="post-date" style="view-transition-name: post-date-1;">October 23, 2025</time>
+                    <time class="post-date" style="view-transition-name: post-date-2;">October 25, 2025</time>
                     <span class="post-separator">•</span>
-                    <span class="post-reading-time">4 min read</span>
+                    <span class="post-reading-time">11 min read</span>
                 </div>
                 <div class="post-tags"><span class="tag-pill">Web Development</span><span class="tag-pill">View Transitions API</span><span class="tag-pill">Gemini AI</span><span class="tag-pill">Static Sites</span></div>
             </header>
 
             <div class="post-body">
-                <p class="lead" style="view-transition-name: post-excerpt-1;">
-                    How this blog works: Python static generation, automatic Gemini AI translation, View Transitions API for seamless navigation, and a philosophy of building with native web standards.
+                <p class="lead" style="view-transition-name: post-excerpt-2;">
+                    How this blog works: Python static generation, automatic Gemini translation, View Transitions API for seamless navigation, and a philosophy of building with native web standards.
                 </p>
-                <h1>Building a Bilingual Blog with View Transitions</h1>
-<p>This blog is a minimal, fast-loading platform built with Python static site generation, automatic translation via Gemini AI, and seamless page transitions using the View Transitions API. No frameworks, no heavy dependencies—just native web standards doing real work.</p>
-<h1>Building a Bilingual Blog with View Transitions</h1>
-<p>This blog is a minimal, fast-loading platform built with Python static site generation, automatic translation via Gemini AI, and seamless page transitions using the View Transitions API. No frameworks, no heavy dependencies—just native web standards doing real work.</p>
-<h2>Architecture Overview</h2>
-<p><strong>Static Site Generator</strong>: Python script (<code>build.py</code>) parses Markdown posts, extracts frontmatter, generates clean HTML. Fast, simple, maintainable.</p>
-<p><strong>Automatic Translation</strong>: Every post written in English is automatically translated to Brazilian Portuguese using Google's Gemini 2.5 Flash API. Translation cache (<code>translation-cache.json</code>) uses SHA-256 hashes—translations only regenerate when English source changes.</p>
-<p><strong>View Transitions</strong>: Chromium's View Transitions API creates morphing, continuous transitions between pages. Blog cards expand into full articles. Navigation feels like reorganizing elements on a single surface, not jumping between pages.</p>
-<h2>Key Features</h2>
-<h3>Bilingual Content Generation</h3>
-<pre><code class="language-python">translator = GeminiTranslator(api_key=os.getenv('GEMINI_API_KEY'))
-translated = translator.translate_post(
-    slug, frontmatter, content
-)
+                <p>This blog is a platform built with Python static site generation, automatic translation via Gemini AI, and seamless page transitions using the View Transitions API. No frameworks, no heavy dependencies—just native web standards doing real work. The architecture is simple enough to understand in an afternoon, powerful enough to feel continuous in use, and small enough to maintain alone.</p>
+<p>The design goal was not to build the most feature-complete blog engine. It was to build the quietest one. A place where writing appears without ceremony, where navigation feels like reorganizing space rather than loading new pages, and where a second language emerges as naturally as the first. Every technical choice serves that goal.</p>
+<h2>Static Generation with Purpose</h2>
+<p>At the core is a Python script that reads markdown files from <code>_source/posts</code> and writes HTML to two output directories: <code>/en</code> for English and <code>/pt</code> for Portuguese. The script uses <code>frontmatter</code> to parse YAML metadata and <code>markdown</code> to convert body content. There is no plugin system, no theme marketplace, no abstractions over abstractions. The script composes files. That is all it needs to do.</p>
+<p>Each markdown file contains front matter with a title, date, excerpt, and optional tags. The script walks the posts directory, loads each file, extracts the metadata, converts the markdown to HTML, and injects it into a template. The template is not a separate system. It is a Python f-string that knows where the navigation goes, where the post title sits, and how the footer should close. Output HTML is written to disk with deterministic filenames derived from the post slug.</p>
+<pre><code class="language-python">def generate_post_html(post, post_number, lang='en'):
+    lang_dir = LANGUAGES[lang]['dir']
+    current_page = f&quot;blog/{post['slug']}.html&quot;
+
+    return f&quot;&quot;&quot;&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;{lang}&quot;&gt;
+&lt;head&gt;
+    &lt;title&gt;{post['title']} - dan.rio&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;{BASE_PATH}/static/css/styles.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;nav class=&quot;nav&quot;&gt;...&lt;/nav&gt;
+    &lt;main class=&quot;container&quot;&gt;
+        &lt;article class=&quot;post&quot;&gt;
+            &lt;h1&gt;{post['title']}&lt;/h1&gt;
+            &lt;div class=&quot;post-body&quot;&gt;{post['content']}&lt;/div&gt;
+        &lt;/article&gt;
+    &lt;/main&gt;
+&lt;/body&gt;
+&lt;/html&gt;&quot;&quot;&quot;
 </code></pre>
-<p>The translator preserves natural Anglicisms (framework, backend, API), maintains code blocks unchanged, and produces fluent Brazilian Portuguese. Smart caching means fast rebuilds—only changed content gets retranslated.</p>
-<h3>Seamless Page Navigation</h3>
-<p>View Transitions API enables smooth morphing between pages:</p>
-<ol>
-<li>JavaScript intercepts navigation clicks</li>
-<li>New page HTML is fetched</li>
-<li><code>document.startViewTransition()</code> captures before/after states</li>
-<li>Browser animates the diff automatically</li>
-</ol>
-<p>All animation behavior is defined in CSS using <code>::view-transition-*</code> pseudo-elements. JavaScript only triggers the API.</p>
-<pre><code class="language-css">::view-transition-old(blog-header) {
-    animation: slide-header-up 500ms cubic-bezier(0.4, 0, 0.2, 1);
+<p>The build is deterministic. Run it twice on the same input and you get byte-identical output. This makes caching trivial and rebuilds predictable. The only state that persists across builds is the translation cache, which we will discuss in a moment.</p>
+<h2>Translation as First-Class Content</h2>
+<p>Every post is written in English. Every post is automatically translated to Brazilian Portuguese using Google's Gemini 2.0 Flash model. The translation is not an afterthought. It is part of the build process, cached by content hash, and regenerated only when the English source changes.</p>
+<p>The translator lives in <code>_source/translator.py</code>. It maintains a JSON cache at <code>_cache/translation-cache.json</code>, keyed by post slug and content hash. Before requesting a translation, the script checks if the current content hash matches the cached hash. If it does, the cached translation is used. If it doesn't, a new translation is requested via the Gemini API, and the cache is updated.</p>
+<p>The translation prompt is careful. It tells the model to localize, not to translate literally. Technical terms that Brazilians use in English—<code>framework</code>, <code>backend</code>, <code>API</code>, <code>deploy</code>, <code>commit</code>—are preserved. Code blocks are left untouched. The narrative voice is adapted to sound natural in Portuguese while maintaining the same tone and rhythm as the original.</p>
+<pre><code class="language-python">def translate_post(self, slug: str, frontmatter: Dict, content: str):
+    content_hash = self._calculate_content_hash(content)
+    cached = self.cache.get_translation(slug, content_hash)
+    if cached:
+        return cached
+
+    prompt = self._build_translation_prompt(frontmatter, content)
+    response = self.model.generate_content(prompt)
+    translated = self._parse_translation_response(response.text)
+
+    self.cache.set_translation(slug, content_hash, translated)
+    return translated
+</code></pre>
+<p>The result is two complete, parallel sites. Both are static HTML. Both are self-contained. Both can be served from a CDN without backend infrastructure. The English site lives at <code>/en</code>, the Portuguese site at <code>/pt</code>, and the user can switch between them with a single click. The language toggle does not reload the page. It navigates with a View Transition that preserves scroll position and filter state, making the switch feel like an overlay rather than a jump.</p>
+<h2>Navigation That Remembers</h2>
+<p>The site uses the View Transitions API to animate between pages. This API is Chromium-exclusive, which means the site targets Chrome, Edge, Brave, and other Chromium-based browsers. There is no polyfill. There is no fallback animation. If the API is not available, navigation works normally without transitions. This is a deliberate trade: cutting-edge features for users on modern browsers, graceful degradation for everyone else.</p>
+<p>The script that handles navigation is small. It lives in <code>static/js/transitions.js</code>. When you click an internal link, the script intercepts the click, fetches the new page HTML, parses it into a document fragment, and starts a View Transition. Inside the transition callback, the script swaps the document title, stylesheets, main content, and navigation, then updates the URL with <code>history.pushState</code>. The browser captures the "before" state, runs the callback to update the DOM, captures the "after" state, and animates the difference.</p>
+<pre><code class="language-javascript">async function navigateTo(url) {
+  const response = await fetch(url, { cache: 'no-cache' });
+  const html = await response.text();
+  const newDoc = new DOMParser().parseFromString(html, 'text/html');
+
+  const transition = document.startViewTransition(() =&gt; {
+    document.title = newDoc.title;
+    const main = document.querySelector('main');
+    const newMain = newDoc.querySelector('main');
+    if (main &amp;&amp; newMain) main.replaceWith(newMain);
+    history.pushState(null, '', url);
+  });
+
+  await transition.finished;
 }
 </code></pre>
-<h3>Ambient UI Design</h3>
-<p>The language toggle shows a globe icon with "EN / PT". The active language has a <strong>soft ambient glow</strong> created with radial gradients and blur filters:</p>
-<pre><code class="language-css">.lang-en.active::before {
-    content: '';
-    position: absolute;
-    background: radial-gradient(circle, rgba(0, 123, 255, 0.12) 0%, transparent 70%);
-    filter: blur(10px);
-}
-</code></pre>
-<p>Theme toggle uses a ripple effect—600ms color transitions across all elements create atmospheric lighting shifts. The goal: calm, continuous interaction.</p>
-<h3>Post Filtering with FLIP</h3>
-<p>The index page filters posts by year, month, and tags. Layout reorganization uses the FLIP technique (First, Last, Invert, Play):</p>
-<ol>
-<li>Capture initial card positions</li>
-<li>Apply filters</li>
-<li>Capture final positions</li>
-<li>Animate cards from old → new positions</li>
-</ol>
-<p>Two-phase animation: dissolve hidden cards (500ms), then reorganize visible cards (500ms). Smooth spatial continuity without jarring jumps.</p>
-<h2>Motion System</h2>
-<p>All animations follow unified timing constants:</p>
-<pre><code class="language-css">--motion-duration-core: 500ms;
---motion-duration-quick: 300ms;
---motion-duration-ripple: 600ms;
---motion-easing: cubic-bezier(0.4, 0, 0.2, 1);
-</code></pre>
-<p>Every interaction shares the same rhythm. Post cards lift on hover (300ms), blog headers slide out (500ms), theme shifts ripple (600ms). Consistency creates cohesion.</p>
-<h2>Anti-Flicker Engineering</h2>
-<p>One challenge: preventing visual flicker during View Transitions. The solution:</p>
-<p><strong>Remove conflicting CSS classes before starting transitions:</strong></p>
-<pre><code class="language-javascript">// Clean up theme transition class before View Transition
-document.body.classList.remove('theme-transitioning');
-document.startViewTransition(() =&gt; {
-    updateDOM(newContent);
+<p>All animation behavior is defined in CSS using <code>::view-transition-*</code> pseudo-elements. JavaScript only triggers the API. The CSS defines how the old content fades out, how the new content fades in, and how shared elements morph between states. Post cards on the index expand into full articles. Titles stay in place and grow. The background shifts smoothly. The sensation is not of switching pages but of reorganizing a single continuous surface.</p>
+<p>The easing curve is the same everywhere: <code>cubic-bezier(0.4, 0, 0.2, 1)</code>. The durations are shared across all interactions: 300ms for quick hover effects, 500ms for core transitions, 600ms for theme changes. These constants live in CSS custom properties and propagate through every animation on the site. Consistency is not enforced by a framework. It is encoded in the design system itself.</p>
+<h2>Language Switching as Spatial Translation</h2>
+<p>One of the system's subtle continuities is how language switching feels. When you toggle from English to Portuguese, you are not leaving the page. You are translating the surface you are already reading. The scroll position is preserved. The filter state on the index page is preserved. The URL changes from <code>/en/index.html</code> to <code>/pt/index.html</code>, but your place in the document does not.</p>
+<p>This behavior is detected in the navigation script. If the path structure is identical except for the <code>en</code> or <code>pt</code> segment, the navigation is classified as a language switch. The scroll position is captured before the fetch and restored after the DOM swap. If you were halfway down an article in English and you switch to Portuguese, you remain halfway down the same article in Portuguese. The content changes, but the space does not.</p>
+<p>The same principle applies to filtering on the index page. If you have filtered posts by year or tag, and you switch languages, the filter remains active. The translated posts appear with the same selection criteria. This makes the bilingual experience feel like a single document viewed through two lenses rather than two separate sites.</p>
+<h2>Filtering with FLIP</h2>
+<p>The index page lists all posts with a filter panel for year, month, and tags. Filtering is instant. When you select a year, the posts that do not match fade out, and the remaining posts reorganize into a tighter grid. The reorganization is animated using the FLIP technique: First, Last, Invert, Play.</p>
+<p>The script captures the initial position of every visible card. It applies the filter, which hides cards that do not match and causes the layout to reflow. It captures the final position of every card that remains visible. For each card, it calculates the delta between the old position and the new position, applies a CSS transform to invert the card back to its starting position, and then animates the transform back to zero.</p>
+<pre><code class="language-javascript">const rects = new Map();
+cards.forEach(card =&gt; {
+  rects.set(card, card.getBoundingClientRect());
+});
+
+applyFilter();
+
+cards.forEach(card =&gt; {
+  const oldRect = rects.get(card);
+  const newRect = card.getBoundingClientRect();
+  const dx = oldRect.left - newRect.left;
+  const dy = oldRect.top - newRect.top;
+
+  card.style.transform = `translate(${dx}px, ${dy}px)`;
+  requestAnimationFrame(() =&gt; {
+    card.style.transition = 'transform 500ms var(--motion-easing)';
+    card.style.transform = 'none';
+  });
 });
 </code></pre>
-<p>The <code>theme-transitioning</code> class applies 600ms color transitions globally. If active during View Transitions, the two animation systems conflict—visible flicker. Cleanup before navigation eliminates this.</p>
-<h2>Browser Compatibility</h2>
-<p><strong>Target: Chromium Only</strong> (Chrome, Edge, Brave, Arc). View Transitions API is Chromium-exclusive. Graceful degradation: if API unavailable, navigation works normally without morphing effects.</p>
-<p>This focused approach enables cutting-edge features without polyfills or compromises.</p>
-<h2>Why This Approach?</h2>
-<p><strong>Minimal Dependencies</strong>: No React, Next.js, or framework bloat. Native web APIs, Python, thoughtful design.</p>
-<p><strong>Educational</strong>: Every line is readable and documented. The codebase teaches View Transitions, FLIP animations, modern CSS.</p>
-<p><strong>Fast</strong>: Static HTML with aggressive caching. No heavy JavaScript parsing. Near-instant loads.</p>
-<p><strong>Accessible</strong>: Keyboard navigation, focus states, screen reader support, semantic HTML throughout.</p>
-<p><strong>Maintainable</strong>: Simple Python build script. No complex toolchains.</p>
-<h2>File Structure</h2>
-<pre><code>blog/
-├── build.py                 # Main build script
-├── translator.py            # Gemini translation
-├── styles.css              # View Transitions CSS
-├── theme.js                # Dark/light mode
-├── transitions.js          # View Transitions navigation
-├── filter.js               # FLIP filtering
-├── blog-posts/             # Markdown sources
-├── en/                     # Generated English site
-└── pt/                     # Generated Portuguese site
-</code></pre>
-<h2>Conclusion</h2>
-<p>Modern web development can be simple, elegant, powerful—without heavy frameworks. By leveraging native browser APIs (View Transitions), static site generation, and thoughtful design, we create polished experiences with minimal code.</p>
-<p>The design is calm. The user experience is continuous. The code is minimal. That's the goal: a blog that gets out of the way and lets content shine.</p>
+<p>The grid never jumps. It exhales. Cards dissolve out and slide into new positions over the same 500ms window. The result feels deliberate, not surprising. The layout is always legible. The motion explains what changed.</p>
+<h2>Theme Transitions and Anti-Flicker Engineering</h2>
+<p>The site supports light and dark themes. The toggle is a simple button in the navigation bar. When you click it, the theme ripples across the entire page over 600 milliseconds. Background colors shift, text colors adjust, borders soften or sharpen, and shadows recalculate. The transition is smooth because it is defined once, in CSS, with a single class applied to the body.</p>
+<p>One challenge during development was preventing visual flicker when theme transitions overlapped with View Transitions. If both systems were animating the same elements simultaneously, the result was a brief flash. The solution was to remove conflicting CSS classes before starting a View Transition, and to avoid universal selectors that apply transitions to every element at once.</p>
+<p>The theme transition is gated. It only applies when the <code>theme-transitioning</code> class is present on the body. When you toggle the theme, the class is added, the theme attribute is updated, and the class is removed after the transition completes. This ensures that theme changes are animated, but navigation does not trigger redundant theme transitions.</p>
+<p>Another flicker source was delayed removal of CSS animations on post cards. On the index page, cards fade in with a staggered animation when the page first loads. On subsequent navigations, this animation should not run. The script detects navigation by checking <code>document.referrer</code>. If the referrer matches the site's origin, the script assumes the user navigated from another page and immediately disables the intro animation by adding <code>disable-animation</code> to the posts grid. The cards appear instantly without flashing or resetting.</p>
+<h2>Philosophy of Simplicity</h2>
+<p>The architecture is not minimal for the sake of being minimal. It is minimal because the problem is simple. A blog is text, some images, and the sense that moving through it should feel like turning a page without losing your place. Native browser capabilities are sufficient. Python is sufficient. Dependencies are chosen carefully. If a tool does not make the cut cleaner, it does not enter the codebase.</p>
+<p>The View Transitions API is native to Chromium. It requires no polyfill, no wrapper, no build step. The browser already knows how to capture two states of the DOM and animate between them. My job is to decide when that should happen and to keep the rest of the page from interfering. The CSS that describes the motion is declarative. It reads like a choreography score, not like a program.</p>
+<p>Python's <code>frontmatter</code> and <code>markdown</code> libraries do exactly one thing each: parse YAML and convert Markdown to HTML. They do it well. They do not try to be build systems or routers. They parse text. That is all I need them to do. The entire build script is fewer than 600 lines of Python. You can read it in one sitting. If you can read it, you can change it.</p>
+<h2>Maintenance in Advance</h2>
+<p>Refusing a framework here is not nostalgia. It is an alignment with the problem. Every line of code in this system is code I will have to read again in six months or six years. Every dependency is a potential future incompatibility. Every abstraction is a tax on comprehension. So the system stays small. It stays readable. It stays changeable.</p>
+<p>The absence of machinery is not an ideology. It is maintenance practiced in advance. When I add a new post, I write markdown and run the build script. The translation happens automatically. The HTML is generated. The cache is updated. The site is ready to deploy. There is no hot-reloading server. There is no webpack configuration. There is no package.json with 300 dependencies. There is a Python script, a markdown file, and a folder of static HTML.</p>
+<h2>The Contract with the Reader</h2>
+<p>For those who want to adapt it, the contract is small and explicit. Markdown in, HTML out. A translator that respects code and voice. A navigation layer that never blocks paints with work it could have done earlier. Styles that encode rhythm once and reuse it everywhere. If you change one thing, it should feel like you changed exactly one thing, and the rest of the system should respond with proportionate calm.</p>
+<p>The only cleverness is in knowing when to stop. The system could do more. It could have a CMS. It could have real-time preview. It could have analytics and A/B testing and social sharing widgets. It does none of these things because none of these things make the reading experience better. The goal is not to build a platform. The goal is to write, and to let the writing be read without interference.</p>
+<p>This is not a demonstration. It is the simplest version of a living document I could make without lying about what the web can already do. The cache remembers what has not changed. The translator preserves what should not be translated. The navigation maintains where you were looking when the language switched. The motion system encodes how long things should take and refuses to argue about it. Every decision the system makes is in service of a single idea: the document is continuous. When you move through it, the space reorganizes, but it never breaks.</p>
+<p>That is what it means for a static site to feel alive.</p>
             </div>
         </article>
     </main>
