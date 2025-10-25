@@ -5,11 +5,14 @@ __pycache__/
 *.so
 .Python
 venv/
+.venv/
 env/
+
+# Build cache and artifacts
+_cache/
 
 # Environment & Secrets
 .env
-translation-cache.json
 
 # OS
 .DS_Store
@@ -21,4 +24,4 @@ Thumbs.db
 *.swp
 *.swo
 
-# Note: index.html and blog/*.html are now tracked for GitHub Pages deployment
+# Note: Generated HTML files (index.html, landing.html, en/, pt/) are tracked for GitHub Pages

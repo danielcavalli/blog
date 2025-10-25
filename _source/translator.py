@@ -54,8 +54,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Configuration
-TRANSLATION_CACHE_FILE = Path("translation-cache.json")
+# Configuration - cache stored in _cache directory
+PROJECT_ROOT = Path(__file__).parent.parent
+TRANSLATION_CACHE_FILE = PROJECT_ROOT / "_cache" / "translation-cache.json"
 GEMINI_MODEL = "gemini-2.5-flash"  # Using gemini-2.5-flash as requested
 
 class TranslationCache:
@@ -77,7 +78,7 @@ class TranslationCache:
         cache (Dict): In-memory cache dictionary loaded from JSON file
     
     Cache File:
-        translation-cache.json in project root
+        _cache/translation-cache.json
     
     Thread Safety:
         Not thread-safe. Assumes single-process build script usage.
@@ -114,7 +115,7 @@ class TranslationCache:
         Uses ensure_ascii=False to preserve Portuguese characters.
         
         Side Effects:
-            Overwrites translation-cache.json file
+            Overwrites _cache/translation-cache.json file
         
         Raises:
             OSError: If file write fails (permissions, disk full, etc.)
@@ -515,69 +516,83 @@ Begin translation now:"""
 
     def _build_translation_prompt(self, frontmatter: Dict, content: str) -> str:
         """Build comprehensive translation prompt for Gemini"""
-        return f"""You are a bilingual Brazilian technical writer translating an English blog post to Brazilian Portuguese.
+        return f"""You are a bilingual Brazilian technical writer translating an English blog post into **natural, localized Brazilian Portuguese**.
 
-**TRANSLATION PHILOSOPHY:**
-The goal is authentic, natural Brazilian Portuguese that reflects how bilingual tech professionals actually communicate — not academic or overly formal translation. Brazilian tech culture embraces English terminology when it's clearer or more widely understood.
+Your task is not to perform a literal translation but to **localize** the text — transforming it into something that reads as if it were originally written in Portuguese by the same author.  
+The translation must preserve the **tone, message, rhythm, structure, and writing style** of the original while adapting expressions, syntax, and phrasing so they sound fully natural to a Brazilian reader.  
+Your output should feel fluent, human, and culturally accurate — never mechanical, over-translated, or detached.
 
-**CORE PRINCIPLES:**
 
-1. **Preserve English Technical Terms & Anglicisms:**
-   - Keep ALL established technical vocabulary: machine learning, deep learning, GPU, CUDA, kernel, pipeline, workflow, build, design system, distributed training, training loop, checkpoint, batch size, tensor, framework, backend, frontend, API, cache, deploy, debug, benchmark, throughput, latency
-   - Keep coding/engineering jargon: refactor, commit, pull request, merge, branch, stack, queue, thread, async
-   - Keep design/UI terms when natural: layout, viewport, dropdown, toggle, hover, view transition, FLIP animation
-   - Keep units and measurements: GB, MHz, FPS, ms, px, em, rem
-   - Keep acronyms and initialisms: AI, ML, DL, NLP, CV, GPU, CPU, RAM, SSD, HTTP, CSS, HTML, JS
+## TRANSLATION PHILOSOPHY
 
-2. **Translate Only When Natural:**
-   - Translate general concepts: "understanding" → "entendimento", "work" → "trabalho", "process" → "processo"
-   - Translate narrative and descriptive text fully
-   - Translate UI labels if they're not established terms: "filter" → "filtrar", "clear" → "limpar", "search" → "buscar"
+The goal is **authentic, localized Brazilian Portuguese** that reflects how bilingual professionals in tech actually write and speak.  
+This is not an independent rewrite or reinterpretation: you must keep the original logic, mood, and structure intact.  
+However, when a literal translation would sound foreign or unnatural, you must rewrite the sentence in a way that feels idiomatic, fluid, and culturally correct in Portuguese.
 
-3. **Tone & Voice:**
-   - Mirror the original tone exactly — calm, precise, direct
-   - Do NOT embellish, simplify, or editorialize
-   - Maintain the same level of formality/informality
-   - Keep the same rhythm and sentence structure where possible
+Think like a **bilingual Brazilian engineer** who understands both linguistic worlds and writes with precision, naturalness, and respect for tone.
 
-4. **Formatting Fidelity:**
-   - Preserve ALL Markdown: headers (#), lists (-, *), code blocks (```), links ([text](url)), emphasis (**bold**, *italic*)
-   - Keep paragraph breaks and spacing identical
-   - Never translate code blocks, variable names, file paths, or commands
-   - Maintain capitalization patterns (e.g., if title uses Title Case, keep it)
+## CORE PRINCIPLES
 
-5. **Cultural Authenticity:**
-   - Use Brazilian Portuguese, not European Portuguese
-   - Write as if you're a Brazilian engineer who naturally code-switches between PT and EN
-   - Avoid forced translations that sound unnatural or obscure
+### 1. Preserve English Technical Terms and Anglicisms
+Keep all established technical terms, acronyms, and engineering jargon that are naturally used by Brazilian tech professionals.  
+Examples include:  
+`machine learning, deep learning, GPU, CUDA, pipeline, workflow, build, backend, frontend, API, debug, commit, pull request, merge, branch, layout, viewport, toggle, deploy, benchmark, latency, throughput, cache`  
+Translate only when the Portuguese equivalent is common, natural, and does not distort meaning.
 
-**INPUT:**
+### 2. Localize When Literal Translation Sounds Unnatural
+When a direct translation would sound odd, choose the most natural Brazilian phrasing that conveys the same intent and tone.  
+Examples:  
+- “I am Daniel.” → *“Me chamo Daniel.”*  
+- “This is how I work.” → *“É assim que eu trabalho.”*  
+- “Let’s dive deeper.” → *“Vamos nos aprofundar.”*  
 
-Title: {frontmatter.get('title', '')}
+Avoid word-for-word translations like *“Sou Daniel”* or *“Vamos mergulhar mais fundo”*, which sound artificial in written Brazilian Portuguese.  
+The goal is **fluency and authenticity**, not strict lexical equivalence.
 
-Excerpt: {frontmatter.get('excerpt', '')}
+### 3. Maintain Tone, Logic, and Style
+- Mirror the original tone exactly — calm, precise, and direct.  
+- Preserve paragraph rhythm, sentence length, and reading flow.  
+- Keep the same level of formality and narrative distance.  
+- Do not embellish, simplify, or reinterpret. You are localizing the *voice*, not rewriting it.  
 
-Tags: {', '.join(frontmatter.get('tags', []))}
+The translated version must feel like the same author expressing themselves naturally in Portuguese.
 
-Content:
-{content}
+### 4. Preserve Formatting and Structure
+- Keep all Markdown syntax identical: headers, lists, code blocks, links, emphasis.  
+- Never translate or modify code snippets, commands, variable names, or file paths.  
+- Maintain capitalization, paragraph spacing, and punctuation structure.  
 
-**OUTPUT FORMAT:**
-Provide ONLY the translated content in this exact structure:
+Formatting fidelity is essential — the translation should fit seamlessly into the same Markdown document.
 
-TITLE:
+### 5. Cultural Authenticity
+- Use Brazilian Portuguese exclusively (never European Portuguese).  
+- Use natural expressions from tech writing in Brazil: *rodar o script*, *debugar*, *deployar*, *dar merge*, *commit*, *branch*, *buildar*.  
+- Prefer natural rhythm, punctuation, and idioms Brazilians use when mixing English and Portuguese fluently.  
+
+You are writing as a **Brazilian engineer who lives in both languages**, not as a translator converting between them.
+
+### 6. Consistency and Fidelity
+- Maintain logical order and argumentation exactly as in the English text.  
+- Do not omit, add, or reinterpret meaning.  
+- Only adjust where necessary for fluency and cultural fit.  
+- Respect Markdown formatting and output structure at all times.  
+
+### OUTPUT FORMAT
+
+TITLE:  
 [translated title]
 
-EXCERPT:
+EXCERPT:  
 [translated excerpt]
 
-TAGS:
+TAGS:  
 [translated tags, comma-separated]
 
-CONTENT:
+CONTENT:  
 [translated markdown content]
 
-Begin translation now:"""
+Begin translation now:
+"""
     
     def _parse_translation_response(self, response: str, original_frontmatter: Dict) -> Dict:
         """Parse Gemini's response into structured translation
@@ -684,3 +699,4 @@ def translate_if_needed(slug: str, frontmatter: Dict, content: str, force: bool 
     except Exception as e:
         print(f"Translation error: {e}")
         return None
+

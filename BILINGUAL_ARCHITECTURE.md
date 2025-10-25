@@ -1,81 +1,92 @@
 # Bilingual Blog Architecture
 
 ## Overview
-The blog now supports automatic English/Portuguese language detection with smooth transitions between languages. The system uses Google's Gemini API for high-quality technical translations with intelligent caching to minimize API costs.
+The blog supports automatic English/Portuguese language detection with smooth transitions between languages. The system uses Google's Gemini API for high-quality technical translations with intelligent caching to minimize API costs.
 
 ## Directory Structure
 
 ```
 blog/
-├── index.html                    # Root: auto-detects language & redirects
-├── en/                           # English site
+├── _source/                      # Build system and source content
+│   ├── posts/                    # Markdown blog posts (English)
+│   ├── build.py                  # Build script
+│   ├── config.py                 # Site configuration
+│   └── translator.py             # Gemini translation module
+├── _cache/                       # Build artifacts (git-ignored)
+│   ├── translation-cache.json    # Translation cache
+│   ├── post-metadata.json        # Post metadata & timestamps
+│   └── __pycache__/              # Python bytecode
+├── static/                       # Shared assets
+│   ├── css/                      # Stylesheets
+│   │   ├── styles.css
+│   │   ├── post.css
+│   │   └── landing.css
+│   ├── js/                       # JavaScript modules
+│   │   ├── theme.js              # Theme toggle
+│   │   ├── transitions.js        # View Transitions API
+│   │   ├── filter.js             # Post filtering
+│   │   └── landing.js            # Landing page morphing
+│   └── images/
+│       └── Logo.png
+├── en/                           # Generated English site
 │   ├── index.html
 │   ├── about.html
 │   └── blog/
 │       ├── post-1.html
 │       └── post-2.html
-├── pt/                           # Portuguese site
+├── pt/                           # Generated Portuguese site
 │   ├── index.html
 │   ├── about.html
 │   └── blog/
 │       ├── post-1.html
 │       └── post-2.html
-├── blog-posts/                   # Source markdown (English)
-│   ├── post-1.md
-│   └── post-2.md
-├── styles.css                    # Shared styles
-├── theme.js                      # Theme toggle logic
-├── transitions.js                # View Transitions API
-├── filter.js                     # Post filtering
-├── build.py                      # Build system
-├── config.py                     # Site configuration
-├── translator.py                 # Gemini translation module
-├── translation-cache.json        # Translation cache (gitignored)
-├── post-metadata.json            # Post metadata & timestamps
-├── .env                          # API keys (gitignored)
-└── requirements.txt              # Python dependencies
+├── index.html                    # Root redirect to landing
+├── landing.html                  # Landing page with morphing
+├── .nojekyll                     # GitHub Pages config
+├── .gitignore
+├── README.md
+├── BILINGUAL_ARCHITECTURE.md
+├── requirements.txt
+├── build.sh                      # Build wrapper (Unix)
+└── build.bat                     # Build wrapper (Windows)
 ```
 
 ## Key Components
 
-### 1. Root Index (Auto Language Detection)
+### 1. Root Landing Page
 
-**File**: `index.html` (root)
+**File**: `landing.html` (generated)
 
-Automatically detects user's browser language:
-- Brazilian Portuguese (`pt-*`) → redirects to `/pt/index.html`
-- All other languages → redirects to `/en/index.html`
-- Fallback: `<noscript>` redirects to English
+Centered landing experience with morphing transition:
+- Large "dan.rio" title that morphs to logo
+- Blog, About Me, CV buttons that reorganize to nav bar
+- Smooth 550ms transition using View Transitions API
+- Theme toggle in top-right corner
 
-```javascript
-const userLang = navigator.language || navigator.userLanguage;
-const isBrazilian = userLang.toLowerCase().startsWith('pt');
-const targetLang = isBrazilian ? 'pt' : 'en';
-window.location.href = `/${targetLang}/index.html`;
-```
+Redirects through `index.html` which detects if user prefers landing or direct navigation.
 
 ### 2. Language Toggle Button
 
 **Location**: Top navigation bar (all pages)
 
 **Features**:
-- Globe icon with language label
+- Globe icon with "EN / PT" toggle
+- Active language highlighted with soft glow
 - Links directly to equivalent page in other language
 - Smooth 180° rotation on hover
-- Works with View Transitions API for smooth cross-fade
+- Preserves scroll position and filter state
 
 **Implementation**:
 ```python
 def generate_lang_toggle_html(current_lang: str, current_page: str) -> str:
     other_lang = get_alternate_lang(current_lang)
-    other_lang_label = LANGUAGES[other_lang]['label']
     other_lang_path = get_lang_path(other_lang, current_page)
     return f'''<a href="{other_lang_path}" class="lang-toggle">...</a>'''
 ```
 
 ### 3. Translation System
 
-**File**: `translator.py`
+**File**: `_source/translator.py`
 
 **Architecture**:
 ```
@@ -86,9 +97,9 @@ GeminiTranslator
 ```
 
 **Caching Strategy**:
-- Uses MD5 hash of English content
+- Uses SHA-256 hash of English content
 - Only re-translates if content changes
-- Cache stored in `translation-cache.json`
+- Cache stored in `_cache/translation-cache.json`
 - Reduces API costs to zero for unchanged posts
 
 **Translation Prompt**:
@@ -98,6 +109,12 @@ GeminiTranslator
 - Separates title, excerpt, tags, content
 
 ### 4. Build Pipeline
+
+**Location**: `_source/build.py`
+
+**Execution**: `python _source/build.py` (or use `./build.sh` / `build.bat`)
+
+**Process**:
 
 **File**: `build.py`
 

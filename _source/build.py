@@ -15,26 +15,30 @@ import frontmatter
 from config import BASE_PATH, SITE_NAME, SITE_DESCRIPTION, AUTHOR_BIO, LANGUAGES, DEFAULT_LANGUAGE
 from translator import GeminiTranslator
 
-# Configuration
-POSTS_DIR = Path("blog-posts")
-OUTPUT_DIR = Path("blog")
-INDEX_FILE = Path("index.html")
-ABOUT_FILE = Path("about.html")
+# Project structure paths
+PROJECT_ROOT = Path(__file__).parent.parent  # Go up from _source to project root
+POSTS_DIR = Path(__file__).parent / "posts"   # _source/posts/
+CACHE_DIR = PROJECT_ROOT / "_cache"           # _cache/
+STATIC_DIR = PROJECT_ROOT / "static"          # static/
 
-# Language-specific directories
+# Output directories (at project root for GitHub Pages)
 LANG_DIRS = {
-    'en': Path('en'),
-    'pt': Path('pt')
+    'en': PROJECT_ROOT / 'en',
+    'pt': PROJECT_ROOT / 'pt'
 }
 
+# Cache files
+METADATA_FILE = CACHE_DIR / "post-metadata.json"
+TRANSLATION_CACHE = CACHE_DIR / "translation-cache.json"
+
 # Ensure directories exist
-POSTS_DIR.mkdir(exist_ok=True)
-OUTPUT_DIR.mkdir(exist_ok=True)
+POSTS_DIR.mkdir(parents=True, exist_ok=True)
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Create language-specific directories
 for lang_dir in LANG_DIRS.values():
-    lang_dir.mkdir(exist_ok=True)
-    (lang_dir / 'blog').mkdir(exist_ok=True)
+    lang_dir.mkdir(parents=True, exist_ok=True)
+    (lang_dir / 'blog').mkdir(parents=True, exist_ok=True)
 
 
 def calculate_content_hash(content):
@@ -176,16 +180,16 @@ def generate_post_html(post, post_number, lang='en'):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{post['title']} - dan.rio</title>
-    <link rel="stylesheet" href="{BASE_PATH}/styles.css">
-    <link rel="stylesheet" href="{BASE_PATH}/post.css">
-    <link rel="preload" href="{BASE_PATH}/theme.js" as="script">
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/post.css">
+    <link rel="preload" href="{BASE_PATH}/static/js/theme.js" as="script">
     <style>
         @view-transition {{
             navigation: auto;
         }}
     </style>
-    <script src="{BASE_PATH}/theme.js"></script>
-    <script src="{BASE_PATH}/transitions.js" defer></script>
+    <script src="{BASE_PATH}/static/js/theme.js"></script>
+    <script src="{BASE_PATH}/static/js/transitions.js" defer></script>
 </head>
 <body>
     <nav class="nav">
@@ -343,17 +347,17 @@ def generate_index_html(posts, lang='en'):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>dan.rio - Blog</title>
     <meta name="description" content="Personal blog by Daniel Cavalli on machine learning, CUDA, distributed training, and engineering.">
-    <link rel="stylesheet" href="{BASE_PATH}/styles.css">
-    <link rel="preload" href="{BASE_PATH}/theme.js" as="script">
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
+    <link rel="preload" href="{BASE_PATH}/static/js/theme.js" as="script">
     <style>
         /* View Transitions API support */
         @view-transition {{
             navigation: auto;
         }}
     </style>
-    <script src="{BASE_PATH}/theme.js"></script>
-    <script src="{BASE_PATH}/transitions.js" defer></script>
-    <script src="{BASE_PATH}/filter.js" defer></script>
+    <script src="{BASE_PATH}/static/js/theme.js"></script>
+    <script src="{BASE_PATH}/static/js/transitions.js" defer></script>
+    <script src="{BASE_PATH}/static/js/filter.js" defer></script>
 </head>
 <body>
     <nav class="nav">
@@ -475,16 +479,16 @@ def generate_about_html(lang='en'):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{about['title']} - dan.rio</title>
     <meta name="description" content="{AUTHOR_BIO}">
-    <link rel="stylesheet" href="{BASE_PATH}/styles.css">
-    <link rel="stylesheet" href="{BASE_PATH}/post.css">
-    <link rel="preload" href="{BASE_PATH}/theme.js" as="script">
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/post.css">
+    <link rel="preload" href="{BASE_PATH}/static/js/theme.js" as="script">
     <style>
         @view-transition {{
             navigation: auto;
         }}
     </style>
-    <script src="{BASE_PATH}/theme.js"></script>
-    <script src="{BASE_PATH}/transitions.js" defer></script>
+    <script src="{BASE_PATH}/static/js/theme.js"></script>
+    <script src="{BASE_PATH}/static/js/transitions.js" defer></script>
 </head>
 <body>
     <nav class="nav">
@@ -531,7 +535,7 @@ def generate_about_html(lang='en'):
 
                 <p>{about['p4']}</p>
 
-                <img src="{BASE_PATH}/Logo.png" alt="Moana Surfworks" loading="lazy" class="about-image">
+                <img src="{BASE_PATH}/static/images/Logo.png" alt="Moana Surfworks" loading="lazy" class="about-image">
             </div>
         </article>
     </main>
@@ -570,16 +574,16 @@ def generate_about_html(lang='en'):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>dan.rio - Blog</title>
     <meta name="description" content="Personal blog by Daniel Cavalli on machine learning, CUDA, distributed training, and engineering.">
-    <link rel="stylesheet" href="{BASE_PATH}/styles.css">
-    <link rel="preload" href="{BASE_PATH}/theme.js" as="script">
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
+    <link rel="preload" href="{BASE_PATH}/static/js/theme.js" as="script">
     <style>
         /* View Transitions API support */
         @view-transition {{
             navigation: auto;
         }}
     </style>
-    <script src="{BASE_PATH}/theme.js"></script>
-    <script src="{BASE_PATH}/transitions.js" defer></script>
+    <script src="{BASE_PATH}/static/js/theme.js"></script>
+    <script src="{BASE_PATH}/static/js/transitions.js" defer></script>
 </head>
 <body>
     <nav class="nav">
@@ -736,9 +740,9 @@ def generate_landing_html():
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{SITE_NAME}</title>
     <meta name="description" content="{SITE_DESCRIPTION}">
-    <link rel="stylesheet" href="{BASE_PATH}/styles.css">
-    <link rel="stylesheet" href="{BASE_PATH}/landing.css">
-    <script src="{BASE_PATH}/theme.js"></script>
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/landing.css">
+    <script src="{BASE_PATH}/static/js/theme.js"></script>
 </head>
 <body>
     <!-- Theme toggle (minimal, top-right corner) -->
@@ -771,7 +775,7 @@ def generate_landing_html():
         </div>
     </div>
 
-    <script src="{BASE_PATH}/landing.js"></script>
+    <script src="{BASE_PATH}/static/js/landing.js"></script>
 </body>
 </html>"""
 
@@ -969,3 +973,9 @@ if __name__ == "__main__":
     import sys
     success = build()
     sys.exit(0 if success else 1)
+
+
+
+
+
+
