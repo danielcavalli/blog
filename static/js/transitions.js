@@ -280,13 +280,58 @@
                     main.replaceWith(newMain);
                 }
                 
-                // Update entire navigation to get language-specific links
-                const nav = document.querySelector('nav');
+                // DO NOT REPLACE NAV - it has view-transition-name: site-nav and stays fixed
+                // Only update the active link states within the existing nav
+                const currentNav = document.querySelector('nav');
                 const newNav = newDoc.querySelector('nav');
                 
-                if (nav && newNav) {
-                    nav.replaceWith(newNav);
+                if (currentNav && newNav) {
+                    // Update only the nav-links to reflect active page
+                    const currentLinks = currentNav.querySelectorAll('.nav-links a');
+                    const newLinks = newNav.querySelectorAll('.nav-links a');
+                    
+                    currentLinks.forEach((link, index) => {
+                        if (newLinks[index]) {
+                            // Copy active class state
+                            if (newLinks[index].classList.contains('active')) {
+                                link.classList.add('active');
+                            } else {
+                                link.classList.remove('active');
+                            }
+                            // Update href in case of language change
+                            link.href = newLinks[index].href;
+                        }
+                    });
+                    
+                    // Update language toggle to reflect current language
+                    const currentLangToggle = currentNav.querySelector('.lang-toggle');
+                    const newLangToggle = newNav.querySelector('.lang-toggle');
+                    
+                    if (currentLangToggle && newLangToggle) {
+                        currentLangToggle.href = newLangToggle.href;
+                        currentLangToggle.setAttribute('aria-label', newLangToggle.getAttribute('aria-label'));
+                        currentLangToggle.setAttribute('data-current-lang', newLangToggle.getAttribute('data-current-lang'));
+                        
+                        // Update EN/PT active states
+                        const currentEN = currentLangToggle.querySelector('.lang-en');
+                        const currentPT = currentLangToggle.querySelector('.lang-pt');
+                        const newEN = newLangToggle.querySelector('.lang-en');
+                        const newPT = newLangToggle.querySelector('.lang-pt');
+                        
+                        if (currentEN && newEN) {
+                            if (newEN.classList.contains('active')) {
+                                currentEN.classList.add('active');
+                                currentPT?.classList.remove('active');
+                            } else {
+                                currentEN.classList.remove('active');
+                                currentPT?.classList.add('active');
+                            }
+                        }
+                    }
                 }
+                
+                // DO NOT REPLACE FOOTER - it has view-transition-name: site-footer
+                // Footer content is identical across pages, only position changes
                 
                 // Update html lang attribute
                 const newLang = newDoc.documentElement.lang;

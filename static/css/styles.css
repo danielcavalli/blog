@@ -39,6 +39,46 @@
         backface-visibility: hidden;
     }
     
+    /* NAV BAR: Stays fixed - no animation, maintains spatial anchor */
+    /* The nav is the one constant element that never moves */
+    ::view-transition-old(site-nav),
+    ::view-transition-new(site-nav) {
+        animation: none;
+        mix-blend-mode: normal;
+    }
+    
+    ::view-transition-group(site-nav) {
+        animation: none;
+    }
+    
+    /* FOOTER: Smooth vertical motion based on page height difference */
+    /* Pulled upward when going to shorter page, pushed down when going to taller page */
+    ::view-transition-old(site-footer) {
+        animation: footer-pull-slide var(--motion-duration-ripple) var(--motion-easing);
+    }
+    
+    ::view-transition-new(site-footer) {
+        animation: footer-push-slide var(--motion-duration-ripple) var(--motion-easing);
+    }
+    
+    @keyframes footer-pull-slide {
+        from {
+            transform: translateY(0);
+        }
+        to {
+            transform: translateY(var(--footer-offset, 0));
+        }
+    }
+    
+    @keyframes footer-push-slide {
+        from {
+            transform: translateY(var(--footer-offset, 0));
+        }
+        to {
+            transform: translateY(0);
+        }
+    }
+    
     /* HEADER: Slides up behind nav bar when going to post, slides down when returning */
     ::view-transition-old(blog-header) {
         animation: slide-header-up var(--motion-duration-core) var(--motion-easing) forwards;
@@ -207,12 +247,18 @@
 :root {
     /* Colors - Light Mode */
     --color-bg: #ffffff;
+    --color-bg-rgb: 255, 255, 255;
     --color-text: #000000;
     --color-text-secondary: #666666;
     --color-border: #e5e5e5;
     --color-hover: #f5f5f5;
     --color-surface-elevated: #f8f8f8;
     --accent-color: #007bff; /* Primary blue accent */
+    
+    /* Aliases for consistency */
+    --text-color: var(--color-text);
+    --border-color: var(--color-border);
+    --card-bg: var(--color-surface-elevated);
     
     /* Typography */
     --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -256,6 +302,11 @@
     --color-hover: #1a1a1a;
     --color-surface-elevated: #1a1a1a;
     --accent-color: #1e90ff; /* Brighter blue for dark mode */
+    
+    /* Aliases for consistency */
+    --text-color: var(--color-text);
+    --border-color: var(--color-border);
+    --card-bg: var(--color-surface-elevated);
 }
 
 /* Dark mode - system preference (when no user preference) */
@@ -268,6 +319,11 @@
         --color-border: #2a2a2a;
         --color-hover: #1a1a1a;
         --accent-color: #1e90ff; /* Brighter blue for dark mode */
+        
+        /* Aliases for consistency */
+        --text-color: var(--color-text);
+        --border-color: var(--color-border);
+        --card-bg: var(--color-surface-elevated);
     }
 }
 
@@ -320,6 +376,10 @@ body {
     border-bottom: 1px solid var(--color-border);
     z-index: 1000;
     animation: slideDown 0.5s var(--transition-easing);
+    
+    /* Smooth theme transitions */
+    transition: background-color var(--motion-duration-ripple) var(--motion-easing),
+                border-color var(--motion-duration-ripple) var(--motion-easing);
 }
 
 @keyframes slideDown {
@@ -354,7 +414,8 @@ body {
     color: var(--color-text);
     text-decoration: none;
     letter-spacing: -0.02em;
-    transition: opacity var(--transition-speed) var(--transition-easing);
+    transition: opacity var(--transition-speed) var(--transition-easing),
+                color var(--motion-duration-ripple) var(--motion-easing);
 }
 
 .logo:hover {
@@ -373,7 +434,7 @@ body {
     font-size: 0.9rem;
     font-weight: 500;
     letter-spacing: 0.05em;
-    transition: color var(--transition-speed) var(--transition-easing);
+    transition: color var(--motion-duration-ripple) var(--motion-easing);
     position: relative;
 }
 
@@ -385,7 +446,8 @@ body {
     width: 0;
     height: 2px;
     background-color: var(--color-text);
-    transition: width var(--transition-speed) var(--transition-easing);
+    transition: width var(--transition-speed) var(--transition-easing),
+                background-color var(--motion-duration-ripple) var(--motion-easing);
 }
 
 .nav-links a:hover,
@@ -413,7 +475,8 @@ body {
     color: var(--color-text);
     font-size: 0.875rem;
     font-weight: 500;
-    transition: opacity var(--motion-duration-quick) var(--motion-easing);
+    transition: opacity var(--motion-duration-quick) var(--motion-easing),
+                color var(--motion-duration-ripple) var(--motion-easing);
     margin-right: 1rem;
     position: relative;
 }
@@ -563,7 +626,9 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all var(--transition-speed) var(--transition-easing);
+    transition: all var(--transition-speed) var(--transition-easing),
+                background-color var(--motion-duration-ripple) var(--motion-easing),
+                border-color var(--motion-duration-ripple) var(--motion-easing);
     position: relative;
     padding: 0;
 }
@@ -576,7 +641,8 @@ body {
 
 .theme-toggle svg {
     position: absolute;
-    transition: all var(--transition-speed) var(--transition-easing);
+    transition: all var(--transition-speed) var(--transition-easing),
+                color var(--motion-duration-ripple) var(--motion-easing);
     color: var(--color-text);
 }
 

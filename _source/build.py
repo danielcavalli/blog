@@ -239,7 +239,7 @@ def generate_post_html(post, post_number, lang='en'):
     <script src="{BASE_PATH}/static/js/transitions.js" defer></script>
 </head>
 <body>
-    <nav class="nav">
+    <nav class="nav" style="view-transition-name: site-nav;">
         <div class="nav-container">
             <a href="{get_lang_path(lang, 'index.html')}" class="logo">dan.rio</a>
             <div class="nav-right">
@@ -291,7 +291,7 @@ def generate_post_html(post, post_number, lang='en'):
         </article>
     </main>
 
-    <footer class="footer">
+    <footer class="footer" style="view-transition-name: site-footer;">
         <div class="footer-container">
             <div class="social-links">
                 <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
@@ -424,7 +424,7 @@ def generate_index_html(posts, lang='en'):
     <script src="{BASE_PATH}/static/js/filter.js" defer></script>
 </head>
 <body>
-    <nav class="nav">
+    <nav class="nav" style="view-transition-name: site-nav;">
         <div class="nav-container">
             <a href="{get_lang_path(lang, 'index.html')}" class="logo">dan.rio</a>
             <div class="nav-right">
@@ -504,7 +504,7 @@ def generate_index_html(posts, lang='en'):
         </div>
     </main>
 
-    <footer class="footer">
+    <footer class="footer" style="view-transition-name: site-footer;">
         <div class="footer-container">
             <div class="social-links">
                 <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
@@ -560,7 +560,7 @@ def generate_about_html(lang='en'):
     <script src="{BASE_PATH}/static/js/transitions.js" defer></script>
 </head>
 <body>
-    <nav class="nav">
+    <nav class="nav" style="view-transition-name: site-nav;">
         <div class="nav-container">
             <a href="{get_lang_path(lang, 'index.html')}" class="logo">dan.rio</a>
             <div class="nav-right">
@@ -609,7 +609,7 @@ def generate_about_html(lang='en'):
         </article>
     </main>
 
-    <footer class="footer">
+    <footer class="footer" style="view-transition-name: site-footer;">
         <div class="footer-container">
             <div class="social-links">
                 <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
@@ -696,6 +696,9 @@ def parse_markdown_post(filepath):
         extensions=['fenced_code', 'tables', 'nl2br']
     )
     
+    # Keep raw markdown for translation
+    raw_markdown = post.content
+    
     # Parse date and extract year/month
     date_str = post.get('date', datetime.now().strftime('%Y-%m-%d'))
     try:
@@ -722,6 +725,7 @@ def parse_markdown_post(filepath):
         'tags': tags,
         'reading_time': post.get('readingTime') or calculate_reading_time(post.content),
         'content': html_content,
+        'raw_content': raw_markdown,  # Keep raw markdown for translation
         'created_date': created_at,
         'updated_date': updated_at,
         'content_hash': content_hash,
@@ -829,7 +833,7 @@ def build():
     
     # Initialize translator
     try:
-        translator = MultiAgentTranslator(enable_critique=True)
+        translator = MultiAgentTranslator(enable_critique=False)  # Disabled for faster builds
         print("Translation system initialized\n")
         
         # Translate About page content

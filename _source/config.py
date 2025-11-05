@@ -24,7 +24,7 @@ Constants:
 
 # Base path for GitHub Pages deployment
 # Use "" for local development, "/blog" for GitHub Pages at username.github.io/blog/
-BASE_PATH = "/blog"
+BASE_PATH = ""
 
 # Gemini translation model
 GEMINI_MODEL = "gemini-2.5-flash"

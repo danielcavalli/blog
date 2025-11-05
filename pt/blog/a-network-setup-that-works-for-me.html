@@ -1,0 +1,128 @@
+<!DOCTYPE html>>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Montando uma configuração de rede que funciona para Mim - dan.rio</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/post.css">
+    <link rel="preload" href="/static/js/theme.js" as="script">
+    <script src="/static/js/theme.js"></script>
+    <script src="/static/js/transitions.js" defer></script>
+</head>
+<body>
+    <nav class="nav" style="view-transition-name: site-nav;">
+        <div class="nav-container">
+            <a href="/pt/index.html" class="logo">dan.rio</a>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="/pt/index.html" class="active">BLOG</a></li>
+                    <li><a href="/pt/about.html">ABOUT</a></li>
+                </ul>
+                <a href="/en/blog/a-network-setup-that-works-for-me.html" class="lang-toggle" aria-label="Switch to English (currently Português)" data-current-lang="pt">
+        <svg class="lang-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span class="lang-text">
+            <span class="lang-en ">EN</span>
+            <span class="lang-sep">/</span>
+            <span class="lang-pt active">PT</span>
+        </span>
+    </a>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <article class="post" style="view-transition-name: post-container-3;">
+            <header class="post-header">
+                <a href="/pt/index.html" class="back-link">← Back to Blog</a>
+                <div class="last-updated">Last updated: November 05, 2025 at 02:28 AM</div>
+                <h1 class="post-title-large" style="view-transition-name: post-title-3;">MONTANDO UMA CONFIGURAÇÃO DE REDE QUE FUNCIONA PARA MIM</h1>
+                <div class="post-meta">
+                    <time class="post-date" style="view-transition-name: post-date-3;">November 05, 2025</time>
+                    <span class="post-separator">•</span>
+                    <span class="post-reading-time">7 min read</span>
+                </div>
+                <div class="post-tags"><span class="tag-pill">home server</span><span class="tag-pill">rede</span><span class="tag-pill">unifi</span></div>
+            </header>
+
+            <div class="post-body">
+                <p class="lead" style="view-transition-name: post-excerpt-3;">
+                    Uma boa rede não deveria ser notada nem exigir atenção, esse foi o principal princípio que guiou minha busca pela melhor configuração de rede para o meu Home Server.
+                </p>
+                <p>Uma boa rede não deveria ser notada nem exigir atenção, esse foi o principal princípio que guiou minha busca pela melhor configuração de rede para o meu Home Server. Não sendo eu um expert em rede, meu objetivo era claro: criar uma rede que fosse rápida, segura e estável sem ter que ajustá-la de tempos em tempos. Também não queria complexidade de empresa ou um rack de luzes piscando que ocuparia metade do meu espaço na prateleira, então esta peça de hardware deveria ser barata, confiável, pequena e agradável aos olhos. Basicamente uma tarefa impossível.</p>
+<h2>Quais Eram as Opções</h2>
+<p>Quando comecei a procurar o que poderia, de fato, construir o tipo de rede que eu queria, me deparei com três mundos muito diferentes: Omada, pfSense e UniFi. Cada um prometia controle e estabilidade, mas em sua própria linguagem, e não demorou para perceber que essas linguagens mal se comunicavam. O Omada parecia polido na superfície, com sua interface limpa e promessas de integração perfeita, mas quanto mais eu explorava, mais entendia que ele foi construído para ambientes de empresa. É estável, poderoso e bem projetado, mas assume uma estrutura: controladores, gateways, switches, tudo gerenciado através de um sistema centralizado que espera disciplina e escala. Você pode configurar VLANs e ajustar regras de acesso, mas toda a experiência parece que você está montando um pequeno escritório, não uma casa. Funciona bem, mas sempre parece operar uma camada acima de onde você realmente vive.</p>
+<p>O pfSense ficava na extremidade oposta desse espectro, uma espécie de templo à precisão. Oferecia tudo o que o Omada não oferecia: transparência, profundidade e um controle quase cirúrgico sobre cada pacote que cruzava seus cabos. Mas também exigia algo em troca, algo que eu não estava disposto a dar: tempo. Você não apenas configura o pfSense, você o estuda. Você molda regras, gerencia sub-redes e, lentamente, percebe que transformou sua casa em um pequeno datacenter. É lindo em sua completude, mas pesado em sua consequência. Eu o admirava, mas não queria viver com ele.</p>
+<p>Isso deixou o UniFi, sentado calmamente entre os dois, como uma ponte entre a praticidade e a profundidade. Ele falava nos mesmos termos técnicos que o pfSense, mas os traduzia para algo utilizável. A interface parecia coerente, os dispositivos pareciam relacionados, e todo o ecossistema transmitia a impressão de ter sido projetado por uma única mente. VLANs, routing, DHCP, tudo conectado de uma forma que não parecia abstrata, parecia intencional. Foi isso que me pegou. Eu não queria algo perfeito, eu queria algo que fizesse sentido. O UniFi realmente fez.</p>
+<h2>Por Que o UniFi Era a Resposta Óbvia</h2>
+<p>O que me convenceu sobre o UniFi não foi poder ou marketing, foi coerência. Tudo nele parece ter sido projetado por alguém que entende o que realmente significa viver com uma rede. A interface é limpa, mas não superficial, as opções são profundas, mas nunca esmagadoras, e a configuração parece um processo do qual você participa, em vez de uma batalha que você trava. Você conecta o dispositivo, abre o controlador, e ele começa a fazer sentido quase imediatamente. VLANs, DHCP, firewall rules e routing estão todos lá, organizados de uma forma que parece familiar e deliberada. É um daqueles sistemas raros em que as coisas simplesmente se comportam como deveriam, e essa confiabilidade muda a forma como você se relaciona com ele. Você para de verificar se está funcionando e começa a confiar que está.</p>
+<p>O que realmente se destaca, porém, é o quão completo é o ecossistema. Você pode construir uma rede inteira sem sair do mundo UniFi. Tudo fala a mesma linguagem, tudo se integra sob a mesma lógica, e essa consistência elimina a ansiedade de adivinhar se as coisas vão cooperar. É um tipo de harmonia que a maioria das marcas promete, mas nunca alcança. O hardware é bem construído, o software parece maduro e as atualizações vêm com propósito, em vez de interrupção.</p>
+<p>Essa completude também facilita a tomada de decisões, já que você não precisa juntar peças de diferentes fabricantes ou se preocupar com padrões incompatíveis. Você apenas escolhe as peças que se encaixam nos seus requisitos e elas se encaixam perfeitamente. Para alguém como eu, que queria uma configuração confiável, mas não quer passar fins de semana enterrado em menus de configuração, isso importa mais do que o desempenho bruto. Melhor ainda se essa confiabilidade e integração vierem com um desempenho realmente bom.</p>
+<h2>A Facilidade do Aumento de Custo</h2>
+<p>Sempre começa com algo razoável. Para mim, foi o UCG-Max: pequeno, silencioso e forte o suficiente para lidar com VLANs, DHCP e IPS sem problemas. Quatro portas 2.5 GbE e capacidade para algumas centenas de clientes. Uma base sólida.</p>
+<p>Aí você começa a pensar no que mais é possível. O UCG-Fiber adiciona uplinks de 10 Gb e um switch de quatro portas integrado. Adicione armazenamento NVMe para o Protect, e de repente você não está construindo um roteador, está construindo um core de rede.</p>
+<p>Depois que você começa a pensar assim, o E7 se torna óbvio. Wi-Fi 7, uplink de 10 GbE, capacidade suficiente para fazer o wireless parecer real em vez de apenas conveniente. O que significa que tudo upstream precisa corresponder, e você precisa de PoE adequado.</p>
+<p>Então você precisa do Switch Enterprise 8 PoE para conectar tudo. Oito portas 2.5 GbE PoE+, dois uplinks SFP+ de 10 Gb, routing de Camada 3. Isso faz com que tudo pareça completo. E também torna o orçamento real.</p>
+<p>Cada peça faz sentido sozinha: UCG-Max como um bom começo, UCG-Fiber para folga, E7 para wireless, Enterprise 8 PoE para conectar tudo. Juntos, eles são muito mais do que uma rede doméstica precisa. É quando você percebe que a contenção também importa.</p>
+<h2>Por Que o UniFi Era a Resposta IMPOSSÍVEL</h2>
+<p>Eu continuava tentando montar a configuração perfeita na minha cabeça: um gateway, um access point, um switch para conectá-los. Então encontrei o UniFi Dream Router 7 (UDR7) e percebi que não precisava. Ele faz tudo o que aquelas três caixas fariam: lida com VLANs e DHCP corretamente, tem Wi-Fi 7 integrado e inclui algumas portas multi-gig para dispositivos com fio. Ele cabe em uma prateleira, não parece equipamento de rede e custa menos do que comprar peças separadas que fariam o mesmo trabalho, mas pior.</p>
+<p>O que me convenceu não foi nenhuma característica isolada, mas o quão bem tudo funciona junto. As portas 2.5 GbE dão às conexões com fio velocidade real, o controlador integrado significa que a configuração é apenas configuração em vez de juntar as coisas, e há uma porta SFP+ se eu precisar dela. É silencioso, rápido o suficiente para nunca atrapalhar e simples o bastante para que eu possa realmente mantê-lo sem passar fins de semana resolvendo problemas.</p>
+<p>Ele se encaixou no que eu queria por não complicar demais as coisas. Eu precisava de segmentação, wireless decente e hardware que funcionasse sem exigir atenção. O UDR7 faz tudo isso em uma única caixa por um preço razoável. É por isso que parecia impossível, não porque prometia tudo, mas porque realmente entregou o que eu estava tentando construir.</p>
+<h2>A Configuração Futura com o UDR7</h2>
+<p>O roteador do provedor de internet entra em modo bridge e passa tudo para o UDR7, que cuida do routing, DHCP e mantém o tráfego separado onde precisa. Dispositivos com fio se conectam através das portas 2.5 GbE para que as transferências locais permaneçam rápidas. O Wi-Fi começa como uma única rede porque não há razão para complicar ainda.</p>
+<pre><code>[Internet] → [ISP router (modo bridge)] → [UDR7]
+                                   ├─ LAN1: Desktop (VLAN 10)
+                                   ├─ LAN2: Proxmox (VLAN 20)
+                                   ├─ LAN3: TV (VLAN 30)
+                                   └─ Wi-Fi: single SSID (maps to chosen VLAN, e.g., 30)
+</code></pre>
+<p>VLANs separam as coisas por confiança: meu desktop e dispositivos confiáveis vão na VLAN 10, o servidor fica na VLAN 20 com IPs estáticos, e as coisas de IoT vivem na VLAN 30 onde não podem se comunicar com mais nada. O tráfego inter-VLAN é bloqueado por padrão e abre apenas onde faz sentido, desktop para servidor para SSH e acesso a arquivos, TV para Jellyfin para streaming, IoT apenas para internet.</p>
+<p>O AdGuard Home roda no Proxmox e gerencia o DNS para toda a rede. Cada escopo DHCP aponta para ele, com o UDR7 como backup para que as coisas continuem funcionando se o servidor reiniciar. Para acesso externo, estou começando com o Cloudflare Tunnel, já que manter as portas fechadas é mais fácil de gerenciar. Se eu precisar de mais controle mais tarde, mudarei para o Traefik e farei o forward das portas 80 e 443.</p>
+<p>O UDR7 tem portas suficientes por enquanto, então não vou adicionar um switch até realmente precisar de um. Quando isso acontecer, conectarei um pequeno switch 2.5 GbE a uma das portas existentes e continuarei. O IDS rodará em modo de alerta primeiro para que eu possa ver como é o tráfego normal, então ativarei o bloqueio apenas para coisas que são realmente problemas. O objetivo principal é ter segmentação clara, regras razoáveis e hardware que simplesmente funciona sem precisar de atenção constante.</p>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer" style="view-transition-name: site-footer;">
+        <div class="footer-container">
+            <div class="social-links">
+                <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/danielcavalli" target="_blank" rel="noopener" aria-label="GitHub">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/cavallidaniel/" target="_blank" rel="noopener" aria-label="LinkedIn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                </a>
+            </div>
+            <p class="copyright">© 2025 All Rights Reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

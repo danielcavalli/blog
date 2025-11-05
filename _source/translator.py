@@ -23,10 +23,10 @@ load_dotenv()
 PROJECT_ROOT = Path(__file__).parent.parent
 TRANSLATION_CACHE_FILE = PROJECT_ROOT / "_cache" / "translation-cache.json"
 
-# Rate limiting: gemini-2.0-flash-exp = 10 RPM
-# With 3 calls per post (translate + critique + refine), we can do ~3 posts/min
-# Use longer intervals to avoid hitting limits
-MIN_REQUEST_INTERVAL = 10.0  # seconds between API calls (safer margin)
+# Rate limiting: Set to 90 seconds to ensure we NEVER hit API rate limits
+# This is extremely conservative but guarantees stability
+# Total time for 6 posts: ~9 minutes (6 posts × 90 seconds)
+MIN_REQUEST_INTERVAL = 90.0  # seconds between API calls (ultra-safe margin)
 
 
 class TranslationCache:
@@ -166,6 +166,39 @@ class MultiAgentTranslator:
             str: Hexadecimal SHA256 hash string.
         """
         return hashlib.sha256(content.encode('utf-8')).hexdigest()
+    
+    def _clean_backticks_from_text(self, text: str) -> str:
+        """Remove backticks wrapping isolated English technical terms.
+        
+        This fixes the common issue where LLMs wrap English terms in backticks
+        when translating to Portuguese, making the text look unnatural.
+        
+        Preserves:
+        - Code blocks (```...```)
+        - Inline code with multiple words or special characters
+        - Legitimate code references
+        
+        Removes backticks from:
+        - Single technical English words: `GPU` -> GPU
+        - Short technical phrases: `machine learning` -> machine learning
+        
+        Args:
+            text (str): Text that may contain backtick-wrapped terms.
+        
+        Returns:
+            str: Text with backticks removed from isolated technical terms.
+        """
+        import re
+        
+        # Pattern: backtick, word characters/spaces/hyphens (2-30 chars), backtick
+        # But NOT if preceded/followed by more backticks (code blocks)
+        # This preserves code blocks (```) and inline code with actual code content
+        pattern = r'(?<!`)` *([A-Za-z][\w\s\-]{1,30}?) *`(?!`)'
+        
+        # Replace backticks around simple technical terms
+        cleaned = re.sub(pattern, r'\1', text)
+        
+        return cleaned
     
     def _rate_limit(self):
         """Enforce minimum interval between API calls.
@@ -312,6 +345,15 @@ class MultiAgentTranslator:
             return None
         
         parsed = self._parse_response(response_text, frontmatter)
+        
+        # Post-process to remove backticks around English technical terms
+        if parsed and parsed.get('content'):
+            parsed['content'] = self._clean_backticks_from_text(parsed['content'])
+        if parsed and parsed.get('title'):
+            parsed['title'] = self._clean_backticks_from_text(parsed['title'])
+        if parsed and parsed.get('excerpt'):
+            parsed['excerpt'] = self._clean_backticks_from_text(parsed['excerpt'])
+        
         return parsed
     
     def _critique(self, frontmatter: Dict, content: str, translation: Dict) -> Tuple[str, str]:
@@ -374,7 +416,17 @@ class MultiAgentTranslator:
         if not response_text:
             return None
         
-        return self._parse_response(response_text, frontmatter)
+        refined = self._parse_response(response_text, frontmatter)
+        
+        # Post-process to remove backticks around English technical terms
+        if refined and refined.get('content'):
+            refined['content'] = self._clean_backticks_from_text(refined['content'])
+        if refined and refined.get('title'):
+            refined['title'] = self._clean_backticks_from_text(refined['title'])
+        if refined and refined.get('excerpt'):
+            refined['excerpt'] = self._clean_backticks_from_text(refined['excerpt'])
+        
+        return refined
     
     def _build_translation_prompt(self, frontmatter: Dict, content: str) -> str:
         """Build prompt for Stage 1 translation agent.
@@ -397,8 +449,11 @@ class MultiAgentTranslator:
 
 TRANSLATION RULES:
 - Write as a bilingual Brazilian engineer would naturally speak
-- Keep technical terms in English: machine learning, GPU, CUDA, API, pipeline, frontend, backend, debug, commit, deploy, framework, view transition, morphing, build, cache, etc.
-- Use Brazilian idioms: "I am Daniel" = "Me chamo Daniel" (not "Sou Daniel")
+- Keep ONLY these technical terms in English (no special formatting): GPU, CUDA, API, ML, AI, machine learning, deep learning, backend, frontend, framework, pipeline, cache, build, deploy, commit, debug, kernel, thread, hardware, software, benchmark, throughput, latency, overhead, runtime, tooling, workflow, endpoint, payload, metadata
+- TRANSLATE these common words to Portuguese: port/ports → porta/portas, switch → switch (same), setup → configuração, network → rede, traffic → tráfego, rule/rules → regra/regras, mode → modo, alert → alerta, blocking → bloqueio, segmentation → segmentação
+- TRANSLATE ALL section headings/titles to Portuguese (##, ###, etc.)
+- CRITICAL: English technical terms must appear as plain text within Portuguese sentences - never wrap them in backticks, quotes, or any other formatting
+- Use natural Brazilian idioms: "I am Daniel" = "Me chamo Daniel" (not "Sou Daniel")
 - Preserve ALL Markdown syntax, code blocks, and formatting EXACTLY
 - Do NOT add explanations, notes, or JSON blocks
 - Output ONLY the sections below in the exact format shown
@@ -595,9 +650,6 @@ CONTENT:
             
             # Accumulate content for current section
             if current:
-                # Stop if we hit JSON or markdown code block markers (common in model output)
-                if stripped.startswith('```') or stripped.startswith('{'):
-                    break
                 buffer.append(line)
         
         # Process final section
@@ -647,7 +699,8 @@ CONTENT:
         prompt = f"""Translate this About page content to natural Brazilian Portuguese.
 
 RULES:
-- Keep technical terms and company names (Nubank, CUDA, etc.) in original language
+- Keep technical terms and company names (Nubank, CUDA, etc.) in original language as plain text - never wrap in backticks or quotes
+- English technical terms should appear naturally within Portuguese sentences without special formatting
 - Use natural Brazilian expressions and idioms
 - "I'm Daniel" = "Me chamo Daniel" (not "Eu sou Daniel")
 - Do NOT add explanations or extra text
@@ -682,6 +735,12 @@ P4:
             return None
         
         translated = self._parse_about_response(response_text, about_text)
+        
+        # Post-process to remove backticks around English technical terms
+        for key in ['title', 'p1', 'p2', 'p3', 'p4']:
+            if translated.get(key):
+                translated[key] = self._clean_backticks_from_text(translated[key])
+        
         self.cache.store_translation(slug, content_hash, translated)
         return translated
     
@@ -758,10 +817,13 @@ P4:
             'tags': post.get('tags', [])
         }
         
+        # Use raw markdown content for translation, not HTML
+        content_to_translate = post.get('raw_content', post.get('content', ''))
+        
         translated = self.translate_post(
             post['slug'],
             frontmatter,
-            post['content'],
+            content_to_translate,
             force=False
         )
         
@@ -773,8 +835,15 @@ P4:
         translated_post = post.copy()
         translated_post['title'] = translated.get('title', post['title'])
         translated_post['excerpt'] = translated.get('excerpt', post['excerpt'])
-        translated_post['content'] = translated.get('content', post['content'])
         translated_post['tags'] = translated.get('tags', post['tags'])
+        
+        # Convert translated markdown to HTML
+        import markdown as md_lib
+        translated_html = md_lib.markdown(
+            translated.get('content', post.get('raw_content', '')),
+            extensions=['fenced_code', 'tables', 'nl2br']
+        )
+        translated_post['content'] = translated_html
         
         return translated_post
 
