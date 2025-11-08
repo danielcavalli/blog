@@ -8,6 +8,13 @@
     box-sizing: border-box;
 }
 
+/* Disable all CSS transitions - used during view transitions to prevent post-morph animations */
+.disable-transitions,
+.disable-transitions * {
+    transition: none !important;
+    animation: none !important;
+}
+
 /* View Transitions API - Single Canvas Spatial Movement */
 @supports (view-transition-name: none) {
     /* CRITICAL: Hide root transition to prevent flash of both old and new content
@@ -51,32 +58,11 @@
         animation: none;
     }
     
-    /* FOOTER: Smooth vertical motion based on page height difference */
-    /* Pulled upward when going to shorter page, pushed down when going to taller page */
-    ::view-transition-old(site-footer) {
-        animation: footer-pull-slide var(--motion-duration-ripple) var(--motion-easing);
-    }
-    
-    ::view-transition-new(site-footer) {
-        animation: footer-push-slide var(--motion-duration-ripple) var(--motion-easing);
-    }
-    
-    @keyframes footer-pull-slide {
-        from {
-            transform: translateY(0);
-        }
-        to {
-            transform: translateY(var(--footer-offset, 0));
-        }
-    }
-    
-    @keyframes footer-push-slide {
-        from {
-            transform: translateY(var(--footer-offset, 0));
-        }
-        to {
-            transform: translateY(0);
-        }
+    /* FOOTER: Let View Transitions API handle morphing naturally */
+    /* No custom animation needed - API morphs footer position based on page height */
+    ::view-transition-group(site-footer) {
+        animation-duration: var(--motion-duration-core);
+        animation-timing-function: var(--motion-easing);
     }
     
     /* HEADER: Slides up behind nav bar when going to post, slides down when returning */
@@ -1483,6 +1469,14 @@ button:focus-visible {
 }
 
 /* Cards being filtered out - fade elegantly */
+.post-card.filtering-out {
+    opacity: 0;
+}
+
+.post-card.filtered-out {
+    display: none;
+}
+
 .post-card[hidden] {
     display: none;
 }

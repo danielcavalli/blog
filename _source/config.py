@@ -46,7 +46,8 @@ LANGUAGES = {
             'all_months': 'All Months',
             'clear_filters': 'Clear Filters',
             'blog': 'BLOG',
-            'about': 'ABOUT'
+            'about': 'ABOUT',
+            'cv': 'CV'
         },
         'months': {
             'January': 'January', 'February': 'February', 'March': 'March',
@@ -60,6 +61,31 @@ LANGUAGES = {
             'p2': "I work as a Machine Learning Engineer at Nubank, where I spend most of my time making systems faster, simpler, and easier to understand. I care about efficiency, but not the kind that strips things down until they lose meaning. What I look for is clarity, the kind of simplicity where everything has a purpose and moves with intention. I like when things just work, quietly and well.",
             'p3': "This blog is an extension of that way of thinking. Building and writing are how I make sense of the world. When I put ideas into code or words, I can see their edges more clearly, what holds, what doesn’t, and what needs to be rebuilt. It’s less about publishing and more about refining my own understanding of how things connect.",
             'p4': "Outside of work, I try to keep my life close to the ocean. I surf, bike, build things with my hands, and spend time with Moana, my dog. I live in Copacabana, where the sea is part of the backdrop of everything. Here, even an ordinary day ends with people standing by the water, just watching the light fade. That rhythm, fast, grounded and sometimes even chaotic, is what I try to keep in everything I do.",
+        },
+        'cv': {
+            'title': 'CURRICULUM VITAE',
+            'tagline': 'Machine Learning Engineer · Distributed Systems · CUDA Optimization',
+            'experience': [
+                {
+                    'title': 'Machine Learning Engineer',
+                    'company': 'Nubank',
+                    'location': 'São Paulo, Brazil',
+                    'period': 'Present',
+                    'description': 'Building and optimizing distributed training systems. Focus on making ML infrastructure faster, simpler, and more reliable. Work spans CUDA kernel optimization, multi-GPU training orchestration, and production ML systems.'
+                }
+            ],
+            'skills': {
+                'core': ['Python', 'CUDA', 'PyTorch', 'Distributed Training'],
+                'systems': ['DDP', 'FSDP', 'Multi-GPU', 'Performance Optimization'],
+                'infrastructure': ['Kubernetes', 'CI/CD', 'ML Operations']
+            },
+            'education': 'Computer Engineering',
+            'location': 'Copacabana, Rio de Janeiro, Brazil',
+            'contact': {
+                'email': 'Available on request',
+                'github': 'danielcavalli',
+                'linkedin': 'cavallidaniel'
+            }
         }
     },
     'pt': {
@@ -77,15 +103,41 @@ LANGUAGES = {
             'all_months': 'Todos os Meses',
             'clear_filters': 'Limpar Filtros',
             'blog': 'BLOG',
-            'about': 'SOBRE'
+            'about': 'SOBRE',
+            'cv': 'CV'
         },
         'months': {
             'January': 'Janeiro', 'February': 'Fevereiro', 'March': 'Março',
             'April': 'Abril', 'May': 'Maio', 'June': 'Junho',
             'July': 'Julho', 'August': 'Agosto', 'September': 'Setembro',
             'October': 'Outubro', 'November': 'Novembro', 'December': 'Dezembro'
-        }
+        },
         # Note: 'about' content is automatically translated during build using Gemini
+        'cv': {
+            'title': 'CURRICULUM VITAE',
+            'tagline': 'Engenheiro de Machine Learning · Sistemas Distribuídos · Otimização CUDA',
+            'experience': [
+                {
+                    'title': 'Machine Learning Engineer',
+                    'company': 'Nubank',
+                    'location': 'São Paulo, Brasil',
+                    'period': '2021 - Presente',
+                    'description': 'Desenvolvendo sistemas de treinamento distribuído e otimização CUDA para modelos de ML em escala. Foco em performance, eficiência de GPU e infraestrutura de ML.'
+                }
+            ],
+            'skills': {
+                'core': ['Python', 'CUDA', 'PyTorch', 'Treinamento Distribuído'],
+                'systems': ['DDP', 'FSDP', 'Multi-GPU', 'Otimização de Performance'],
+                'infrastructure': ['Kubernetes', 'CI/CD', 'Operações de ML']
+            },
+            'education': 'Engenharia da Computação',
+            'location': 'Copacabana, Rio de Janeiro, Brasil',
+            'contact': {
+                'email': 'Disponível mediante solicitação',
+                'github': 'danielcavalli',
+                'linkedin': 'cavallidaniel'
+            }
+        }
     }
 }
 DEFAULT_LANGUAGE = 'en'

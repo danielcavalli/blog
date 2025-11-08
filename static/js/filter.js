@@ -1,6 +1,8 @@
 /**
  * @fileoverview Blog post filtering system with animated transitions
  * 
+ * Version: 2.0 - Fixed re-initialization after View Transitions
+ * 
  * Features:
  * - Breathing filter panel (expands/contracts with organic motion)
  * - Custom dropdown selectors for year and month filtering
@@ -81,7 +83,7 @@
             tags: new Set()
         };
         
-        let currentOrderBy = 'updated'; // Default to "Updated"
+        let currentOrderBy = 'created'; // Default to "Published At" (created date)
 
         // DOM elements
         const filterToggle = document.getElementById('filter-toggle');
@@ -102,13 +104,9 @@
             return;
         }
 
-        // Prevent re-initialization
-        if (filterToggle.hasAttribute('data-filter-initialized')) {
-            console.log('[FILTER] Already initialized, returning');
-            return;
-        }
-        filterToggle.setAttribute('data-filter-initialized', 'true');
-        console.log('[FILTER] Marked as initialized');
+        // Note: We allow re-initialization because View Transitions replace the entire DOM
+        // Old event listeners are destroyed with old DOM, so we need to rebind everything
+        console.log('[FILTER] Initializing filter system (event listeners will be bound)');
         
         // Remove initial animations after they complete to allow filtering transitions
         // Only needed on FIRST LOAD - navigation already disables animations via transitions.js
@@ -311,9 +309,16 @@
          * @returns {void}
          */
         function filterPosts() {
+            // CRITICAL: Re-query DOM on every filter call to get current elements
+            // After View Transitions, the original postCards NodeList references destroyed elements
+            const currentPostCards = document.querySelectorAll('.post-card');
+            
+            console.log('[FILTER] filterPosts() - found', currentPostCards.length, 'cards');
+            console.log('[FILTER] Active filters:', activeFilters);
+            
             // Capture initial positions (FLIP: First)
             const initialPositions = new Map();
-            postCards.forEach(card => {
+            currentPostCards.forEach(card => {
                 const rect = card.getBoundingClientRect();
                 initialPositions.set(card, { top: rect.top, left: rect.left });
             });
@@ -322,10 +327,12 @@
 
             // Phase 1: Identify and start dissolving non-matching cards
             requestAnimationFrame(() => {
-                postCards.forEach((card, index) => {
+                currentPostCards.forEach((card, index) => {
                     const cardYear = card.dataset.year;
                     const cardMonth = card.dataset.month;
                     const cardTags = card.dataset.tags ? card.dataset.tags.split(',').map(t => t.trim()) : [];
+                    
+                    console.log(`[FILTER] Card ${index}: year=${cardYear}, month=${cardMonth}, tags=[${cardTags}]`);
 
                     // Check if card matches all active filters
                     const yearMatch = !activeFilters.year || cardYear === activeFilters.year;
@@ -334,6 +341,8 @@
                         cardTags.some(tag => activeFilters.tags.has(tag));
 
                     const shouldShow = yearMatch && monthMatch && tagsMatch;
+                    
+                    console.log(`[FILTER] Card ${index}: yearMatch=${yearMatch}, monthMatch=${monthMatch}, tagsMatch=${tagsMatch}, shouldShow=${shouldShow}`);
 
                     if (shouldShow) {
                         // Card should be visible - ensure it's not in filtering state
@@ -346,8 +355,12 @@
                 });
 
                 // Phase 2: After dissolve completes, trigger reorganization
-                // Use transitionend event instead of setTimeout for browser-driven timing
-                if (cardsToHide.length > 0) {
+                // Check if animations are disabled - if so, skip transition wait
+                const currentPostsGrid = document.querySelector('.posts-grid');
+                const animationsDisabled = currentPostsGrid && currentPostsGrid.classList.contains('disable-animation');
+
+                if (cardsToHide.length > 0 && !animationsDisabled) {
+                    // Wait for transition to complete before reorganizing
                     const handleDissolveComplete = (e) => {
                         // Only respond to opacity transitions on cards being hidden
                         if (e.propertyName !== 'opacity' || !cardsToHide.includes(e.target)) {
@@ -364,7 +377,7 @@
                     const grid = document.querySelector('.posts-grid');
                     grid.addEventListener('transitionend', handleDissolveComplete);
                 } else {
-                    // No cards to hide, but still reorganize visible cards
+                    // No cards to hide OR animations disabled - reorganize immediately
                     performReorganization();
                 }
             });
@@ -390,9 +403,15 @@
              * @returns {void}
              */
             function performReorganization() {
+                console.log('[FILTER] performReorganization() called');
+                // Re-query current cards for reorganization
+                const currentCards = document.querySelectorAll('.post-card');
+                console.log('[FILTER] performReorganization() - found', currentCards.length, 'cards');
+                
                 // Remove dissolved cards from layout
-                postCards.forEach((card) => {
+                currentCards.forEach((card, index) => {
                     if (card.classList.contains('filtering-out')) {
+                        console.log(`[FILTER] Marking card ${index} as filtered-out`);
                         card.classList.add('filtered-out');
                     }
                 });
@@ -401,7 +420,7 @@
                 requestAnimationFrame(() => {
                     // Capture final positions (FLIP: Last)
                     const finalPositions = new Map();
-                    postCards.forEach(card => {
+                    currentCards.forEach(card => {
                         if (!card.classList.contains('filtered-out')) {
                             const rect = card.getBoundingClientRect();
                             finalPositions.set(card, { top: rect.top, left: rect.left });
@@ -409,7 +428,7 @@
                     });
 
                     // Calculate deltas and apply inverse transforms (FLIP: Invert)
-                    postCards.forEach(card => {
+                    currentCards.forEach(card => {
                         if (!card.classList.contains('filtered-out')) {
                             const initial = initialPositions.get(card);
                             const final = finalPositions.get(card);
@@ -447,7 +466,7 @@
                     setTimeout(() => {
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
-                                postCards.forEach(card => {
+                                currentCards.forEach(card => {
                                     // Remove the class first to prevent CSS transitions from firing
                                     card.classList.remove('flip-animating');
                                     // Then clean up custom properties and inline styles
@@ -534,11 +553,14 @@
          * @returns {void}
          */
         function sortPosts() {
-            if (!postsGrid) return;
+            // CRITICAL: Re-query postsGrid and cards on every sort call
+            const currentPostsGrid = document.querySelector('.posts-grid');
+            if (!currentPostsGrid) return;
             
             // Capture initial positions (FLIP: First)
             const initialPositions = new Map();
-            const visibleCards = Array.from(postCards).filter(card => !card.classList.contains('filtered-out'));
+            const currentPostCards = document.querySelectorAll('.post-card');
+            const visibleCards = Array.from(currentPostCards).filter(card => !card.classList.contains('filtered-out'));
             
             visibleCards.forEach(card => {
                 const rect = card.getBoundingClientRect();
@@ -554,7 +576,7 @@
             
             // Reorder DOM
             sortedCards.forEach(card => {
-                postsGrid.appendChild(card);
+                currentPostsGrid.appendChild(card);
             });
             
             // Capture final positions after reorder (FLIP: Last)
@@ -699,11 +721,13 @@
     document.addEventListener('page-navigation-complete', () => {
         console.log('[FILTER] page-navigation-complete event received');
         const filterToggle = document.getElementById('filter-toggle');
-        if (filterToggle && !filterToggle.hasAttribute('data-filter-initialized')) {
-            console.log('[FILTER] Filter toggle exists and not initialized, calling initFilters');
+        if (filterToggle) {
+            console.log('[FILTER] Filter toggle exists, calling initFilters');
+            // Always re-initialize after navigation because DOM elements are replaced
+            // The data-filter-initialized attribute is on the NEW DOM, not the old one
             initFilters();
         } else {
-            console.log('[FILTER] Filter toggle already initialized or missing');
+            console.log('[FILTER] Filter toggle missing (not on index page)');
         }
     });
 

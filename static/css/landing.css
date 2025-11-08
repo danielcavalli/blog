@@ -135,100 +135,93 @@
     display: none;
 }
 
-/* Morphing transition states */
-@supports (view-transition-name: none) {
-    .landing-title {
-        view-transition-name: landing-title;
-    }
-    
-    .landing-link[data-morph-target="nav-blog"] {
-        view-transition-name: nav-blog;
-    }
-    
-    .landing-link[data-morph-target="nav-about"] {
-        view-transition-name: nav-about;
-    }
-    
-    .landing-link[data-morph-target="nav-cv"] {
-        view-transition-name: nav-cv;
-    }
-}
-
 /* View Transition - landing to site morphing */
+/* The View Transitions API handles all position and size morphing automatically */
+/* Elements with matching view-transition-name morph naturally between states */
+/* We only adjust timing - no manual animations needed */
 @supports (view-transition-name: none) {
+    
+    /* LOGO: Let the API morph from center (large) to top-left (small) */
+    /* Only control the timing, nothing else */
     ::view-transition-group(landing-title) {
-        animation-duration: 550ms;
-        animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
+        animation-duration: 800ms;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     }
     
-    ::view-transition-old(landing-title) {
-        animation: morphToLogo 550ms cubic-bezier(0.45, 0, 0.25, 1) forwards;
+    /* TOP BAR CONTAINER: Fades in as it doesn't exist on landing */
+    ::view-transition-group(site-nav) {
+        z-index: 999;
     }
     
-    ::view-transition-new(landing-title) {
-        animation: morphFromLanding 550ms cubic-bezier(0.45, 0, 0.25, 1) forwards;
+    ::view-transition-new(site-nav) {
+        animation: navBarFadeIn 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
     
-    @keyframes morphToLogo {
-        from {
-            transform: scale(1) translateY(0);
-            opacity: 1;
-        }
-        to {
-            transform: scale(0.3) translateY(-40vh);
+    @keyframes navBarFadeIn {
+        0% {
             opacity: 0;
         }
-    }
-    
-    @keyframes morphFromLanding {
-        from {
-            transform: scale(3.3) translateY(40vh);
+        40% {
             opacity: 0;
         }
-        to {
-            transform: scale(1) translateY(0);
+        100% {
             opacity: 1;
         }
     }
     
-    /* Navigation links slide and reorganize */
+    /* NAVIGATION LINKS: Let them morph naturally */
     ::view-transition-group(nav-blog),
     ::view-transition-group(nav-about),
     ::view-transition-group(nav-cv) {
-        animation-duration: 550ms;
-        animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
+        animation-duration: 800ms;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1001;
     }
     
-    ::view-transition-old(nav-blog),
-    ::view-transition-old(nav-about),
-    ::view-transition-old(nav-cv) {
-        animation: slideOut 550ms cubic-bezier(0.45, 0, 0.25, 1) forwards;
+    /* LANGUAGE & THEME TOGGLES: These don't exist on landing, so only fade in */
+    /* Slower timing for subtle delayed appearance */
+    ::view-transition-group(lang-toggle),
+    ::view-transition-group(theme-toggle) {
+        animation-duration: 1100ms;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1001;
     }
     
-    ::view-transition-new(nav-blog),
-    ::view-transition-new(nav-about),
-    ::view-transition-new(nav-cv) {
-        animation: slideIn 550ms cubic-bezier(0.45, 0, 0.25, 1) forwards;
+    ::view-transition-new(lang-toggle),
+    ::view-transition-new(theme-toggle) {
+        animation: togglesFadeIn 1100ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
     
-    @keyframes slideOut {
-        from {
-            transform: translateY(0);
+    @keyframes togglesFadeIn {
+        0% {
+            opacity: 0;
+        }
+        70% {
+            opacity: 0;
+        }
+        100% {
             opacity: 1;
         }
-        to {
-            transform: translateY(-20px);
-            opacity: 0;
-        }
     }
     
-    @keyframes slideIn {
-        from {
-            transform: translateY(20px);
+    /* FOOTER/SOCIALS: Also doesn't exist on landing, subtle delayed fade in */
+    ::view-transition-group(site-footer) {
+        animation-duration: 1100ms;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    ::view-transition-new(site-footer) {
+        animation: footerFadeIn 1100ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    
+    @keyframes footerFadeIn {
+        0% {
             opacity: 0;
         }
-        to {
-            transform: translateY(0);
+        70% {
+            opacity: 0;
+        }
+        100% {
             opacity: 1;
         }
     }

@@ -241,14 +241,15 @@ def generate_post_html(post, post_number, lang='en'):
 <body>
     <nav class="nav" style="view-transition-name: site-nav;">
         <div class="nav-container">
-            <a href="{get_lang_path(lang, 'index.html')}" class="logo">dan.rio</a>
+            <a href="{get_lang_path(lang, 'index.html')}" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="{get_lang_path(lang, 'index.html')}" class="active">BLOG</a></li>
-                    <li><a href="{get_lang_path(lang, 'about.html')}">ABOUT</a></li>
+                    <li><a href="{get_lang_path(lang, 'index.html')}" class="active" style="view-transition-name: nav-blog;">BLOG</a></li>
+                    <li><a href="{get_lang_path(lang, 'about.html')}" style="view-transition-name: nav-about;">ABOUT</a></li>
+                    <li><a href="{get_lang_path(lang, 'cv.html')}" style="view-transition-name: nav-cv;">CV</a></li>
                 </ul>
-                {lang_toggle_html}
-                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                <div style="view-transition-name: lang-toggle;">{lang_toggle_html}</div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="5"/>
                         <line x1="12" y1="1" x2="12" y2="3"/>
@@ -417,23 +418,24 @@ def generate_index_html(posts, lang='en'):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>dan.rio - Blog</title>
     <meta name="description" content="Personal blog by Daniel Cavalli on machine learning, CUDA, distributed training, and engineering.">
-    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
-    <link rel="preload" href="{BASE_PATH}/static/js/theme.js" as="script">
-    <script src="{BASE_PATH}/static/js/theme.js"></script>
-    <script src="{BASE_PATH}/static/js/transitions.js" defer></script>
-    <script src="{BASE_PATH}/static/js/filter.js" defer></script>
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css?v=20251108102924">
+    <link rel="preload" href="{BASE_PATH}/static/js/theme.js?v=20251108102924" as="script">
+    <script src="{BASE_PATH}/static/js/theme.js?v=20251108102924"></script>
+    <script src="{BASE_PATH}/static/js/transitions.js?v=20251108102924" defer></script>
+    <script src="{BASE_PATH}/static/js/filter.js?v=20251108102924" defer></script>
 </head>
 <body>
     <nav class="nav" style="view-transition-name: site-nav;">
         <div class="nav-container">
-            <a href="{get_lang_path(lang, 'index.html')}" class="logo">dan.rio</a>
+            <a href="{get_lang_path(lang, 'index.html')}" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="{get_lang_path(lang, 'index.html')}" class="active">{ui['blog']}</a></li>
-                    <li><a href="{get_lang_path(lang, 'about.html')}">{ui['about']}</a></li>
+                    <li><a href="{get_lang_path(lang, 'index.html')}" class="active" style="view-transition-name: nav-blog;">{ui['blog']}</a></li>
+                    <li><a href="{get_lang_path(lang, 'about.html')}" style="view-transition-name: nav-about;">{ui['about']}</a></li>
+                    <li><a href="{get_lang_path(lang, 'cv.html')}" style="view-transition-name: nav-cv;">{ui['cv']}</a></li>
                 </ul>
-                {lang_toggle_html}
-                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                <div style="view-transition-name: lang-toggle;">{lang_toggle_html}</div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="5"/>
                         <line x1="12" y1="1" x2="12" y2="3"/>
@@ -460,8 +462,8 @@ def generate_index_html(posts, lang='en'):
                 <div class="header-controls">
                     <div class="sort-control">
                         <span class="sort-label">{ui['sort_by']}</span>
-                        <button id="order-toggle" class="order-toggle" data-order="updated" data-label-updated="{ui['last_updated']}" data-label-created="{ui['published_at']}" aria-label="Toggle sort order">
-                            <span class="order-toggle-text">{ui['last_updated']}</span>
+                        <button id="order-toggle" class="order-toggle" data-order="created" data-label-updated="{ui['last_updated']}" data-label-created="{ui['published_at']}" aria-label="Toggle sort order">
+                            <span class="order-toggle-text">{ui['published_at']}</span>
                         </button>
                     </div>
                     <button id="filter-toggle" class="filter-toggle" aria-label="Toggle filters">
@@ -531,6 +533,261 @@ def generate_index_html(posts, lang='en'):
 
 
 def generate_about_html(lang='en'):
+    """Generate About page with translated content.
+    
+    Creates about.html page with author bio content from config,
+    translated for the specified language.
+    
+    Args:
+        lang (str): Language code ('en' or 'pt').
+    
+    Returns:
+        str: Complete HTML document for the About page.
+    """
+    lang_toggle_html = generate_lang_toggle_html(lang, 'about.html')
+    ui = LANGUAGES[lang]['ui']
+    about = LANGUAGES[lang]['about']
+    
+    return f"""<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{about['title']} - dan.rio</title>
+    <meta name="description" content="{AUTHOR_BIO}">
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/post.css">
+    <link rel="preload" href="{BASE_PATH}/static/js/theme.js" as="script">
+    <script src="{BASE_PATH}/static/js/theme.js"></script>
+    <script src="{BASE_PATH}/static/js/transitions.js" defer></script>
+</head>
+<body>
+    <nav class="nav" style="view-transition-name: site-nav;">
+        <div class="nav-container">
+            <a href="{get_lang_path(lang, 'index.html')}" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="{get_lang_path(lang, 'index.html')}" style="view-transition-name: nav-blog;">{ui['blog']}</a></li>
+                    <li><a href="{get_lang_path(lang, 'about.html')}" class="active" style="view-transition-name: nav-about;">{ui['about']}</a></li>
+                    <li><a href="{get_lang_path(lang, 'cv.html')}" style="view-transition-name: nav-cv;">{ui['cv']}</a></li>
+                </ul>
+                <div style="view-transition-name: lang-toggle;">{lang_toggle_html}</div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <article class="post">
+            <header class="post-header">
+                <h1 class="post-title-large">{about['title']}</h1>
+            </header>
+
+            <div class="post-body">
+                <p>{about['p1']}</p>
+
+                <p>{about['p2']}</p>
+
+                <p>{about['p3']}</p>
+
+                <p>{about['p4']}</p>
+
+                <img src="{BASE_PATH}/static/images/Logo.png" alt="Moana Surfworks" loading="lazy" class="about-image">
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer" style="view-transition-name: site-footer;">
+        <div class="footer-container">
+            <div class="social-links">
+                <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/danielcavalli" target="_blank" rel="noopener" aria-label="GitHub">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/cavallidaniel/" target="_blank" rel="noopener" aria-label="LinkedIn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                </a>
+            </div>
+            <p class="copyright">© 2025 All Rights Reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>"""
+
+
+def generate_cv_html(lang='en'):
+    """Generate CV page with professional experience and skills.
+    
+    Creates cv.html page with career information, following the blog's
+    design philosophy of calm continuity and subtle morphing transitions.
+    
+    Args:
+        lang (str): Language code ('en' or 'pt').
+    
+    Returns:
+        str: Complete HTML document for the CV page.
+    """
+    lang_toggle_html = generate_lang_toggle_html(lang, 'cv.html')
+    ui = LANGUAGES[lang]['ui']
+    cv = LANGUAGES[lang]['cv']
+    
+    # Build experience HTML
+    experience_html = ''
+    for exp in cv['experience']:
+        experience_html += f"""
+                <div class="cv-experience-item">
+                    <div class="cv-period">{exp['period']}</div>
+                    <div class="cv-details">
+                        <h3 class="cv-title">{exp['title']}</h3>
+                        <div class="cv-company">{exp['company']} · {exp['location']}</div>
+                        <p class="cv-description">{exp['description']}</p>
+                    </div>
+                </div>"""
+    
+    # Build skills HTML
+    skills_html = ''
+    for category, skills in cv['skills'].items():
+        skills_list = ', '.join(skills)
+        skills_html += f"""
+                <div class="cv-skill-category">
+                    <span class="cv-skill-label">{category.capitalize()}</span>
+                    <span class="cv-skill-items">{skills_list}</span>
+                </div>"""
+    
+    return f"""<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{cv['title']} - dan.rio</title>
+    <meta name="description" content="{cv['tagline']}">
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/post.css">
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/cv.css">
+    <link rel="preload" href="{BASE_PATH}/static/js/theme.js" as="script">
+    <script src="{BASE_PATH}/static/js/theme.js"></script>
+    <script src="{BASE_PATH}/static/js/transitions.js" defer></script>
+</head>
+<body>
+    <nav class="nav" style="view-transition-name: site-nav;">
+        <div class="nav-container">
+            <a href="{get_lang_path(lang, 'index.html')}" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="{get_lang_path(lang, 'index.html')}" style="view-transition-name: nav-blog;">{ui['blog']}</a></li>
+                    <li><a href="{get_lang_path(lang, 'about.html')}" style="view-transition-name: nav-about;">{ui['about']}</a></li>
+                    <li><a href="{get_lang_path(lang, 'cv.html')}" class="active" style="view-transition-name: nav-cv;">{ui['cv']}</a></li>
+                </ul>
+                <div style="view-transition-name: lang-toggle;">{lang_toggle_html}</div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <article class="post cv-container">
+            <header class="post-header cv-header">
+                <h1 class="post-title-large">{cv['title']}</h1>
+                <p class="cv-tagline">{cv['tagline']}</p>
+            </header>
+
+            <div class="post-body cv-body">
+                <section class="cv-section">
+                    <h2 class="cv-section-title">Experience</h2>
+                    <div class="cv-experience-list">{experience_html}
+                    </div>
+                </section>
+
+                <section class="cv-section">
+                    <h2 class="cv-section-title">Skills</h2>
+                    <div class="cv-skills-list">{skills_html}
+                    </div>
+                </section>
+
+                <section class="cv-section cv-section-compact">
+                    <h2 class="cv-section-title">Education</h2>
+                    <p class="cv-education">{cv['education']}</p>
+                </section>
+
+                <section class="cv-section cv-section-compact">
+                    <h2 class="cv-section-title">Contact</h2>
+                    <div class="cv-contact">
+                        <div class="cv-contact-item">
+                            <span class="cv-contact-label">GitHub</span>
+                            <a href="https://github.com/{cv['contact']['github']}" target="_blank" rel="noopener">@{cv['contact']['github']}</a>
+                        </div>
+                        <div class="cv-contact-item">
+                            <span class="cv-contact-label">LinkedIn</span>
+                            <a href="https://linkedin.com/in/{cv['contact']['linkedin']}" target="_blank" rel="noopener">/{cv['contact']['linkedin']}</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer" style="view-transition-name: site-footer;">
+        <div class="footer-container">
+            <div class="social-links">
+                <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/danielcavalli" target="_blank" rel="noopener" aria-label="GitHub">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/cavallidaniel/" target="_blank" rel="noopener" aria-label="LinkedIn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                </a>
+            </div>
+            <p class="copyright">© 2025 All Rights Reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>"""
     """Generate About page with translated content.
     
     Creates about.html page with author bio content from config,
@@ -747,7 +1004,7 @@ def generate_landing_html():
 </head>
 <body>
     <!-- Theme toggle (minimal, top-right corner) -->
-    <button id="theme-toggle" class="theme-toggle-minimal" aria-label="Toggle theme">
+    <button id="theme-toggle" class="theme-toggle-minimal" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
         <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="5"/>
             <line x1="12" y1="1" x2="12" y2="3"/>
@@ -767,11 +1024,11 @@ def generate_landing_html():
     <!-- Landing surface -->
     <div class="landing-surface">
         <div class="landing-center">
-            <h1 class="landing-title" data-morph-target="logo">{SITE_NAME}</h1>
+            <h1 class="landing-title" style="view-transition-name: landing-title;">{SITE_NAME}</h1>
             <nav class="landing-nav">
-                <a href="{BASE_PATH}/en/index.html" class="landing-link" data-destination="blog" data-morph-target="nav-blog">Blog</a>
-                <a href="{BASE_PATH}/en/about.html" class="landing-link" data-destination="about" data-morph-target="nav-about">About Me</a>
-                <a href="{BASE_PATH}/cv" class="landing-link" data-destination="cv" data-morph-target="nav-cv">CV</a>
+                <a href="{BASE_PATH}/en/index.html" class="landing-link" style="view-transition-name: nav-blog;">Blog</a>
+                <a href="{BASE_PATH}/en/about.html" class="landing-link" style="view-transition-name: nav-about;">About Me</a>
+                <a href="{BASE_PATH}/en/cv.html" class="landing-link" style="view-transition-name: nav-cv;">CV</a>
             </nav>
         </div>
     </div>
@@ -883,9 +1140,9 @@ def build():
             print(f"   Error: {e}")
             return False
     
-    # Sort posts (by order, then by updated date)
-    posts_en.sort(key=lambda p: (-p['order'], p['updated_date']), reverse=True)
-    posts_pt.sort(key=lambda p: (-p['order'], p['updated_date']), reverse=True)
+    # Sort posts by created date (newest first) - ignore custom order field
+    posts_en.sort(key=lambda p: p['created_date'], reverse=True)
+    posts_pt.sort(key=lambda p: p['created_date'], reverse=True)
     
     print(f"\nGenerating HTML files...\n")
     
@@ -922,6 +1179,16 @@ def build():
         print(f"      Error generating about.html: {e}")
         return False
     
+    # Generate English CV
+    try:
+        cv_html = generate_cv_html(lang='en')
+        cv_file = LANG_DIRS['en'] / 'cv.html'
+        cv_file.write_text(cv_html, encoding='utf-8')
+        print(f"      cv.html")
+    except Exception as e:
+        print(f"      Error generating cv.html: {e}")
+        return False
+    
     # Generate Portuguese site (if translations available)
     if posts_pt:
         print("\n   Portuguese version:")
@@ -953,6 +1220,16 @@ def build():
             print(f"      about.html")
         except Exception as e:
             print(f"      Error generating about.html: {e}")
+            return False
+        
+        # Generate Portuguese CV
+        try:
+            cv_html = generate_cv_html(lang='pt')
+            cv_file = LANG_DIRS['pt'] / 'cv.html'
+            cv_file.write_text(cv_html, encoding='utf-8')
+            print(f"      cv.html")
+        except Exception as e:
+            print(f"      Error generating cv.html: {e}")
             return False
     
     # Generate landing page

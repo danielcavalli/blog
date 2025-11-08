@@ -13,13 +13,14 @@
 <body>
     <nav class="nav" style="view-transition-name: site-nav;">
         <div class="nav-container">
-            <a href="/pt/index.html" class="logo">dan.rio</a>
+            <a href="/pt/index.html" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="/pt/index.html" class="active">BLOG</a></li>
-                    <li><a href="/pt/about.html">ABOUT</a></li>
+                    <li><a href="/pt/index.html" class="active" style="view-transition-name: nav-blog;">BLOG</a></li>
+                    <li><a href="/pt/about.html" style="view-transition-name: nav-about;">ABOUT</a></li>
+                    <li><a href="/pt/cv.html" style="view-transition-name: nav-cv;">CV</a></li>
                 </ul>
-                <a href="/en/blog/a-network-setup-that-works-for-me.html" class="lang-toggle" aria-label="Switch to English (currently Português)" data-current-lang="pt">
+                <div style="view-transition-name: lang-toggle;"><a href="/en/blog/a-network-setup-that-works-for-me.html" class="lang-toggle" aria-label="Switch to English (currently Português)" data-current-lang="pt">
         <svg class="lang-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
@@ -29,8 +30,8 @@
             <span class="lang-sep">/</span>
             <span class="lang-pt active">PT</span>
         </span>
-    </a>
-                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+    </a></div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="5"/>
                         <line x1="12" y1="1" x2="12" y2="3"/>
@@ -51,13 +52,13 @@
     </nav>
 
     <main class="container">
-        <article class="post" style="view-transition-name: post-container-3;">
+        <article class="post" style="view-transition-name: post-container-1;">
             <header class="post-header">
                 <a href="/pt/index.html" class="back-link">← Back to Blog</a>
                 <div class="last-updated">Last updated: November 05, 2025 at 02:28 AM</div>
-                <h1 class="post-title-large" style="view-transition-name: post-title-3;">MONTANDO UMA CONFIGURAÇÃO DE REDE QUE FUNCIONA PARA MIM</h1>
+                <h1 class="post-title-large" style="view-transition-name: post-title-1;">MONTANDO UMA CONFIGURAÇÃO DE REDE QUE FUNCIONA PARA MIM</h1>
                 <div class="post-meta">
-                    <time class="post-date" style="view-transition-name: post-date-3;">November 05, 2025</time>
+                    <time class="post-date" style="view-transition-name: post-date-1;">November 05, 2025</time>
                     <span class="post-separator">•</span>
                     <span class="post-reading-time">7 min read</span>
                 </div>
@@ -65,7 +66,7 @@
             </header>
 
             <div class="post-body">
-                <p class="lead" style="view-transition-name: post-excerpt-3;">
+                <p class="lead" style="view-transition-name: post-excerpt-1;">
                     Uma boa rede não deveria ser notada nem exigir atenção, esse foi o principal princípio que guiou minha busca pela melhor configuração de rede para o meu Home Server.
                 </p>
                 <p>Uma boa rede não deveria ser notada nem exigir atenção, esse foi o principal princípio que guiou minha busca pela melhor configuração de rede para o meu Home Server. Não sendo eu um expert em rede, meu objetivo era claro: criar uma rede que fosse rápida, segura e estável sem ter que ajustá-la de tempos em tempos. Também não queria complexidade de empresa ou um rack de luzes piscando que ocuparia metade do meu espaço na prateleira, então esta peça de hardware deveria ser barata, confiável, pequena e agradável aos olhos. Basicamente uma tarefa impossível.</p>

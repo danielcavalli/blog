@@ -5,22 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>dan.rio - Blog</title>
     <meta name="description" content="Personal blog by Daniel Cavalli on machine learning, CUDA, distributed training, and engineering.">
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <link rel="preload" href="/static/js/theme.js" as="script">
-    <script src="/static/js/theme.js"></script>
-    <script src="/static/js/transitions.js" defer></script>
-    <script src="/static/js/filter.js" defer></script>
+    <link rel="stylesheet" href="/static/css/styles.css?v=20251108102924">
+    <link rel="preload" href="/static/js/theme.js?v=20251108102924" as="script">
+    <script src="/static/js/theme.js?v=20251108102924"></script>
+    <script src="/static/js/transitions.js?v=20251108102924" defer></script>
+    <script src="/static/js/filter.js?v=20251108102924" defer></script>
 </head>
 <body>
     <nav class="nav" style="view-transition-name: site-nav;">
         <div class="nav-container">
-            <a href="/pt/index.html" class="logo">dan.rio</a>
+            <a href="/pt/index.html" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="/pt/index.html" class="active">BLOG</a></li>
-                    <li><a href="/pt/about.html">SOBRE</a></li>
+                    <li><a href="/pt/index.html" class="active" style="view-transition-name: nav-blog;">BLOG</a></li>
+                    <li><a href="/pt/about.html" style="view-transition-name: nav-about;">SOBRE</a></li>
+                    <li><a href="/pt/cv.html" style="view-transition-name: nav-cv;">CV</a></li>
                 </ul>
-                <a href="/en/index.html" class="lang-toggle" aria-label="Switch to English (currently Português)" data-current-lang="pt">
+                <div style="view-transition-name: lang-toggle;"><a href="/en/index.html" class="lang-toggle" aria-label="Switch to English (currently Português)" data-current-lang="pt">
         <svg class="lang-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
@@ -30,8 +31,8 @@
             <span class="lang-sep">/</span>
             <span class="lang-pt active">PT</span>
         </span>
-    </a>
-                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+    </a></div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="5"/>
                         <line x1="12" y1="1" x2="12" y2="3"/>
@@ -58,8 +59,8 @@
                 <div class="header-controls">
                     <div class="sort-control">
                         <span class="sort-label">Ordenar por</span>
-                        <button id="order-toggle" class="order-toggle" data-order="updated" data-label-updated="Última Atualização" data-label-created="Data de Publicação" aria-label="Toggle sort order">
-                            <span class="order-toggle-text">Última Atualização</span>
+                        <button id="order-toggle" class="order-toggle" data-order="created" data-label-updated="Última Atualização" data-label-created="Data de Publicação" aria-label="Toggle sort order">
+                            <span class="order-toggle-text">Data de Publicação</span>
                         </button>
                     </div>
                     <button id="filter-toggle" class="filter-toggle" aria-label="Toggle filters">
@@ -100,17 +101,36 @@
         <div class="posts-grid">
             <article class="post-card" 
                      data-year="2025" 
+                     data-month="November" 
+                     data-tags="home server,rede,unifi"
+                     data-created="2025-11-05T02:24:49.357749"
+                     data-updated="2025-11-05T02:28:38.749469"
+                     style="view-transition-name: post-container-1;">
+                <a href="/pt/blog/a-network-setup-that-works-for-me.html" class="post-link">
+                    <div class="post-content">
+                        <h2 class="post-title" style="view-transition-name: post-title-1;">MONTANDO UMA CONFIGURAÇÃO DE REDE QUE FUNCIONA PARA MIM</h2>
+                        <time class="post-date" style="view-transition-name: post-date-1;">November 05, 2025</time>
+                        <div class="post-tags"><span class="tag-pill">home server</span><span class="tag-pill">rede</span><span class="tag-pill">unifi</span></div>
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-1;">
+                            Uma boa rede não deveria ser notada nem exigir atenção, esse foi o principal princípio que guiou minha busca pela melhor configuração de rede para o meu Home Server.
+                        </p>
+                    </div>
+                </a>
+            </article>
+
+            <article class="post-card" 
+                     data-year="2025" 
                      data-month="January" 
                      data-tags="Desenvolvimento Web,View Transitions API,Sites Estáticos,Python"
                      data-created="2025-10-25T14:30:40.761318"
                      data-updated="2025-10-25T14:30:40.761318"
-                     style="view-transition-name: post-container-1;">
+                     style="view-transition-name: post-container-2;">
                 <a href="/pt/blog/the-living-static-system.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-1;">O SISTEMA ESTÁTICO VIVO</h2>
-                        <time class="post-date" style="view-transition-name: post-date-1;">October 25, 2025</time>
+                        <h2 class="post-title" style="view-transition-name: post-title-2;">O SISTEMA ESTÁTICO VIVO</h2>
+                        <time class="post-date" style="view-transition-name: post-date-2;">October 25, 2025</time>
                         <div class="post-tags"><span class="tag-pill">Desenvolvimento Web</span><span class="tag-pill">View Transitions API</span><span class="tag-pill">Sites Estáticos</span><span class="tag-pill">Python</span></div>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-1;">
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-2;">
                             Dentro de um site estático bilíngue que se move como uma única superfície: um build em Python, um pipeline de tradução e transições nativas que mantêm o espaço contínuo.
                         </p>
                     </div>
@@ -123,13 +143,13 @@
                      data-tags="Desenvolvimento Web,View Transitions API,Gemini AI,Sites Estáticos"
                      data-created="2025-10-25T14:30:24.827911"
                      data-updated="2025-10-25T14:30:24.827911"
-                     style="view-transition-name: post-container-2;">
+                     style="view-transition-name: post-container-3;">
                 <a href="/pt/blog/building-a-bilingual-blog.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-2;">CRIANDO UM BLOG BILÍNGUE COM VIEW TRANSITIONS</h2>
-                        <time class="post-date" style="view-transition-name: post-date-2;">October 25, 2025</time>
+                        <h2 class="post-title" style="view-transition-name: post-title-3;">CRIANDO UM BLOG BILÍNGUE COM VIEW TRANSITIONS</h2>
+                        <time class="post-date" style="view-transition-name: post-date-3;">October 25, 2025</time>
                         <div class="post-tags"><span class="tag-pill">Desenvolvimento Web</span><span class="tag-pill">View Transitions API</span><span class="tag-pill">Gemini AI</span><span class="tag-pill">Sites Estáticos</span></div>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-2;">
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-3;">
                             Como este blog funciona: geração estática com Python, tradução automática com Gemini AI, View Transitions API para navegação fluida, e uma filosofia de construção com padrões web nativos.
                         </p>
                     </div>
@@ -138,37 +158,18 @@
 
             <article class="post-card" 
                      data-year="2025" 
-                     data-month="November" 
-                     data-tags="home server,rede,unifi"
-                     data-created="2025-11-05T02:24:49.357749"
-                     data-updated="2025-11-05T02:28:38.749469"
-                     style="view-transition-name: post-container-3;">
-                <a href="/pt/blog/a-network-setup-that-works-for-me.html" class="post-link">
-                    <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-3;">MONTANDO UMA CONFIGURAÇÃO DE REDE QUE FUNCIONA PARA MIM</h2>
-                        <time class="post-date" style="view-transition-name: post-date-3;">November 05, 2025</time>
-                        <div class="post-tags"><span class="tag-pill">home server</span><span class="tag-pill">rede</span><span class="tag-pill">unifi</span></div>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-3;">
-                            Uma boa rede não deveria ser notada nem exigir atenção, esse foi o principal princípio que guiou minha busca pela melhor configuração de rede para o meu Home Server.
-                        </p>
-                    </div>
-                </a>
-            </article>
-
-            <article class="post-card" 
-                     data-year="2025" 
                      data-month="October" 
-                     data-tags="css,web,animações,performance"
-                     data-created="2025-10-24T00:49:34.910255"
-                     data-updated="2025-10-24T15:30:29.360341"
+                     data-tags="web,css,performance"
+                     data-created="2025-10-24T00:50:34.912728"
+                     data-updated="2025-10-24T01:06:39.237710"
                      style="view-transition-name: post-container-4;">
-                <a href="/pt/blog/css-animations-guide.html" class="post-link">
+                <a href="/pt/blog/modern-web-development.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-4;">A ARTE DAS ANIMAÇÕES CSS</h2>
+                        <h2 class="post-title" style="view-transition-name: post-title-4;">DESENVOLVIMENTO WEB MODERNO</h2>
                         <time class="post-date" style="view-transition-name: post-date-4;">October 24, 2025</time>
-                        <div class="post-tags"><span class="tag-pill">css</span><span class="tag-pill">web</span><span class="tag-pill">animações</span><span class="tag-pill">performance</span></div>
+                        <div class="post-tags"><span class="tag-pill">web</span><span class="tag-pill">css</span><span class="tag-pill">performance</span></div>
                         <p class="post-excerpt" style="view-transition-name: post-excerpt-4;">
-                            Criando animações fluidas e performáticas usando apenas CSS. Um mergulho profundo na construção de sistemas de movimento coerentes para a web moderna.
+                            Explorando as últimas tendências e melhores práticas em desenvolvimento web moderno, desde otimização de performance até design de experiência do usuário.
                         </p>
                     </div>
                 </a>
@@ -196,17 +197,17 @@
             <article class="post-card" 
                      data-year="2025" 
                      data-month="October" 
-                     data-tags="web,css,performance"
-                     data-created="2025-10-24T00:50:34.912728"
-                     data-updated="2025-10-24T01:06:39.237710"
+                     data-tags="css,web,animações,performance"
+                     data-created="2025-10-24T00:49:34.910255"
+                     data-updated="2025-10-24T15:30:29.360341"
                      style="view-transition-name: post-container-6;">
-                <a href="/pt/blog/modern-web-development.html" class="post-link">
+                <a href="/pt/blog/css-animations-guide.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-6;">DESENVOLVIMENTO WEB MODERNO</h2>
+                        <h2 class="post-title" style="view-transition-name: post-title-6;">A ARTE DAS ANIMAÇÕES CSS</h2>
                         <time class="post-date" style="view-transition-name: post-date-6;">October 24, 2025</time>
-                        <div class="post-tags"><span class="tag-pill">web</span><span class="tag-pill">css</span><span class="tag-pill">performance</span></div>
+                        <div class="post-tags"><span class="tag-pill">css</span><span class="tag-pill">web</span><span class="tag-pill">animações</span><span class="tag-pill">performance</span></div>
                         <p class="post-excerpt" style="view-transition-name: post-excerpt-6;">
-                            Explorando as últimas tendências e melhores práticas em desenvolvimento web moderno, desde otimização de performance até design de experiência do usuário.
+                            Criando animações fluidas e performáticas usando apenas CSS. Um mergulho profundo na construção de sistemas de movimento coerentes para a web moderna.
                         </p>
                     </div>
                 </a>

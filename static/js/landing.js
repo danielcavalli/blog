@@ -77,9 +77,57 @@
             
             // Start the view transition
             const transition = document.startViewTransition(() => {
-                // Replace entire document content
-                // This is the synchronous DOM swap that triggers the morph
-                document.documentElement.innerHTML = newDoc.documentElement.innerHTML;
+                // Capture current theme before DOM swap
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                
+                // Update title
+                document.title = newDoc.title;
+                
+                // Update language attribute
+                document.documentElement.setAttribute('lang', newDoc.documentElement.getAttribute('lang') || 'en');
+                
+                // CRITICAL: Ensure theme is set on documentElement BEFORE body swap
+                // This prevents flash of unstyled content during the transition
+                if (currentTheme) {
+                    document.documentElement.setAttribute('data-theme', currentTheme);
+                }
+                
+                // Update stylesheets if different
+                const currentStylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map(l => l.href);
+                const newStylesheets = Array.from(newDoc.querySelectorAll('link[rel="stylesheet"]')).map(l => l.href);
+                
+                // Add any new stylesheets that don't exist
+                newStylesheets.forEach(href => {
+                    if (!currentStylesheets.includes(href)) {
+                        const link = document.createElement('link');
+                        link.rel = 'stylesheet';
+                        link.href = href;
+                        document.head.appendChild(link);
+                    }
+                });
+                
+                // CRITICAL: Also add new script tags (like filter.js, transitions.js)
+                const currentScripts = Array.from(document.querySelectorAll('script[src]')).map(s => s.src);
+                const newScripts = Array.from(newDoc.querySelectorAll('script[src]')).map(s => s.getAttribute('src'));
+                
+                // Add any new scripts that don't exist
+                newScripts.forEach(src => {
+                    const fullSrc = new URL(src, url).href;
+                    if (!currentScripts.includes(fullSrc)) {
+                        const script = document.createElement('script');
+                        script.src = src;
+                        // Preserve defer attribute if it exists
+                        const originalScript = newDoc.querySelector(`script[src="${src}"]`);
+                        if (originalScript && originalScript.hasAttribute('defer')) {
+                            script.defer = true;
+                        }
+                        document.head.appendChild(script);
+                        console.log('[LANDING] Added new script:', src);
+                    }
+                });
+                
+                // Replace body content (theme is already preserved above)
+                document.body.innerHTML = newDoc.body.innerHTML;
                 
                 // Update URL
                 history.pushState(null, '', url);
@@ -87,6 +135,14 @@
             
             // Wait for transition to complete
             await transition.finished;
+            
+            // Remove landing.css AFTER transition completes to prevent style recalculation during morph
+            requestAnimationFrame(() => {
+                const landingCss = document.querySelector('link[href*="landing.css"]');
+                if (landingCss) {
+                    landingCss.remove();
+                }
+            });
             
             // Re-initialize scripts on the new page
             reinitializeScripts();
@@ -102,14 +158,13 @@
      * Re-initialize theme and other scripts after DOM replacement
      */
     function reinitializeScripts() {
-        // Dispatch event for other scripts to reinitialize
-        document.dispatchEvent(new CustomEvent('page-navigation-complete'));
-        
-        // Theme toggle might need reinitialization
-        const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle && window.theme && typeof window.theme.init === 'function') {
-            window.theme.init();
-        }
+        // Wait for scripts to load in the new DOM
+        // Need to delay slightly to ensure new page's scripts are loaded
+        requestAnimationFrame(() => {
+            // Dispatch event for other scripts to reinitialize
+            console.log('[LANDING] Dispatching page-navigation-complete event');
+            document.dispatchEvent(new CustomEvent('page-navigation-complete'));
+        });
     }
     
 })();
