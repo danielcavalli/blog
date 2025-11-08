@@ -418,11 +418,11 @@ def generate_index_html(posts, lang='en'):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>dan.rio - Blog</title>
     <meta name="description" content="Personal blog by Daniel Cavalli on machine learning, CUDA, distributed training, and engineering.">
-    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css?v=20251108102924">
-    <link rel="preload" href="{BASE_PATH}/static/js/theme.js?v=20251108102924" as="script">
-    <script src="{BASE_PATH}/static/js/theme.js?v=20251108102924"></script>
-    <script src="{BASE_PATH}/static/js/transitions.js?v=20251108102924" defer></script>
-    <script src="{BASE_PATH}/static/js/filter.js?v=20251108102924" defer></script>
+    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css?v=20251108103307">
+    <link rel="preload" href="{BASE_PATH}/static/js/theme.js?v=20251108103307" as="script">
+    <script src="{BASE_PATH}/static/js/theme.js?v=20251108103307"></script>
+    <script src="{BASE_PATH}/static/js/transitions.js?v=20251108103307" defer></script>
+    <script src="{BASE_PATH}/static/js/filter.js?v=20251108103307" defer></script>
 </head>
 <body>
     <nav class="nav" style="view-transition-name: site-nav;">

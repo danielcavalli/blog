@@ -122,7 +122,6 @@
                             script.defer = true;
                         }
                         document.head.appendChild(script);
-                        console.log('[LANDING] Added new script:', src);
                     }
                 });
                 
@@ -162,7 +161,6 @@
         // Need to delay slightly to ensure new page's scripts are loaded
         requestAnimationFrame(() => {
             // Dispatch event for other scripts to reinitialize
-            console.log('[LANDING] Dispatching page-navigation-complete event');
             document.dispatchEvent(new CustomEvent('page-navigation-complete'));
         });
     }

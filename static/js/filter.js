@@ -74,8 +74,6 @@
      * @returns {void}
      */
     function initFilters() {
-        console.log('[FILTER] initFilters() called');
-        
         // State
         const activeFilters = {
             year: '',
@@ -96,17 +94,12 @@
         const postCards = document.querySelectorAll('.post-card');
         const postsGrid = document.querySelector('.posts-grid');
 
-        console.log('[FILTER] Found', postCards.length, 'post cards');
-        console.log('[FILTER] Posts grid:', postsGrid);
-
         if (!filterToggle || !filtersPanel) {
-            console.log('[FILTER] Not on index page, returning');
             return;
         }
 
         // Note: We allow re-initialization because View Transitions replace the entire DOM
         // Old event listeners are destroyed with old DOM, so we need to rebind everything
-        console.log('[FILTER] Initializing filter system (event listeners will be bound)');
         
         // Remove initial animations after they complete to allow filtering transitions
         // Only needed on FIRST LOAD - navigation already disables animations via transitions.js
@@ -117,11 +110,7 @@
         // If navigated from another page, don't animate
         const isNavigation = document.referrer && new URL(document.referrer).origin === window.location.origin;
         
-        console.log('[FILTER] Posts grid has disable-animation:', postsGridHasDisableAnimation);
-        console.log('[FILTER] Is navigation (has same-origin referrer):', isNavigation);
-        
         if (!postsGridHasDisableAnimation && !isNavigation) {
-            console.log('[FILTER] Initial page load - scheduling animation removal for', postCards.length, 'cards');
             // This is initial page load - animations are running
             // Schedule removal after they complete
             postCards.forEach((card, index) => {
@@ -129,21 +118,16 @@
                 const animationDuration = 0.7; // Match CSS animation duration
                 const totalTime = (animationDelay + animationDuration) * 1000;
                 
-                console.log(`[FILTER] Card ${index}: scheduling animation removal in ${totalTime}ms`);
-                
                 setTimeout(() => {
-                    console.log(`[FILTER] Card ${index}: removing animation (RAF)`);
                     // Use RAF to prevent flicker from style recalculation
                     requestAnimationFrame(() => {
                         card.style.animation = 'none';
                         card.style.opacity = '1'; // Explicitly set after animation
                         card.classList.add('animation-complete');
-                        console.log(`[FILTER] Card ${index}: animation removed, classes:`, card.classList.toString());
                     });
                 }, totalTime);
             });
         } else {
-            console.log('[FILTER] Navigation or disable-animation present - adding disable-animation and skipping animations');
             if (postsGrid && !postsGridHasDisableAnimation) {
                 postsGrid.classList.add('disable-animation');
             }
@@ -313,9 +297,6 @@
             // After View Transitions, the original postCards NodeList references destroyed elements
             const currentPostCards = document.querySelectorAll('.post-card');
             
-            console.log('[FILTER] filterPosts() - found', currentPostCards.length, 'cards');
-            console.log('[FILTER] Active filters:', activeFilters);
-            
             // Capture initial positions (FLIP: First)
             const initialPositions = new Map();
             currentPostCards.forEach(card => {
@@ -331,8 +312,6 @@
                     const cardYear = card.dataset.year;
                     const cardMonth = card.dataset.month;
                     const cardTags = card.dataset.tags ? card.dataset.tags.split(',').map(t => t.trim()) : [];
-                    
-                    console.log(`[FILTER] Card ${index}: year=${cardYear}, month=${cardMonth}, tags=[${cardTags}]`);
 
                     // Check if card matches all active filters
                     const yearMatch = !activeFilters.year || cardYear === activeFilters.year;
@@ -341,8 +320,6 @@
                         cardTags.some(tag => activeFilters.tags.has(tag));
 
                     const shouldShow = yearMatch && monthMatch && tagsMatch;
-                    
-                    console.log(`[FILTER] Card ${index}: yearMatch=${yearMatch}, monthMatch=${monthMatch}, tagsMatch=${tagsMatch}, shouldShow=${shouldShow}`);
 
                     if (shouldShow) {
                         // Card should be visible - ensure it's not in filtering state
@@ -403,15 +380,12 @@
              * @returns {void}
              */
             function performReorganization() {
-                console.log('[FILTER] performReorganization() called');
                 // Re-query current cards for reorganization
                 const currentCards = document.querySelectorAll('.post-card');
-                console.log('[FILTER] performReorganization() - found', currentCards.length, 'cards');
                 
                 // Remove dissolved cards from layout
                 currentCards.forEach((card, index) => {
                     if (card.classList.contains('filtering-out')) {
-                        console.log(`[FILTER] Marking card ${index} as filtered-out`);
                         card.classList.add('filtered-out');
                     }
                 });
@@ -695,23 +669,14 @@
 
         // Hide clear button initially
         if (clearButton) {
-            console.log('[FILTER] Hiding clear button');
             clearButton.style.display = 'none';
         }
-        
-        console.log('[FILTER] initFilters() complete');
     }
 
     // Initialize on load
-    console.log('[FILTER] Document ready state:', document.readyState);
     if (document.readyState === 'loading') {
-        console.log('[FILTER] Waiting for DOMContentLoaded');
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('[FILTER] DOMContentLoaded fired');
-            initFilters();
-        });
+        document.addEventListener('DOMContentLoaded', initFilters);
     } else {
-        console.log('[FILTER] Document already loaded, calling initFilters immediately');
         initFilters();
     }
 
@@ -719,15 +684,11 @@
     // Listen for custom event dispatched by transitions.js after DOM swap completes
     // This replaces MutationObserver to prevent interference during transitions
     document.addEventListener('page-navigation-complete', () => {
-        console.log('[FILTER] page-navigation-complete event received');
         const filterToggle = document.getElementById('filter-toggle');
         if (filterToggle) {
-            console.log('[FILTER] Filter toggle exists, calling initFilters');
             // Always re-initialize after navigation because DOM elements are replaced
             // The data-filter-initialized attribute is on the NEW DOM, not the old one
             initFilters();
-        } else {
-            console.log('[FILTER] Filter toggle missing (not on index page)');
         }
     });
 
