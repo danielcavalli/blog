@@ -226,12 +226,49 @@ def generate_post_html(post, post_number, lang='en'):
         updated_formatted = updated_dt.strftime('%B %d, %Y at %I:%M %p')
         last_updated_html = f'<div class="last-updated">Last updated: {updated_formatted}</div>'
     
+    # Get alternate language info for hreflang
+    other_lang = get_alternate_lang(lang)
+    other_lang_path = f"https://dan.rio/{other_lang}/blog/{post['slug']}.html"
+    current_url = f"https://dan.rio/{lang}/blog/{post['slug']}.html"
+    
+    # Generate excerpt for meta description (strip HTML, limit length)
+    meta_description = post['excerpt'][:160].replace('"', '&quot;')
+    
     return f"""<!DOCTYPE html>
 <html lang="{lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{post['title']} - dan.rio</title>
+    <meta name="description" content="{meta_description}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{current_url}">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="{current_url}">
+    <meta property="og:title" content="{post['title']}">
+    <meta property="og:description" content="{meta_description}">
+    <meta property="og:site_name" content="dan.rio">
+    <meta property="og:locale" content="{'en_US' if lang == 'en' else 'pt_BR'}">
+    <meta property="og:locale:alternate" content="{'pt_BR' if lang == 'en' else 'en_US'}">
+    <meta property="article:published_time" content="{post.get('created_date', '')}">
+    <meta property="article:author" content="Daniel Cavalli">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{post['title']}">
+    <meta name="twitter:description" content="{meta_description}">
+    
+    <!-- Additional SEO -->
+    <meta name="author" content="Daniel Cavalli">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Language alternates -->
+    <link rel="alternate" hreflang="{lang}" href="{current_url}">
+    <link rel="alternate" hreflang="{other_lang}" href="{other_lang_path}">
+    
     <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
     <link rel="stylesheet" href="{BASE_PATH}/static/css/post.css">
     <link rel="preload" href="{BASE_PATH}/static/js/theme.js" as="script">
@@ -411,13 +448,46 @@ def generate_index_html(posts, lang='en'):
         f'<button class="filter-tag" data-tag="{tag}">{tag}</button>' for tag in all_tags
     )
     
+    # Generate language-specific SEO info
+    other_lang = get_alternate_lang(lang)
+    current_url = f"https://dan.rio/{lang}/index.html"
+    other_url = f"https://dan.rio/{other_lang}/index.html"
+    meta_description = f"Daniel Cavalli - Machine Learning Engineer. Blog on MLOps, distributed systems, CUDA optimization, and AI infrastructure."
+    
     return f"""<!DOCTYPE html>
 <html lang="{lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dan.rio - Blog</title>
-    <meta name="description" content="Personal blog by Daniel Cavalli on machine learning, CUDA, distributed training, and engineering.">
+    <title>Daniel Cavalli | Blog - dan.rio</title>
+    <meta name="description" content="{meta_description}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{current_url}">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{current_url}">
+    <meta property="og:title" content="Daniel Cavalli | Blog">
+    <meta property="og:description" content="{meta_description}">
+    <meta property="og:site_name" content="dan.rio">
+    <meta property="og:locale" content="{'en_US' if lang == 'en' else 'pt_BR'}">
+    <meta property="og:locale:alternate" content="{'pt_BR' if lang == 'en' else 'en_US'}">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Daniel Cavalli | Blog">
+    <meta name="twitter:description" content="{meta_description}">
+    
+    <!-- Additional SEO -->
+    <meta name="author" content="Daniel Cavalli">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Language alternates -->
+    <link rel="alternate" hreflang="{lang}" href="{current_url}">
+    <link rel="alternate" hreflang="{other_lang}" href="{other_url}">
+    <link rel="alternate" hreflang="x-default" href="https://dan.rio/">
+    
     <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css?v=20251108103307">
     <link rel="preload" href="{BASE_PATH}/static/js/theme.js?v=20251108103307" as="script">
     <script src="{BASE_PATH}/static/js/theme.js?v=20251108103307"></script>
@@ -548,13 +618,46 @@ def generate_about_html(lang='en'):
     ui = LANGUAGES[lang]['ui']
     about = LANGUAGES[lang]['about']
     
+    # SEO info
+    other_lang = get_alternate_lang(lang)
+    current_url = f"https://dan.rio/{lang}/about.html"
+    other_url = f"https://dan.rio/{other_lang}/about.html"
+    meta_description = "Daniel Cavalli - Machine Learning Engineer at Nubank. Background in MLOps, distributed systems, and AI infrastructure."
+    
     return f"""<!DOCTYPE html>
 <html lang="{lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{about['title']} - dan.rio</title>
-    <meta name="description" content="{AUTHOR_BIO}">
+    <meta name="description" content="{meta_description}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{current_url}">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="profile">
+    <meta property="og:url" content="{current_url}">
+    <meta property="og:title" content="{about['title']} - Daniel Cavalli">
+    <meta property="og:description" content="{meta_description}">
+    <meta property="og:site_name" content="dan.rio">
+    <meta property="og:locale" content="{'en_US' if lang == 'en' else 'pt_BR'}">
+    <meta property="profile:first_name" content="Daniel">
+    <meta property="profile:last_name" content="Cavalli">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{about['title']} - Daniel Cavalli">
+    <meta name="twitter:description" content="{meta_description}">
+    
+    <!-- Additional SEO -->
+    <meta name="author" content="Daniel Cavalli">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Language alternates -->
+    <link rel="alternate" hreflang="{lang}" href="{current_url}">
+    <link rel="alternate" hreflang="{other_lang}" href="{other_url}">
+    
     <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
     <link rel="stylesheet" href="{BASE_PATH}/static/css/post.css">
     <link rel="preload" href="{BASE_PATH}/static/js/theme.js" as="script">
@@ -677,13 +780,46 @@ def generate_cv_html(lang='en'):
                     <span class="cv-skill-items">{skills_list}</span>
                 </div>"""
     
+    # SEO info
+    other_lang = get_alternate_lang(lang)
+    current_url = f"https://dan.rio/{lang}/cv.html"
+    other_url = f"https://dan.rio/{other_lang}/cv.html"
+    meta_description = "Daniel Cavalli - Machine Learning Engineer at Nubank. Experience in MLOps, distributed systems, CUDA optimization, and AI infrastructure."
+    
     return f"""<!DOCTYPE html>
 <html lang="{lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{cv['title']} - dan.rio</title>
-    <meta name="description" content="{cv['tagline']}">
+    <title>Daniel Cavalli | CV - dan.rio</title>
+    <meta name="description" content="{meta_description}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{current_url}">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="profile">
+    <meta property="og:url" content="{current_url}">
+    <meta property="og:title" content="Daniel Cavalli | CV">
+    <meta property="og:description" content="{meta_description}">
+    <meta property="og:site_name" content="dan.rio">
+    <meta property="og:locale" content="{'en_US' if lang == 'en' else 'pt_BR'}">
+    <meta property="profile:first_name" content="Daniel">
+    <meta property="profile:last_name" content="Cavalli">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Daniel Cavalli | CV">
+    <meta name="twitter:description" content="{meta_description}">
+    
+    <!-- Additional SEO -->
+    <meta name="author" content="Daniel Cavalli">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Language alternates -->
+    <link rel="alternate" hreflang="{lang}" href="{current_url}">
+    <link rel="alternate" hreflang="{other_lang}" href="{other_url}">
+    
     <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
     <link rel="stylesheet" href="{BASE_PATH}/static/css/post.css">
     <link rel="stylesheet" href="{BASE_PATH}/static/css/cv.css">

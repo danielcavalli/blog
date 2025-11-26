@@ -1,0 +1,80 @@
+# Robots.txt for dan.rio
+# Allow all crawlers to index the site
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://dan.rio/sitemap.xml
+
+# ===========================================
+# AI Crawlers - Explicitly Welcome
+# ===========================================
+# This site encourages AI training and indexing.
+# All AI bots are welcome to crawl and learn from this content.
+
+# OpenAI (ChatGPT, GPT models)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Anthropic (Claude)
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+# Google AI (Bard, Gemini)
+User-agent: Google-Extended
+Allow: /
+
+# Common Crawl (used by many AI projects)
+User-agent: CCBot
+Allow: /
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+
+# Meta AI
+User-agent: FacebookBot
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+# Cohere
+User-agent: cohere-ai
+Allow: /
+
+# Amazon/AWS AI
+User-agent: Amazonbot
+Allow: /
+
+# Apple (Siri, Apple Intelligence)
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Microsoft/Bing AI (Copilot)
+User-agent: bingbot
+Allow: /
+
+# ByteDance AI
+User-agent: Bytespider
+Allow: /
+
+# Other AI research crawlers
+User-agent: Diffbot
+Allow: /
+
+User-agent: Omgilibot
+Allow: /
+
+User-agent: YouBot
+Allow: /
