@@ -276,9 +276,20 @@
     margin: 0;
 }
 
+/* Education list container */
+.cv-education-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
 /* Education - Simple, clear */
 .cv-education-item {
     margin-bottom: 1rem;
+}
+
+.cv-education-item:last-child {
+    margin-bottom: 0;
 }
 
 .cv-education-degree {
@@ -296,6 +307,22 @@
 .cv-education-year {
     font-size: 0.9rem;
     opacity: 0.6;
+}
+
+/* Skills inline display */
+.cv-skills-inline {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--color-text);
+    margin: 0;
+}
+
+/* Languages */
+.cv-languages {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-text);
+    margin: 0;
 }
 
 /* Contact - Minimal, accessible */

@@ -20,6 +20,7 @@ PROJECT_ROOT = Path(__file__).parent.parent  # Go up from _source to project roo
 POSTS_DIR = Path(__file__).parent / "posts"   # _source/posts/
 CACHE_DIR = PROJECT_ROOT / "_cache"           # _cache/
 STATIC_DIR = PROJECT_ROOT / "static"          # static/
+CV_REFERENCE_FILE = PROJECT_ROOT / "cv_reference.md"  # CV source of truth
 
 # Output directories (at project root for GitHub Pages)
 LANG_DIRS = {
@@ -119,6 +120,212 @@ def get_lang_path(lang: str, path: str = '') -> str:
     else:
         # Portuguese at /pt/
         return f"{BASE_PATH}/pt/{path}" if path else f"{BASE_PATH}/pt"
+
+
+def parse_cv_reference():
+    """Parse cv_reference.md into structured data for CV generation.
+    
+    Reads the CV markdown file and extracts structured information including:
+    - Header info (name, tagline, location)
+    - Contact details (email, phone, LinkedIn, GitHub)
+    - Skills
+    - Languages spoken
+    - Summary
+    - Experience (with achievements)
+    - Education
+    
+    Returns:
+        Dict: Structured CV data ready for HTML generation.
+    """
+    if not CV_REFERENCE_FILE.exists():
+        print(f"Warning: CV reference file not found at {CV_REFERENCE_FILE}")
+        return None
+    
+    with open(CV_REFERENCE_FILE, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    cv_data = {
+        'name': '',
+        'tagline': '',
+        'location': '',
+        'contact': {},
+        'skills': [],
+        'languages_spoken': [],
+        'summary': '',
+        'experience': [],
+        'education': []
+    }
+    
+    # Split into sections by ## headers
+    sections = re.split(r'\n## ', content)
+    
+    # Parse header (first section before any ##)
+    header = sections[0]
+    header_lines = [l.strip() for l in header.split('\n') if l.strip() and not l.startswith('---')]
+    if header_lines:
+        # First line is # Name
+        cv_data['name'] = header_lines[0].lstrip('# ').strip()
+        if len(header_lines) > 1:
+            cv_data['tagline'] = header_lines[1].strip()
+        if len(header_lines) > 2:
+            cv_data['location'] = header_lines[2].strip()
+    
+    # Parse remaining sections
+    for section in sections[1:]:
+        lines = section.split('\n')
+        section_title = lines[0].strip().lower()
+        section_content = '\n'.join(lines[1:])
+        
+        if section_title == 'contact':
+            # Parse contact items
+            for line in lines[1:]:
+                line = line.strip()
+                if line.startswith('* '):
+                    item = line[2:].strip()
+                    # Email
+                    if '@' in item and 'linkedin' not in item.lower() and 'github' not in item.lower():
+                        if '(' not in item:  # Plain email
+                            cv_data['contact']['email'] = item
+                    # Phone
+                    elif item.startswith('+') or '(Mobile)' in item:
+                        cv_data['contact']['phone'] = item.replace('(Mobile)', '').strip()
+                    # LinkedIn - handle markdown link format [text](url)
+                    elif 'linkedin' in item.lower():
+                        match = re.search(r'linkedin\.com/in/([a-zA-Z0-9_-]+)', item)
+                        if match:
+                            cv_data['contact']['linkedin'] = match.group(1)
+                    # GitHub - handle markdown link format [text](url)
+                    elif 'github' in item.lower():
+                        match = re.search(r'github\.com/([a-zA-Z0-9_-]+)', item)
+                        if match:
+                            cv_data['contact']['github'] = match.group(1)
+        
+        elif section_title == 'top skills':
+            for line in lines[1:]:
+                line = line.strip()
+                if line.startswith('* '):
+                    cv_data['skills'].append(line[2:].strip())
+        
+        elif section_title == 'languages':
+            for line in lines[1:]:
+                line = line.strip()
+                if line.startswith('* '):
+                    cv_data['languages_spoken'].append(line[2:].strip())
+        
+        elif section_title == 'summary':
+            # Join all non-empty lines as summary paragraphs
+            summary_lines = [l.strip() for l in lines[1:] if l.strip() and not l.startswith('---')]
+            cv_data['summary'] = ' '.join(summary_lines)
+        
+        elif section_title == 'experience':
+            # Parse experience entries
+            exp_content = '\n'.join(lines[1:])
+            # Split by ### (company headers)
+            companies = re.split(r'\n### ', exp_content)
+            
+            for company_block in companies:
+                if not company_block.strip():
+                    continue
+                
+                company_lines = company_block.split('\n')
+                company_name = company_lines[0].strip()
+                
+                # Find all roles within this company (marked by **Role**)
+                current_role = None
+                current_achievements = []
+                current_description_lines = []
+                
+                i = 1
+                while i < len(company_lines):
+                    line = company_lines[i].strip()
+                    
+                    # Skip separator lines and empty lines
+                    if line.startswith('---') or not line:
+                        i += 1
+                        continue
+                    
+                    # New role starts with **Title**
+                    if line.startswith('**') and line.endswith('**'):
+                        # Save previous role if exists
+                        if current_role:
+                            if current_description_lines:
+                                current_role['description'] = ' '.join(current_description_lines)
+                            current_role['achievements'] = current_achievements
+                            cv_data['experience'].append(current_role)
+                        
+                        # Start new role
+                        title = line.strip('*').strip()
+                        current_role = {
+                            'title': title,
+                            'company': company_name,
+                            'location': 'Brazil',  # Default location
+                            'period': '',
+                            'description': '',
+                            'achievements': []
+                        }
+                        current_achievements = []
+                        current_description_lines = []
+                    
+                    # Period line starts with *date*
+                    elif line.startswith('*') and line.endswith('*') and current_role:
+                        period_text = line.strip('*').strip()
+                        # Extract just the date range, not duration
+                        if ' - ' in period_text:
+                            period_parts = period_text.split('(')[0].strip()
+                            current_role['period'] = period_parts
+                    
+                    # Location line (plain text with Brazil or Rio)
+                    elif current_role and ('Brazil' in line or 'Rio' in line) and not line.startswith('*'):
+                        current_role['location'] = line
+                    
+                    # Achievement bullet
+                    elif line.startswith('* ') and current_role:
+                        achievement = line[2:].strip()
+                        # Clean up any leading asterisks from malformed markdown
+                        achievement = achievement.lstrip('*').strip()
+                        current_achievements.append(achievement)
+                    
+                    # Description paragraph (non-bullet, non-empty line after period)
+                    elif current_role and current_role['period'] and line and not line.startswith('*'):
+                        # Skip location lines and separator lines
+                        if 'Brazil' not in line and 'Rio' not in line and not line.startswith('---'):
+                            current_description_lines.append(line)
+                    
+                    i += 1
+                
+                # Don't forget the last role
+                if current_role:
+                    if current_description_lines:
+                        current_role['description'] = ' '.join(current_description_lines)
+                    current_role['achievements'] = current_achievements
+                    cv_data['experience'].append(current_role)
+        
+        elif section_title == 'education':
+            # Parse education entries
+            edu_content = '\n'.join(lines[1:])
+            # Split by ### (school headers)
+            schools = re.split(r'\n### ', edu_content)
+            
+            for school_block in schools:
+                if not school_block.strip():
+                    continue
+                
+                school_lines = school_block.split('\n')
+                school_name = school_lines[0].strip()
+                
+                for line in school_lines[1:]:
+                    line = line.strip()
+                    if line.startswith('**'):
+                        # Degree line: **Degree** · (Period)
+                        match = re.match(r'\*\*([^*]+)\*\*.*\(([^)]+)\)', line)
+                        if match:
+                            cv_data['education'].append({
+                                'degree': match.group(1).strip(),
+                                'school': school_name,
+                                'period': match.group(2).strip()
+                            })
+    
+    return cv_data
 
 
 def get_alternate_lang(current_lang: str) -> str:
@@ -744,8 +951,8 @@ def generate_about_html(lang='en'):
 def generate_cv_html(lang='en'):
     """Generate CV page with professional experience and skills.
     
-    Creates cv.html page with career information, following the blog's
-    design philosophy of calm continuity and subtle morphing transitions.
+    Reads CV data from cv_reference.md (single source of truth) and generates
+    HTML. For Portuguese, translates the content using the translation system.
     
     Args:
         lang (str): Language code ('en' or 'pt').
@@ -755,11 +962,36 @@ def generate_cv_html(lang='en'):
     """
     lang_toggle_html = generate_lang_toggle_html(lang, 'cv.html')
     ui = LANGUAGES[lang]['ui']
-    cv = LANGUAGES[lang]['cv']
     
-    # Build experience HTML
+    # Parse CV from reference file (single source of truth)
+    cv_data = parse_cv_reference()
+    if not cv_data:
+        print("Error: Could not parse cv_reference.md")
+        return ""
+    
+    # For Portuguese, we would translate here. For now, use English content
+    # with Portuguese UI labels
+    cv = {
+        'title': cv_data['name'].upper(),
+        'tagline': cv_data['tagline'],
+        'location': cv_data['location'],
+        'summary': cv_data['summary'],
+        'contact': cv_data['contact'],
+        'skills': cv_data['skills'],
+        'languages_spoken': cv_data['languages_spoken'],
+        'experience': cv_data['experience'],
+        'education': cv_data['education']
+    }
+    
+    # Build experience HTML with achievements
     experience_html = ''
     for exp in cv['experience']:
+        # Build achievements list if present
+        achievements_html = ''
+        if exp.get('achievements'):
+            achievements_items = ''.join(f'<li>{ach}</li>' for ach in exp['achievements'])
+            achievements_html = f'<ul class="cv-achievements">{achievements_items}</ul>'
+        
         experience_html += f"""
                 <div class="cv-experience-item">
                     <div class="cv-period">{exp['period']}</div>
@@ -767,24 +999,39 @@ def generate_cv_html(lang='en'):
                         <h3 class="cv-title">{exp['title']}</h3>
                         <div class="cv-company">{exp['company']} · {exp['location']}</div>
                         <p class="cv-description">{exp['description']}</p>
+                        {achievements_html}
                     </div>
                 </div>"""
     
-    # Build skills HTML
-    skills_html = ''
-    for category, skills in cv['skills'].items():
-        skills_list = ', '.join(skills)
-        skills_html += f"""
-                <div class="cv-skill-category">
-                    <span class="cv-skill-label">{category.capitalize()}</span>
-                    <span class="cv-skill-items">{skills_list}</span>
-                </div>"""
+    # Build skills HTML - simple list format
+    skills_list = ' · '.join(cv['skills'])
+    skills_html = f'<p class="cv-skills-inline">{skills_list}</p>'
+    
+    # Build education HTML
+    education_html = ''
+    for edu in cv['education']:
+        education_html += f"""
+                    <div class="cv-education-item">
+                        <div class="cv-education-degree">{edu['degree']}</div>
+                        <div class="cv-education-school">{edu['school']}</div>
+                        <div class="cv-education-year">{edu['period']}</div>
+                    </div>"""
+    
+    # Build languages spoken HTML
+    languages_html = ''
+    if cv.get('languages_spoken'):
+        languages_list = ' · '.join(cv['languages_spoken'])
+        languages_html = f"""
+                <section class="cv-section cv-section-compact">
+                    <h2 class="cv-section-title">{'Languages' if lang == 'en' else 'Idiomas'}</h2>
+                    <p class="cv-languages">{languages_list}</p>
+                </section>"""
     
     # SEO info
     other_lang = get_alternate_lang(lang)
     current_url = f"https://dan.rio/{lang}/cv.html"
     other_url = f"https://dan.rio/{other_lang}/cv.html"
-    meta_description = "Daniel Cavalli - Machine Learning Engineer at Nubank. Experience in MLOps, distributed systems, CUDA optimization, and AI infrastructure."
+    meta_description = "Daniel Cavalli - Machine Learning Engineer at Nubank. Experience in MLOps, distributed systems, and AI infrastructure powering hundreds of Data Scientists."
     
     return f"""<!DOCTYPE html>
 <html lang="{lang}">
@@ -863,39 +1110,55 @@ def generate_cv_html(lang='en'):
             <header class="post-header cv-header">
                 <h1 class="post-title-large">{cv['title']}</h1>
                 <p class="cv-tagline">{cv['tagline']}</p>
+                <p class="cv-location">{cv['location']}</p>
             </header>
 
             <div class="post-body cv-body">
+                <!-- Contact Section - Prominent for recruiters -->
+                <section class="cv-section cv-section-highlight">
+                    <h2 class="cv-section-title">{'Contact' if lang == 'en' else 'Contato'}</h2>
+                    <div class="cv-contact">
+                        <div class="cv-contact-item">
+                            <span class="cv-contact-label">Email</span>
+                            <a href="mailto:{cv['contact'].get('email', '')}">{cv['contact'].get('email', '')}</a>
+                        </div>
+                        <div class="cv-contact-item">
+                            <span class="cv-contact-label">LinkedIn</span>
+                            <a href="https://linkedin.com/in/{cv['contact'].get('linkedin', '')}" target="_blank" rel="noopener">linkedin.com/in/{cv['contact'].get('linkedin', '')}</a>
+                        </div>
+                        <div class="cv-contact-item">
+                            <span class="cv-contact-label">GitHub</span>
+                            <a href="https://github.com/{cv['contact'].get('github', '')}" target="_blank" rel="noopener">github.com/{cv['contact'].get('github', '')}</a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Summary Section -->
                 <section class="cv-section">
-                    <h2 class="cv-section-title">Experience</h2>
+                    <h2 class="cv-section-title">{'Summary' if lang == 'en' else 'Resumo'}</h2>
+                    <p class="cv-summary">{cv['summary']}</p>
+                </section>
+
+                <!-- Experience Section -->
+                <section class="cv-section">
+                    <h2 class="cv-section-title">{'Experience' if lang == 'en' else 'Experiência'}</h2>
                     <div class="cv-experience-list">{experience_html}
                     </div>
                 </section>
 
+                <!-- Skills Section -->
+                <section class="cv-section cv-section-compact">
+                    <h2 class="cv-section-title">{'Skills' if lang == 'en' else 'Habilidades'}</h2>
+                    {skills_html}
+                </section>
+
+                <!-- Education Section -->
                 <section class="cv-section">
-                    <h2 class="cv-section-title">Skills</h2>
-                    <div class="cv-skills-list">{skills_html}
+                    <h2 class="cv-section-title">{'Education' if lang == 'en' else 'Formação'}</h2>
+                    <div class="cv-education-list">{education_html}
                     </div>
                 </section>
-
-                <section class="cv-section cv-section-compact">
-                    <h2 class="cv-section-title">Education</h2>
-                    <p class="cv-education">{cv['education']}</p>
-                </section>
-
-                <section class="cv-section cv-section-compact">
-                    <h2 class="cv-section-title">Contact</h2>
-                    <div class="cv-contact">
-                        <div class="cv-contact-item">
-                            <span class="cv-contact-label">GitHub</span>
-                            <a href="https://github.com/{cv['contact']['github']}" target="_blank" rel="noopener">@{cv['contact']['github']}</a>
-                        </div>
-                        <div class="cv-contact-item">
-                            <span class="cv-contact-label">LinkedIn</span>
-                            <a href="https://linkedin.com/in/{cv['contact']['linkedin']}" target="_blank" rel="noopener">/{cv['contact']['linkedin']}</a>
-                        </div>
-                    </div>
-                </section>
+                {languages_html}
             </div>
         </article>
     </main>
