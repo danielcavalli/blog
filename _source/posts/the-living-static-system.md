@@ -1,5 +1,5 @@
 ---
-content_hash: 3017f29c38a336d38f270d7a67a3cc87
+content_hash: 9e6c73c23c93281c830e214ef4b5c8ab
 created_at: '2025-10-25T14:30:40.761318'
 date: 2025-01-25
 excerpt: 'Inside a bilingual static site that moves as one surface: a Python build,
@@ -12,16 +12,16 @@ tags:
 - Static Sites
 - Python
 title: The Living Static System
-updated_at: '2025-10-25T14:30:40.761318'
+updated_at: '2025-11-25T23:03:18.473070'
 ---
 
-The system began as a question: how little does a blog need to feel alive. Not animated for its own sake, but alive in the way a tide advances—inevitable, continuous, without edges. What emerged is a static generator that writes two mirrors of itself, one in English and one in Portuguese, and a thin layer of motion that never breaks the surface. Pages do not switch. Space reorganizes.
+The system began as a question: how little does a blog need to feel alive. Not animated for its own sake, but alive in the way a tide advances: inevitable, continuous, without edges. What emerged is a static generator that writes two mirrors of itself, one in English and one in Portuguese, and a thin layer of motion that never breaks the surface. Pages do not switch. Space reorganizes.
 
 ## The Build Pipeline
 
-The build is a single pass of deliberate work. Markdown enters through a narrow door. Front matter is read, content is parsed, and a page model is assembled with just enough structure to render precisely what is needed and nothing else. The script doesn't orchestrate a framework. It composes files.
+The build is a single pass of deliberate work. Markdown enters through a narrow door. Front matter is read, content is parsed and a page model is assembled with just enough structure to render precisely what is needed and nothing else. The script does not orchestrate a framework. It composes files.
 
-Inside `_source/build.py`, posts are discovered by walking the `_source/posts` directory. Each markdown file is parsed with the `frontmatter` library, which separates YAML metadata from body content. The body flows through Python's `markdown` library with extensions for fenced code blocks and tables. What comes out the other side is clean HTML wrapped in a template that knows exactly where the title goes, where the date sits, and how the navigation should breathe.
+Inside `_source/build.py`, posts are discovered by walking the `_source/posts` directory. Each markdown file is parsed with the `frontmatter` library, which separates YAML metadata from body content. The body flows through Python's `markdown` library with extensions for fenced code blocks and tables. What comes out the other side is clean HTML wrapped in a template that knows exactly where the title goes, where the date sits and how the navigation should breathe.
 
 The only cache that matters is the one that respects change. A content hash is computed from the English source using MD5, and any transformation that follows inherits that decision. The hash lives in the front matter itself, written back to the markdown file after parsing:
 
@@ -49,9 +49,9 @@ When nothing changed, nothing rebuilds. When a sentence moves, the pipeline wake
 
 ## Translation as a Mirror
 
-Translation is not a decoration. It is a second surface drawn with the same hand. English goes in; Portuguese comes out through Gemini with constraints that preserve code blocks, technical terminology, and the tone of the original.
+Translation is not a decoration. It is a second surface drawn with the same hand. English goes in; Portuguese comes out through Gemini with constraints that preserve code blocks, technical terminology and the tone of the original.
 
-The translator is initialized with an API key from the environment. It maintains a JSON cache file at `_cache/translation-cache.json`, keyed by the slug of each post and the content hash. The rule is simple: if the source hasn't changed, the translation is already true. If the hash differs, a new translation is requested and the cache is updated atomically.
+The translator is initialized with an API key from the environment. It maintains a JSON cache file at `_cache/translation-cache.json`, keyed by the slug of each post and the content hash. The rule is simple: if the source has not changed, the translation is already true. If the hash differs, a new translation is requested and the cache is updated atomically.
 
 The translation prompt is not a simple instruction. It is a contract:
 
@@ -69,9 +69,9 @@ The result is cached, and the next build skips the API call entirely. This is ho
 
 ## Navigation as Continuous Space
 
-Navigation behaves as if the document were a single plane that learns new shapes. In the browser, the View Transitions API is not a special effect. It is a memory of before and after. New HTML is fetched ahead of time. The swap happens inside a single synchronous callback, and the browser captures two states of the same space. The code is small because the browser is doing what it is designed to do.
+Navigation behaves as if the document were a single plane that learns new shapes. In the browser, the View Transitions API is not a special effect. It is a memory of before and after. New HTML is fetched ahead of time. The swap happens inside a single synchronous callback and the browser captures two states of the same space. The code is small because the browser is doing what it is designed to do.
 
-The `navigateTo` function in `static/js/transitions.js` intercepts clicks on internal links. It fetches the new page, parses it into a document fragment, and prepares the swap. Before the transition begins, it removes `view-transition-name` attributes from post cards in the new document. This prevents the browser from creating extra pseudo-elements that would flash during cleanup. Then the transition starts:
+The `navigateTo` function in `static/js/transitions.js` intercepts clicks on internal links. It fetches the new page, parses it into a document fragment and prepares the swap. Before the transition begins, it removes `view-transition-name` attributes from post cards in the new document. This prevents the browser from creating extra pseudo-elements that would flash during cleanup. Then the transition starts:
 
 ```javascript
 const transition = document.startViewTransition(() => {
@@ -88,7 +88,7 @@ const transition = document.startViewTransition(() => {
 await transition.finished;
 ```
 
-The choreography is written in CSS, not in JavaScript. The code above only decides when the surface should remember. Everything else lives in styles: easing curves shared across interactions, durations that rhyme, and `::view-transition` pseudo-elements that let titles morph without ever disappearing. The motion constants sit in one place and they do not bargain with the rest of the design:
+The choreography is written in CSS, not in JavaScript. The code above only decides when the surface should remember. Everything else lives in styles: easing curves shared across interactions, durations that rhyme and `::view-transition` pseudo-elements that let titles morph without ever disappearing. The motion constants sit in one place and they do not bargain with the rest of the design:
 
 ```css
 :root {
@@ -136,19 +136,19 @@ The grid never jumps. It exhales. When navigation arrives from elsewhere, the in
 
 One of the system's subtler continuities is how language switching feels. When you click the language toggle, you are not leaving the page. You are translating the surface you are already reading. The scroll position is preserved. The filter state is preserved. The URL changes from `/en/index.html` to `/pt/index.html`, but your place in the document does not.
 
-This is handled in `transitions.js` by detecting a language switch: the path structure is identical except for the `en` or `pt` segment. If this pattern is detected, the scroll position is captured before the fetch, and restored after the DOM swap. If you were halfway down a long article in English and you switch to Portuguese, you stay halfway down the same article. The content changes, but the space does not.
+This is handled in `transitions.js` by detecting a language switch: the path structure is identical except for the `en` or `pt` segment. If this pattern is detected, the scroll position is captured before the fetch and restored after the DOM swap. If you were halfway down a long article in English and you switch to Portuguese, you stay halfway down the same article. The content changes, but the space does not.
 
 The same principle extends to the filter state on the index page. If you have filtered posts by year or tag and you switch languages, the filter remains active. The translated posts appear, but the selection criteria are preserved. This is how a bilingual site feels like a single document viewed through two lenses rather than two separate sites.
 
 ## Customization Without Scaffolding
 
-Customization respects the grain of the system. The entry point is configuration and text, not scaffolding. Open `_source/config.py` and you will find everything that can change: base path, language definitions, site metadata, UI strings for both languages. Change the base path and the build writes links that obey. Adjust typographic variables in `static/css/styles.css` and the entire surface tightens or loosens uniformly.
+Customization respects the grain of the system. The entry point is configuration and text, not scaffolding. Open `_source/config.py` and you will find everything that can change: base path, language definitions, site metadata and UI strings for both languages. Change the base path and the build writes links that obey. Adjust typographic variables in `static/css/styles.css` and the entire surface tightens or loosens uniformly.
 
 The language set is the only assumption baked in. English is the source of truth. Portuguese is a faithful translation. If a third language is needed, the rule extends: add a second mirror, give it a cache, keep the hashes honest. The builder is a script you can read in one sitting. If you can read it, you can change it. There is no magic. There are no hidden layers. The system is exactly as complex as the problem it solves.
 
 ## Why No Framework
 
-Refusing a framework here is not nostalgia. It is an alignment with the problem. A blog is text, a few images, and the sense that moving through it should feel like turning a page without losing the line you were reading. Native browser capabilities are already sufficient. Python is already sufficient. Dependencies are chosen like tools on a small bench: if a tool does not make the cut cleaner, it stays in the drawer.
+Refusing a framework here is not nostalgia. It is an alignment with the problem. A blog is text, a few images and the sense that moving through it should feel like turning a page without losing the line you were reading. Native browser capabilities are already sufficient. Python is already sufficient. Dependencies are chosen like tools on a small bench: if a tool does not make the cut cleaner, it stays in the drawer.
 
 The absence of machinery is not an ideology. It is maintenance practiced in advance. Every line of code in this system is code I will have to read again in six months or six years. Every dependency is a potential future incompatibility. Every abstraction is a tax on comprehension. So the system stays small. It stays readable. It stays changeable.
 
@@ -158,7 +158,7 @@ Python's `frontmatter` and `markdown` libraries do exactly one thing each: parse
 
 ## The Philosophy of Motion
 
-The philosophy of motion is the philosophy of attention. Nothing should insist. Transitions answer three questions: where from, where to, and how this state relates to the last one. Theme changes ripple like a cloud passing over the sun. A card lifts a few pixels when you hover, then returns to rest. The surface never lies about what moved or why.
+The philosophy of motion is the philosophy of attention. Nothing should insist. Transitions answer three questions: where from, where to and how this state relates to the last one. Theme changes ripple like a cloud passing over the sun. A card lifts a few pixels when you hover, then returns to rest. The surface never lies about what moved or why.
 
 When something must be removed, it dissolves over 500 milliseconds. When something must arrive, it emerges from where it could plausibly have been. The post card on the index expands into the full article. The title stays in place and grows. The date anchors itself in the corner. The layout breathes outward without breaking continuity. When you press back, the article contracts into the card again. Space is conserved.
 
@@ -166,13 +166,13 @@ The easing curve is the same everywhere: `cubic-bezier(0.4, 0, 0.2, 1)`. This is
 
 ## The Contract with the Reader
 
-For those who want to adapt it, the contract is small and explicit. Markdown in, HTML out. A translator that respects code and voice. A navigation layer that never blocks paints with work it could have done earlier. Styles that encode rhythm once and reuse it everywhere. If you change one thing, it should feel like you changed exactly one thing, and the rest of the system should respond with proportionate calm.
+For those who want to adapt it, the contract is small and explicit. Markdown in, HTML out. A translator that respects code and voice. A navigation layer that never blocks paints with work it could have done earlier. Styles that encode rhythm once and reuse it everywhere. If you change one thing, it should feel like you changed exactly one thing and the rest of the system should respond with proportionate calm.
 
-The only cleverness is in knowing when to stop. The system could do more. It could have a CMS. It could have real-time preview. It could have analytics and A/B testing and social sharing widgets. It does none of these things because none of these things make the reading experience better. The goal is not to build a platform. The goal is to write, and to let the writing be read without interference.
+The only cleverness is in knowing when to stop. The system could do more. It could have a CMS. It could have real-time preview. It could have analytics, A/B testing and social sharing widgets. It does none of these things because none of these things make the reading experience better. The goal is not to build a platform. The goal is to write and to let the writing be read without interference.
 
 ## What the System Knows
 
-This is not a demonstration. It is the simplest version of a living document I could make without lying about what the web can already do. On most nights I write with the windows open in Copacabana and the sound of the avenue folding into the sea. The system learns that rhythm and keeps it. Things flow, not because they are fast, but because they do not get in their own way.
+This is not a demonstration. It is the simplest version of a living document I could make without lying about what the web can already do. On most nights I write with the windows open in Copacabana and the sound of the avenue folding into the sea. The system learns that rhythm and keeps it. Things flow not because they are fast, but because they do not get in their own way.
 
 The cache remembers what has not changed. The translator preserves what should not be translated. The navigation maintains where you were looking when the language switched. The motion system encodes how long things should take and refuses to argue about it. Every decision the system makes is in service of a single idea: the document is continuous. When you move through it, the space reorganizes, but it never breaks.
 

@@ -235,11 +235,12 @@
     --color-bg: #ffffff;
     --color-bg-rgb: 255, 255, 255;
     --color-text: #000000;
-    --color-text-secondary: #666666;
+    --color-text-secondary: #555555; /* Darker for Swiss precision contrast */
     --color-border: #e5e5e5;
     --color-hover: #f5f5f5;
     --color-surface-elevated: #f8f8f8;
-    --accent-color: #007bff; /* Primary blue accent */
+    --accent-color: #2a9d8f; /* Teal - bridging Moana's organic warmth */
+    --accent-color-bright: #3eb8a9; /* Lighter variant for hover states */
     
     /* Aliases for consistency */
     --text-color: var(--color-text);
@@ -279,15 +280,17 @@
 }
 
 /* Dark mode - explicit data attribute (user preference) */
+/* True black for OLED displays - Swiss precision meets digital ink */
 [data-theme="dark"] {
-    --color-bg: #0a0a0a;
-    --color-bg-rgb: 10, 10, 10;
+    --color-bg: #000000;
+    --color-bg-rgb: 0, 0, 0;
     --color-text: #ffffff;
-    --color-text-secondary: #a0a0a0;
-    --color-border: #2a2a2a;
-    --color-hover: #1a1a1a;
-    --color-surface-elevated: #1a1a1a;
-    --accent-color: #1e90ff; /* Brighter blue for dark mode */
+    --color-text-secondary: #b8b8b8; /* Elevated from #a0a0a0 for better contrast */
+    --color-border: #1a1a1a;
+    --color-hover: #0d0d0d;
+    --color-surface-elevated: #0a0a0a;
+    --accent-color: #4ecdc4; /* Teal from Moana illustration - organic warmth */
+    --accent-color-bright: #5fd9d0; /* Lighter variant for hover states */
     
     /* Aliases for consistency */
     --text-color: var(--color-text);
@@ -296,15 +299,18 @@
 }
 
 /* Dark mode - system preference (when no user preference) */
+/* True black for OLED displays - Swiss precision meets digital ink */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-        --color-bg: #0a0a0a;
-        --color-bg-rgb: 10, 10, 10;
+        --color-bg: #000000;
+        --color-bg-rgb: 0, 0, 0;
         --color-text: #ffffff;
-        --color-text-secondary: #a0a0a0;
-        --color-border: #2a2a2a;
-        --color-hover: #1a1a1a;
-        --accent-color: #1e90ff; /* Brighter blue for dark mode */
+        --color-text-secondary: #b8b8b8; /* Elevated for clear edges */
+        --color-border: #1a1a1a;
+        --color-hover: #0d0d0d;
+        --color-surface-elevated: #0a0a0a;
+        --accent-color: #4ecdc4; /* Teal from Moana illustration */
+        --accent-color-bright: #5fd9d0;
         
         /* Aliases for consistency */
         --text-color: var(--color-text);
@@ -517,7 +523,7 @@ body {
     color: var(--color-text);
 }
 
-/* Ambient glow - light mode: soft blue radiance */
+/* Ambient glow - soft teal radiance matching accent */
 .lang-en.active::before,
 .lang-pt.active::before {
     content: '';
@@ -529,8 +535,8 @@ body {
     height: 160%;
     background: radial-gradient(
         circle at center,
-        rgba(0, 123, 255, 0.12) 0%,
-        rgba(0, 123, 255, 0.06) 40%,
+        rgba(78, 205, 196, 0.12) 0%,
+        rgba(78, 205, 196, 0.06) 40%,
         transparent 70%
     );
     border-radius: 50%;
@@ -541,25 +547,25 @@ body {
     filter: blur(8px);
 }
 
-/* Dark mode glow - brighter, cooler tone for contrast */
+/* Dark mode glow - brighter teal for OLED contrast */
 [data-theme="dark"] .lang-en.active::before,
 [data-theme="dark"] .lang-pt.active::before {
     background: radial-gradient(
         circle at center,
-        rgba(100, 170, 255, 0.18) 0%,
-        rgba(100, 170, 255, 0.08) 40%,
+        rgba(78, 205, 196, 0.22) 0%,
+        rgba(78, 205, 196, 0.1) 40%,
         transparent 70%
     );
     filter: blur(10px);
 }
 
-/* Enhanced glow on hover - intensifies the radiance */
+/* Enhanced glow on hover - intensifies the teal radiance */
 .lang-toggle:hover .lang-en.active::before,
 .lang-toggle:hover .lang-pt.active::before {
     background: radial-gradient(
         circle at center,
-        rgba(0, 123, 255, 0.2) 0%,
-        rgba(0, 123, 255, 0.1) 40%,
+        rgba(78, 205, 196, 0.22) 0%,
+        rgba(78, 205, 196, 0.1) 40%,
         transparent 70%
     );
     width: 180%;
@@ -571,8 +577,8 @@ body {
 [data-theme="dark"] .lang-toggle:hover .lang-pt.active::before {
     background: radial-gradient(
         circle at center,
-        rgba(100, 170, 255, 0.28) 0%,
-        rgba(100, 170, 255, 0.14) 40%,
+        rgba(78, 205, 196, 0.32) 0%,
+        rgba(78, 205, 196, 0.16) 40%,
         transparent 70%
     );
     width: 180%;
@@ -1389,7 +1395,7 @@ button:focus-visible {
 
 .filter-clear:hover {
     background: var(--accent-color);
-    color: var(--bg-color);
+    color: var(--color-bg);
 }
 
 .filter-tags {
@@ -1422,16 +1428,16 @@ button:focus-visible {
 }
 
 .filter-tag.active {
-    background: linear-gradient(135deg, var(--accent-color) 0%, #0056b3 100%);
-    color: #ffffff; /* Ensure white text on blue background */
+    background: linear-gradient(135deg, var(--accent-color) 0%, #1a7a6e 100%);
+    color: #ffffff; /* Ensure white text on teal background */
     border-color: var(--accent-color);
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.25);
+    box-shadow: 0 6px 16px rgba(78, 205, 196, 0.3);
 }
 
 .filter-tag.active:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 24px rgba(0, 123, 255, 0.35);
+    box-shadow: 0 10px 24px rgba(78, 205, 196, 0.4);
 }
 
 /* Tag pills on posts */
@@ -1452,12 +1458,13 @@ button:focus-visible {
     font-size: 0.8rem;
     font-family: var(--font-mono);
     text-transform: lowercase;
-    /* No transitions defined - inherits from body.theme-transitioning */
+    transition: all var(--motion-duration-quick) var(--motion-easing);
 }
 
 .tag-pill:hover {
     transform: translateY(-1px);
-    opacity: 0.9;
+    border-color: var(--accent-color);
+    color: var(--accent-color);
 }
 
 /* Post cards - filtering with native CSS transitions
@@ -1466,6 +1473,17 @@ button:focus-visible {
     opacity: 1;
     transition: opacity var(--motion-duration-core) var(--motion-easing),
                 transform var(--motion-duration-core) var(--motion-easing);
+}
+
+/* FLIP Animation Support - for smooth spatial reorganization */
+.post-card.flip-measuring {
+    transition: none !important;
+    transform: translate(var(--flip-x, 0), var(--flip-y, 0));
+}
+
+.post-card.flip-animating {
+    transition: transform var(--motion-duration-core) var(--motion-easing);
+    transform: translate(var(--flip-x, 0), var(--flip-y, 0));
 }
 
 /* Cards being filtered out - fade elegantly */

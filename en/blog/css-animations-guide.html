@@ -1,4 +1,4 @@
-<!DOCTYPE html>>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -28,7 +28,7 @@
         <span class="lang-text">
             <span class="lang-en active">EN</span>
             <span class="lang-sep">/</span>
-            <span class="lang-pt ">PT</span>
+            <span class="lang-pt">PT</span>
         </span>
     </a></div>
                 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
@@ -55,7 +55,7 @@
         <article class="post" style="view-transition-name: post-container-6;">
             <header class="post-header">
                 <a href="/en/index.html" class="back-link">← Back to Blog</a>
-                <div class="last-updated">Last updated: October 24, 2025 at 03:30 PM</div>
+                <div class="last-updated">Last updated: November 25, 2025 at 11:01 PM</div>
                 <h1 class="post-title-large" style="view-transition-name: post-title-6;">THE ART OF CSS ANIMATIONS</h1>
                 <div class="post-meta">
                     <time class="post-date" style="view-transition-name: post-date-6;">October 24, 2025</time>
@@ -70,19 +70,19 @@
                     Creating smooth, performant animations using only CSS. A deep dive into building coherent motion systems for the modern web.
                 </p>
                 <h2>Why CSS Animations?</h2>
-<p>CSS animations offer several advantages over JavaScript-based animations. They're hardware-accelerated, more performant, and maintain smooth 60fps frame rates even on lower-end devices. But more importantly, they enable a <strong>declarative approach to motion</strong> — you define what should happen, and the browser handles how.</p>
+<p>CSS animations offer several advantages over JavaScript-based animations. They are hardware-accelerated, more performant and maintain smooth 60fps frame rates even on lower-end devices. But more importantly, they enable a <strong>declarative approach to motion</strong>: you define what should happen and the browser handles how.</p>
 <p>This blog is built entirely on CSS-first animations. JavaScript is used only to trigger state changes; the visual behavior lives in stylesheets.</p>
 <h2>The Philosophy of Motion</h2>
 <p>Before choosing animation techniques, consider what the motion <em>means</em>. Every transition should answer three questions: <strong>Where from? Where to? How does it relate to what came before?</strong></p>
 <p>On this site, animations serve three core principles:<br />
-1. <strong>Continuity</strong> - Everything exists in one uninterrupted surface<br />
-2. <strong>Physical Plausibility</strong> - Motion echoes real-world dynamics without imitating them<br />
-3. <strong>Calm Energy</strong> - Purposeful movement without agitation</p>
+1. <strong>Continuity</strong>: Everything exists in one uninterrupted surface<br />
+2. <strong>Physical Plausibility</strong>: Motion echoes real-world dynamics without imitating them<br />
+3. <strong>Calm Energy</strong>: Purposeful movement without agitation</p>
 <p>Motion is never decoration. It establishes spatial relationships and acknowledges state changes. The interface breathes.</p>
 <h2>The Building Blocks</h2>
 <p>CSS provides three main ways to create animations:</p>
 <h3>Transitions</h3>
-<p>Smooth interpolations between states. Used for hover effects, theme changes, and dropdown expansions. The key is using shared motion constants. All transitions on this site use the same easing curve: <code>cubic-bezier(0.4, 0, 0.2, 1)</code>.</p>
+<p>Smooth interpolations between states. Used for hover effects, theme changes and dropdown expansions. The key is using shared motion constants. All transitions on this site use the same easing curve: <code>cubic-bezier(0.4, 0, 0.2, 1)</code>.</p>
 <pre><code class="language-css">:root {
     --motion-duration-core: 500ms;
     --motion-duration-quick: 300ms;
@@ -96,7 +96,7 @@
 </code></pre>
 <p>This creates a shared temporal rhythm. Every interaction feels like part of the same choreography.</p>
 <h3>Keyframe Animations</h3>
-<p>Multi-step choreography for complex motions. This blog uses keyframes sparingly — only for initial page load animations where elements fade in and rise upward.</p>
+<p>Multi-step choreography for complex motions. This blog uses keyframes sparingly: only for initial page load animations where elements fade in and rise upward.</p>
 <pre><code class="language-css">@keyframes fadeInUp {
     from {
         opacity: 0;
@@ -109,7 +109,7 @@
 }
 </code></pre>
 <h3>Transform Properties</h3>
-<p>The performance backbone. <code>translateY</code>, <code>scale</code>, and <code>rotate</code> are hardware-accelerated and won't trigger expensive reflows. When the header slides behind the navigation bar, it uses <code>translateY(-120%)</code> with a 500ms duration, matching the core motion timing.</p>
+<p>The performance backbone. <code>translateY</code>, <code>scale</code> and <code>rotate</code> are hardware-accelerated and will not trigger expensive reflows. When the header slides behind the navigation bar, it uses <code>translateY(-120%)</code> with a 500ms duration, matching the core motion timing.</p>
 <h2>View Transitions API</h2>
 <p>Modern browsers support the <strong>View Transitions API</strong>, which enables seamless morphing between page navigations. This blog uses it to transform post cards into full articles:</p>
 <pre><code class="language-css">::view-transition-old(post-container-1),
@@ -134,7 +134,7 @@
 <p><strong>Hardware-accelerated (GPU):</strong><br />
 - <code>transform</code> (translate, scale, rotate)<br />
 - <code>opacity</code><br />
-- <code>filter</code> (with caution — can be expensive)</p>
+- <code>filter</code> (with caution: can be expensive)</p>
 <p><strong>Avoid animating:</strong><br />
 - <code>width</code>, <code>height</code>, <code>margin</code>, <code>padding</code> (triggers layout)<br />
 - <code>color</code>, <code>background-color</code> alone (triggers paint)<br />
@@ -156,7 +156,7 @@
 - <strong>300ms (quick)</strong> for micro-interactions (hover feedback)<br />
 - <strong>600ms (ripple)</strong> for atmospheric changes (theme transitions)<br />
 - <strong>Same easing everywhere</strong>: <code>cubic-bezier(0.4, 0, 0.2, 1)</code></p>
-<p>This consistency creates a unified "breathing" feeling. When filters expand, dropdowns open, and cards dissolve, they all move to the same pulse.</p>
+<p>This consistency creates a unified "breathing" feeling. When filters expand, dropdowns open and cards dissolve, they all move to the same pulse.</p>
 <h2>Staggered Reveals</h2>
 <p>When showing multiple elements, stagger their appearance with CSS transition delays:</p>
 <pre><code class="language-css">.filter-row {
@@ -176,7 +176,7 @@
 </code></pre>
 <p>JavaScript measures actual DOM overflow using <code>getBoundingClientRect()</code> and applies the class when needed. CSS handles the smooth expansion. The result feels like the page is aware of its own geometry and responds physically.</p>
 <h2>Theme Transitions</h2>
-<p>Switching between light and dark mode isn't just a color swap. It's an <strong>atmospheric lighting shift</strong>. The key is changing the theme FIRST, then enabling transitions:</p>
+<p>Switching between light and dark mode is not just a color swap. It is an <strong>atmospheric lighting shift</strong>. The key is changing the theme FIRST, then enabling transitions:</p>
 <pre><code class="language-javascript">function applyTheme(theme, animated) {
     if (animated) {
         // Change theme immediately
@@ -266,13 +266,13 @@ grid.addEventListener('transitionend', () =&gt; {
 </code></pre>
 <p>Motion should enhance, never hinder. When a user signals they need reduced motion, honor that immediately.</p>
 <h2>The conclusion</h2>
-<p>CSS animations, when approached systematically, create interfaces that feel <strong>alive but calm</strong>. The goal isn't to impress with flashy transitions, but to build trust through spatial coherence. The goal wasn't performance but it should also feel performant due to the idea behind the transtions: fluidity. A choppy trasition takes away from this interface and while one could implement it in pure JS, I am not a good (nor want to be) good JS programmer. Heavily using the CSS features to abstract the implementation logic speeds up development while also giving performance optimization responsabilities to the browser itself.</p>
+<p>CSS animations, when approached systematically, create interfaces that feel <strong>alive but calm</strong>. The goal is not to impress with flashy transitions but to build trust through spatial coherence. The goal was not performance alone, but it should also feel performant due to the idea behind the transitions: fluidity. A choppy transition takes away from this interface. While one could implement it in pure JS, I am not a good JS programmer (nor do I want to be). Heavily using the CSS features to abstract the implementation logic speeds up development while also giving performance optimization responsibilities to the browser itself.</p>
 <p>Every animation on this blog serves the same philosophy:<br />
 - <strong>Continuity</strong>: One uninterrupted surface<br />
 - <strong>Physical Plausibility</strong>: Motion that echoes real dynamics<br />
 - <strong>Calm Energy</strong>: Purposeful, never agitated</p>
 <p>Use CSS custom properties for shared timing. Let the browser handle sequencing via <code>transitionend</code> events. Apply <code>will-change</code> only during active animations. Always ask: Where from? Where to? How does it relate?</p>
-<p>The interface doesn't perform. It responds.</p>
+<p>The interface does not perform. It responds.</p>
             </div>
         </article>
     </main>

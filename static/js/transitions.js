@@ -105,8 +105,9 @@
      * Capture current filter state from the index page
      * 
      * Captures:
-     * - Current filter text (from filter input)
+     * - Current year/month filter values
      * - Current sort order ('created' or 'updated')
+     * - Active tag filters
      * 
      * Only captures if we're on the index page with filters.
      * Post pages don't have filters, so returns null.
@@ -114,14 +115,18 @@
      * @returns {Object|null} Filter state object or null if no filters
      */
     function captureFilterState() {
-        const filterInput = document.querySelector('.filter-input');
+        const yearTrigger = document.querySelector('#year-filter-wrapper .select-trigger');
+        const monthTrigger = document.querySelector('#month-filter-wrapper .select-trigger');
         const orderToggle = document.querySelector('.order-toggle');
+        const activeTagButtons = document.querySelectorAll('.filter-tag.active');
         
-        if (!filterInput || !orderToggle) return null;
+        if (!orderToggle) return null;
         
         return {
-            filterText: filterInput.value,
-            sortOrder: orderToggle.textContent.trim()
+            yearValue: yearTrigger?.dataset.value || '',
+            monthValue: monthTrigger?.dataset.value || '',
+            activeTags: Array.from(activeTagButtons).map(btn => btn.dataset.tag),
+            sortOrder: orderToggle.dataset.order || 'created'
         };
     }
     
@@ -129,36 +134,49 @@
      * Restore filter state after navigation
      * 
      * Restores:
-     * - Filter text (triggers filtering)
-     * - Sort order (triggers re-sorting)
+     * - Year/month filter values
+     * - Active tag filters
+     * - Sort order
      * 
-     * Uses events to trigger the actual filtering/sorting logic.
-     * Waits for DOM to be ready via small delay.
+     * Uses custom events to trigger the actual filtering/sorting logic.
+     * Waits for filter.js to reinitialize via delayed RAF.
      * 
      * @param {Object} state - Filter state from captureFilterState()
      * @returns {void}
      */
     function restoreFilterState(state) {
         // Wait for filter.js to reinitialize
-        requestAnimationFrame(() => {
-            const filterInput = document.querySelector('.filter-input');
-            const orderToggle = document.querySelector('.order-toggle');
-            
-            if (filterInput && state.filterText) {
-                filterInput.value = state.filterText;
-                // Trigger input event to apply filter
-                filterInput.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-            
-            if (orderToggle && state.sortOrder) {
-                // Check if sort order needs to be changed
-                const currentOrder = orderToggle.textContent.trim();
-                if (currentOrder !== state.sortOrder) {
-                    // Trigger click to toggle sort order
+        setTimeout(() => {
+            requestAnimationFrame(() => {
+                // Restore year filter
+                if (state.yearValue) {
+                    const yearOption = document.querySelector(`#year-filter-wrapper .select-option[data-value="${state.yearValue}"]`);
+                    if (yearOption) yearOption.click();
+                }
+                
+                // Restore month filter
+                if (state.monthValue) {
+                    const monthOption = document.querySelector(`#month-filter-wrapper .select-option[data-value="${state.monthValue}"]`);
+                    if (monthOption) monthOption.click();
+                }
+                
+                // Restore active tags
+                if (state.activeTags && state.activeTags.length > 0) {
+                    state.activeTags.forEach(tag => {
+                        const tagButton = document.querySelector(`.filter-tag[data-tag="${tag}"]`);
+                        if (tagButton && !tagButton.classList.contains('active')) {
+                            tagButton.click();
+                        }
+                    });
+                }
+                
+                // Restore sort order
+                const orderToggle = document.querySelector('.order-toggle');
+                if (orderToggle && state.sortOrder && orderToggle.dataset.order !== state.sortOrder) {
                     orderToggle.click();
                 }
-            }
-        });
+            });
+        }, 100); // Small delay to ensure filter.js has initialized
     }
 
     // Intercept internal link clicks

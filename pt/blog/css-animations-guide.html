@@ -1,4 +1,4 @@
-<!DOCTYPE html>>
+<!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
@@ -26,7 +26,7 @@
             <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
         </svg>
         <span class="lang-text">
-            <span class="lang-en ">EN</span>
+            <span class="lang-en">EN</span>
             <span class="lang-sep">/</span>
             <span class="lang-pt active">PT</span>
         </span>
@@ -55,7 +55,7 @@
         <article class="post" style="view-transition-name: post-container-6;">
             <header class="post-header">
                 <a href="/pt/index.html" class="back-link">← Back to Blog</a>
-                <div class="last-updated">Last updated: October 24, 2025 at 03:30 PM</div>
+                <div class="last-updated">Last updated: November 25, 2025 at 11:01 PM</div>
                 <h1 class="post-title-large" style="view-transition-name: post-title-6;">A ARTE DAS ANIMAÇÕES CSS</h1>
                 <div class="post-meta">
                     <time class="post-date" style="view-transition-name: post-date-6;">October 24, 2025</time>
@@ -67,22 +67,22 @@
 
             <div class="post-body">
                 <p class="lead" style="view-transition-name: post-excerpt-6;">
-                    Criando animações fluidas e performáticas usando apenas CSS. Um mergulho profundo na construção de sistemas de movimento coerentes para a web moderna.
+                    Criando animações suaves e performáticas usando apenas CSS. Um mergulho profundo na construção de sistemas de movimento coerentes para a web moderna.
                 </p>
-                <h2>Por que Animações CSS?</h2>
-<p>As animações CSS oferecem várias vantagens sobre as animações baseadas em JavaScript. Elas são aceleradas por hardware, mais performáticas e mantêm taxas de quadro de 60fps suaves mesmo em dispositivos de baixo custo. Mas, mais importante, elas possibilitam uma <strong>abordagem declarativa ao movimento</strong> — você define o que deve acontecer, e o navegador lida com o como.</p>
-<p>Este blog é construído inteiramente com animações CSS-first. JavaScript é usado apenas para disparar mudanças de estado; o comportamento visual reside nas folhas de estilo.</p>
+                <h2>Por Que Animações CSS?</h2>
+<p>Animações CSS oferecem diversas vantagens sobre animações baseadas em JavaScript. Elas são aceleradas por hardware, mais performáticas e mantêm taxas de quadros suaves de 60fps mesmo em dispositivos de baixo custo. Mas, mais importante, elas permitem uma <strong>abordagem declarativa para o movimento</strong>: você define o que deve acontecer e o navegador lida com o como.</p>
+<p>Este blog é construído inteiramente com animações CSS-first. JavaScript é usado apenas para acionar mudanças de estado; o comportamento visual reside nas folhas de estilo.</p>
 <h2>A Filosofia do Movimento</h2>
 <p>Antes de escolher as técnicas de animação, considere o que o movimento <em>significa</em>. Toda transição deve responder a três perguntas: <strong>De onde? Para onde? Como se relaciona com o que veio antes?</strong></p>
-<p>Neste site, as animações servem a três princípios fundamentais:<br />
-1.  <strong>Continuidade</strong> - Tudo existe em uma superfície ininterrupta<br />
-2.  <strong>Plausibilidade Física</strong> - O movimento ecoa a dinâmica do mundo real sem imitá-la<br />
-3.  <strong>Energia Calma</strong> - Movimento propositado sem agitação</p>
+<p>Neste site, as animações servem a três princípios centrais:<br />
+1.  <strong>Continuidade</strong>: Tudo existe em uma superfície ininterrupta<br />
+2.  <strong>Plausibilidade Física</strong>: O movimento ecoa a dinâmica do mundo real sem imitá-la<br />
+3.  <strong>Energia Calma</strong>: Movimento intencional sem agitação</p>
 <p>O movimento nunca é decoração. Ele estabelece relações espaciais e reconhece mudanças de estado. A interface respira.</p>
-<h2>Os Blocos Construtores</h2>
-<p>CSS oferece três maneiras principais de criar animações:</p>
+<h2>Os Blocos de Construção</h2>
+<p>CSS oferece três formas principais de criar animações:</p>
 <h3>Transições</h3>
-<p>Interpolações suaves entre estados. Usadas para efeitos de hover, mudanças de tema e expansões de dropdown. A chave é usar constantes de movimento compartilhadas. Todas as transições neste site usam a mesma curva de easing: <code>cubic-bezier(0.4, 0, 0.2, 1)</code>.</p>
+<p>Interpolações suaves entre estados. Usado para efeitos de hover, mudanças de tema e expansões de dropdown. A chave é usar constantes de movimento compartilhadas. Todas as transições neste site usam a mesma curva de easing: <code>cubic-bezier(0.4, 0, 0.2, 1)</code>.</p>
 <pre><code class="language-css">:root {
     --motion-duration-core: 500ms;
     --motion-duration-quick: 300ms;
@@ -94,9 +94,9 @@
     transition: all var(--motion-duration-core) var(--motion-easing);
 }
 </code></pre>
-<p>Isso cria um ritmo temporal compartilhado. Toda interação parece fazer parte da mesma coreografia.</p>
+<p>Isso cria um ritmo temporal compartilhado. Toda interação parece parte da mesma coreografia.</p>
 <h3>Animações de Keyframe</h3>
-<p>Coreografia em várias etapas para movimentos complexos. Este blog usa keyframes com moderação — apenas para animações de carregamento inicial da página onde os elementos aparecem gradualmente e sobem.</p>
+<p>Coreografia multi-passos para movimentos complexos. Este blog usa keyframes com moderação: apenas para animações de carregamento inicial da página, onde os elementos aparecem gradualmente e sobem.</p>
 <pre><code class="language-css">@keyframes fadeInUp {
     from {
         opacity: 0;
@@ -108,17 +108,17 @@
     }
 }
 </code></pre>
-<h3>Propriedades de Transform</h3>
-<p>A espinha dorsal da performance. translateY, scale e rotate são acelerados por hardware e não disparam reflows caros. Quando o cabeçalho desliza por trás da barra de navegação, ele usa <code>translateY(-120%)</code> com uma duração de 500ms, combinando com o tempo de movimento central.</p>
-<h2>API View Transitions</h2>
-<p>Navegadores modernos suportam a <strong>API View Transitions</strong>, que permite um morphing contínuo entre navegações de página. Este blog a usa para transformar cartões de post em artigos completos:</p>
+<h3>Propriedades Transform</h3>
+<p>A espinha dorsal da performance. translateY, scale e rotate são acelerados por hardware e não irão acionar reflows caros. Quando o header desliza para trás da barra de navegação, ele usa <code>translateY(-120%)</code> com uma duração de 500ms, combinando com o tempo de movimento central.</p>
+<h2>View Transitions API</h2>
+<p>Navegadores modernos suportam a <strong>View Transitions API</strong>, que permite transições suaves de morphing entre navegações de página. Este blog a usa para transformar cartões de posts em artigos completos:</p>
 <pre><code class="language-css">::view-transition-old(post-container-1),
 ::view-transition-new(post-container-1) {
     animation-duration: var(--motion-duration-core);
     animation-timing-function: var(--motion-easing);
 }
 </code></pre>
-<p>A sacada crítica: <strong>busque o conteúdo ANTES de chamar <code>startViewTransition()</code></strong>. Altere o DOM de forma síncrona dentro do callback. Isso garante que o navegador capture os estados antigo e novo corretamente, evitando problemas de flash de conteúdo.</p>
+<p>A percepção crítica: <strong>faça o fetch do conteúdo ANTES de chamar <code>startViewTransition()</code></strong>. Mude o DOM de forma síncrona dentro do callback. Isso garante que o navegador capture os estados antigo e novo corretamente, prevenindo problemas de flash-of-content.</p>
 <pre><code class="language-javascript">async function navigateTo(url) {
     const response = await fetch(url);
     const html = await response.text();
@@ -129,15 +129,15 @@
     });
 }
 </code></pre>
-<h2>Performance Importa</h2>
-<p>Nem todas as propriedades CSS são iguais quando se trata de performance de animação. </p>
+<h2>A Performance Importa</h2>
+<p>Nem todas as propriedades CSS são criadas iguais quando o assunto é performance de animação.</p>
 <p><strong>Aceleradas por hardware (GPU):</strong><br />
 - transform (translate, scale, rotate)<br />
 - opacity<br />
-- filter (com cautela — pode ser caro)</p>
+- filter (com cautela: pode ser caro)</p>
 <p><strong>Evite animar:</strong><br />
-- width, height, margin, padding (dispara layout)<br />
-- color, background-color sozinhas (dispara paint)<br />
+- width, height, margin, padding (aciona layout)<br />
+- color, background-color sozinhos (aciona paint)<br />
 - box-shadow (caro, mas aceitável para estados de hover sutis)</p>
 <p>Use will-change com moderação e apenas durante animações ativas:</p>
 <pre><code class="language-css">.post-card.filtering-out {
@@ -151,14 +151,14 @@
 </code></pre>
 <p>Isso diz ao navegador para otimizar a composição da GPU, mas apenas quando necessário. Deixar will-change ativo desperdiça memória.</p>
 <h2>O Ritmo da Interação</h2>
-<p>Todas as animações neste site seguem um ritmo temporal consistente definido por propriedades customizadas CSS:<br />
+<p>Todas as animações neste site seguem um ritmo temporal consistente definido por propriedades personalizadas de CSS:<br />
 -   <strong>500ms (central)</strong> para a maioria das transições (morphing, deslizamento, expansão)<br />
--   <strong>300ms (rápido)</strong> para micro-interações (feedback de hover)<br />
+-   <strong>300ms (rápido)</strong> para microinterações (feedback de hover)<br />
 -   <strong>600ms (ondulação)</strong> para mudanças atmosféricas (transições de tema)<br />
--   <strong>Mesmo easing em todos os lugares</strong>: <code>cubic-bezier(0.4, 0, 0.2, 1)</code></p>
-<p>Essa consistência cria uma sensação unificada de "respiração". Quando os filtros se expandem, os dropdowns abrem e os cartões se dissolvem, todos se movem no mesmo ritmo.</p>
+-   <strong>Mesmo easing em todo lugar</strong>: <code>cubic-bezier(0.4, 0, 0.2, 1)</code></p>
+<p>Essa consistência cria uma sensação unificada de "respiração". Quando os filtros se expandem, dropdowns se abrem e cards se dissolvem, todos se movem ao mesmo ritmo.</p>
 <h2>Revelações Escalonadas</h2>
-<p>Ao exibir vários elementos, escalone sua aparência com atrasos de transição CSS:</p>
+<p>Ao exibir múltiplos elementos, escalone sua aparição com atrasos de transição CSS:</p>
 <pre><code class="language-css">.filter-row {
     transition: all var(--motion-duration-core) var(--motion-easing) 0.1s;
 }
@@ -167,16 +167,16 @@
     transition: all var(--motion-duration-core) var(--motion-easing) 0.2s;
 }
 </code></pre>
-<p>Os controles de filtro aparecem 100ms antes das pílulas de tag, criando uma cascata que guia o olhar para baixo naturalmente. Essa expansão respiratória faz com que a interface pareça estar se desdobrando de uma única superfície.</p>
+<p>Os controles de filtro aparecem 100ms antes das pílulas de tag, criando uma cascata que guia o olhar para baixo naturalmente. Essa expansão respiratória faz a interface parecer que está se desdobrando de uma única superfície.</p>
 <h2>Limites Orgânicos</h2>
-<p>Um padrão único que este blog usa: <strong>empurrão de overflow</strong>. Quando uma lista de dropdown se estende além do limite do painel de filtro, o bloco inteiro se expande de sua borda inferior, criando espaço organicamente:</p>
+<p>Um padrão único que este blog usa: <strong>overflow nudging</strong>. Quando uma lista suspensa (dropdown) se estende além do limite do painel de filtro, o bloco inteiro se expande a partir de sua borda inferior, criando espaço organicamente:</p>
 <pre><code class="language-css">.filters.expanded.dropdown-active {
     padding-bottom: 5rem;
 }
 </code></pre>
-<p>JavaScript mede o overflow real do DOM usando <code>getBoundingClientRect()</code> e aplica a classe quando necessário. CSS lida com a expansão suave. O resultado parece que a página está ciente de sua própria geometria e responde fisicamente.</p>
+<p>JavaScript mede o overflow real do DOM usando <code>getBoundingClientRect()</code> e aplica a classe quando necessário. CSS lida com a expansão suave. O resultado faz a página parecer consciente de sua própria geometria e responde fisicamente.</p>
 <h2>Transições de Tema</h2>
-<p>Mudar entre o modo claro e o modo escuro não é apenas uma troca de cor. É uma <strong>mudança atmosférica de iluminação</strong>. A chave é mudar o tema PRIMEIRO, depois habilitar as transições:</p>
+<p>Trocar entre o modo claro e escuro não é apenas uma troca de cores. É uma <strong>mudança atmosférica de iluminação</strong>. A chave é mudar o tema PRIMEIRO, depois habilitar as transições:</p>
 <pre><code class="language-javascript">function applyTheme(theme, animated) {
     if (animated) {
         // Change theme immediately
@@ -200,12 +200,12 @@
                 border-color var(--motion-duration-ripple) var(--motion-easing);
 }
 </code></pre>
-<p>O efeito: a página inteira ondula através de um novo estado de iluminação em 600ms, mantendo a ilusão de uma única superfície contínua. Sem flash, sem estalos abruptos.</p>
+<p>O efeito: a página inteira ondula através de um novo estado de iluminação em 600ms, mantendo a ilusão de uma única superfície contínua. Sem flash, sem quebras abruptas.</p>
 <h2>FLIP: Animando Mudanças de Layout</h2>
-<p>Ao filtrar posts do blog, os cartões precisam se reorganizar suavemente. A <strong>técnica FLIP</strong> (First, Last, Invert, Play) faz com que as mudanças de layout pareçam animadas:</p>
+<p>Ao filtrar posts do blog, os cards precisam se reorganizar suavemente. A <strong>técnica FLIP</strong> (First, Last, Invert, Play) faz com que as mudanças de layout pareçam animadas:</p>
 <p><strong>Coreografia em Duas Fases:</strong><br />
-1.  <strong>Dissolver</strong>: Cartões perdendo relevância desaparecem gradualmente em 500ms<br />
-2.  <strong>Reorganizar</strong>: Cartões restantes deslizam para novas posições usando FLIP</p>
+1.  <strong>Dissolução</strong>: Cards perdendo relevância desaparecem em 500ms<br />
+2.  <strong>Reorganização</strong>: Cards restantes deslizam para novas posições usando FLIP</p>
 <pre><code class="language-javascript">// Phase 1: Capture initial positions
 const initialPositions = new Map();
 cards.forEach(card =&gt; {
@@ -242,21 +242,21 @@ grid.addEventListener('transitionend', () =&gt; {
     will-change: transform;
 }
 </code></pre>
-<p>O resultado: cartões se dissolvem, então a grade se contrai suavemente. Sem saltos bruscos. JavaScript controla o estado; CSS controla os visuais.</p>
+<p>O resultado: os cards se dissolvem, então a grade se contrai suavemente. Sem pulos bruscos. JavaScript controla o estado; CSS controla os visuais.</p>
 <h2>Exemplos Práticos</h2>
-<p>Cada interação neste blog demonstra esses princípios:</p>
+<p>Toda interação neste blog demonstra esses princípios:</p>
 <ul>
-<li><strong>Hover do cartão</strong>: elevação <code>translateY(-2px)</code> com desabrochar de sombra (duração rápida de 300ms)</li>
-<li><strong>Pílulas de tag</strong>: Planos de fundo com gradiente com elevação de 3px, sombras expandindo (duração central de 500ms)</li>
-<li><strong>Desdobramento do Dropdown</strong>: <code>max-height: 0 para 300px</code> com fade de opacidade (500ms)</li>
-<li><strong>Expansão do Filtro</strong>: Revelações escalonadas (atrasos de 100ms, 200ms) com crescimento pela borda inferior</li>
-<li><strong>Morphing de Post</strong>: API View Transitions para transformação de cartão para artigo (500ms)</li>
-<li><strong>Ondulação do Tema</strong>: Todas as propriedades de cor fazem a transição juntas (mudança atmosférica de 600ms)</li>
-<li><strong>Filtragem de Cartão</strong>: Dissolve em duas fases (500ms) e então reorganização FLIP (500ms)</li>
+<li><strong>Hover do Card</strong>: elevação <code>translateY(-2px)</code> com desabrochar de sombra (duração rápida de 300ms)</li>
+<li><strong>Pílulas de Tag</strong>: Fundos gradientes com elevação de 3px, sombras em expansão (duração central de 500ms)</li>
+<li><strong>Desdobramento de Dropdown</strong>: <code>max-height: 0 para 300px</code> com fade de opacidade (500ms)</li>
+<li><strong>Expansão de Filtro</strong>: Revelações escalonadas (atrasos de 100ms, 200ms) com crescimento pela borda inferior</li>
+<li><strong>Morphing de Post</strong>: View Transitions API para transformação de card em artigo (500ms)</li>
+<li><strong>Ondulação de Tema</strong>: Todas as propriedades de cor fazem transição juntas (mudança atmosférica de 600ms)</li>
+<li><strong>Filtragem de Card</strong>: Dissolução em duas fases (500ms) seguida de reorganização FLIP (500ms)</li>
 </ul>
 <p>Cada animação responde: De onde? Para onde? Como se relaciona? Nada aparece ou desaparece sem contexto espacial.</p>
 <h2>Acessibilidade em Primeiro Lugar</h2>
-<p>Sempre respeite as preferências do usuário com a media query prefers-reduced-motion. Alguns usuários acham as animações distrativas ou desorientadoras:</p>
+<p>Sempre respeite as preferências do usuário com a media query prefers-reduced-motion. Alguns usuários acham animações distrativas ou desorientadoras:</p>
 <pre><code class="language-css">@media (prefers-reduced-motion: reduce) {
     * {
         animation-duration: 0.01ms !important;
@@ -266,12 +266,12 @@ grid.addEventListener('transitionend', () =&gt; {
 </code></pre>
 <p>O movimento deve aprimorar, nunca atrapalhar. Quando um usuário sinaliza que precisa de movimento reduzido, honre isso imediatamente.</p>
 <h2>A Conclusão</h2>
-<p>As animações CSS, quando abordadas sistematicamente, criam interfaces que parecem <strong>vivas, mas calmas</strong>. O objetivo não é impressionar com transições chamativas, mas construir confiança através da coerência espacial. O objetivo não era performance, mas deveria também parecer performático devido à ideia por trás das transições: fluidez. Uma transição picotada tira o valor desta interface e, embora pudesse ser implementada em JS puro, eu não sou um bom (nem quero ser) bom programador JS. Usar intensamente os recursos CSS para abstrair a lógica de implementação acelera o desenvolvimento, ao mesmo tempo que entrega as responsabilidades de otimização de performance ao próprio navegador.</p>
-<p>Cada animação neste blog serve à mesma filosofia:<br />
+<p>Animações CSS, quando abordadas sistematicamente, criam interfaces que parecem <strong>vivas, mas calmas</strong>. O objetivo não é impressionar com transições chamativas, mas construir confiança através da coerência espacial. O objetivo não era apenas a performance, mas que também parecesse performático devido à ideia por trás das transições: fluidez. Uma transição picotada tira o brilho desta interface. Embora pudéssemos implementar em JS puro, não sou um bom programador JS (nem quero ser). Usar intensivamente os recursos CSS para abstrair a lógica de implementação acelera o desenvolvimento, ao mesmo tempo em que delega as responsabilidades de otimização de performance ao próprio navegador.</p>
+<p>Toda animação neste blog serve à mesma filosofia:<br />
 -   <strong>Continuidade</strong>: Uma superfície ininterrupta<br />
 -   <strong>Plausibilidade Física</strong>: Movimento que ecoa dinâmicas reais<br />
--   <strong>Energia Calma</strong>: Propositada, nunca agitada</p>
-<p>Use propriedades customizadas CSS para temporização compartilhada. Deixe o navegador lidar com o sequenciamento via eventos transitionend. Aplique will-change apenas durante animações ativas. Sempre pergunte: De onde? Para onde? Como se relaciona?</p>
+-   <strong>Energia Calma</strong>: Intencional, nunca agitada</p>
+<p>Use propriedades personalizadas CSS para temporização compartilhada. Deixe o navegador lidar com o sequenciamento via eventos transitionend. Aplique will-change apenas durante animações ativas. Sempre pergunte: De onde? Para onde? Como se relaciona?</p>
 <p>A interface não performa. Ela responde.</p>
             </div>
         </article>
