@@ -400,18 +400,58 @@ body {
     gap: 1.5rem;
 }
 
+/* ==========================================
+   LOGO - THE SUBMERGED TERMINAL
+   Typography as a window into ocean depth
+   ========================================== */
+
 .logo {
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--color-text);
     text-decoration: none;
     letter-spacing: -0.02em;
-    transition: opacity var(--transition-speed) var(--transition-easing),
-                color var(--motion-duration-ripple) var(--motion-easing);
+    transition: opacity var(--transition-speed) var(--transition-easing);
+    
+    /* The ocean gradient visible through text */
+    background: linear-gradient(
+        135deg,
+        #0d3b4c 0%,      /* Deep ocean */
+        #1a5a5e 20%,     /* Dark teal */
+        #4ecdc4 40%,     /* Moana teal */
+        #2d8a8a 60%,     /* Mid teal */
+        #1a5a5e 80%,     /* Dark teal */
+        #0d3b4c 100%     /* Deep ocean */
+    );
+    background-size: 300% 300%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    
+    /* Slow, calm wave animation */
+    animation: ocean-drift 12s ease-in-out infinite;
+}
+
+/* The wave motion - gentle, not agitated */
+@keyframes ocean-drift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
 }
 
 .logo:hover {
-    opacity: 0.6;
+    opacity: 0.75;
+    animation-duration: 6s; /* Slightly faster on hover, like wind on water */
+}
+
+/* Reduced motion: static but still oceanic */
+@media (prefers-reduced-motion: reduce) {
+    .logo {
+        animation: none;
+        background-position: 50% 50%;
+    }
 }
 
 .nav-links {
