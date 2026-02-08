@@ -295,8 +295,9 @@ LANGUAGES = {
 DEFAULT_LANGUAGE = 'en'
 
 # Site metadata
+SITE_URL = "https://dan.rio"
 SITE_NAME = "dan.rio"
-SITE_DESCRIPTION = "Personal blog by Daniel Cavalli on machine learning, CUDA, distributed training, and engineering."
+SITE_DESCRIPTION = "Daniel Cavalli's blog on machine learning, AI, CUDA optimization, distributed training, and software engineering."
 AUTHOR = "Daniel Cavalli"
 AUTHOR_BIO = "Machine Learning Engineer at Nubank, focused on distributed training and CUDA optimization."
 

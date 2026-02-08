@@ -1,5 +1,5 @@
 ---
-content_hash: 70c89dcd0c2a505f9e26e2573afa862a
+content_hash: 3f92d777acd9145659ff99a93e0886326d873e3cd1b2252f83de878a65a21e79
 created_at: '2025-11-05T02:24:49.357749'
 date: 2025-11-05
 excerpt: A good network shouldn't be noticed nor demand attention, that was the main
@@ -12,7 +12,7 @@ tags:
 - networking
 - unifi
 title: Building a network setup that works for Me
-updated_at: '2025-11-25T22:57:02.818261'
+updated_at: '2026-02-08T01:10:31.293312'
 ---
 
 A good network should not demand attention. That was the guiding principle behind my Home Server build. My goal was clear: a network that is fast, secure and stable without constant tuning. I did not want enterprise complexity or a rack of blinking lights consuming half my shelf space. The hardware should be affordable, reliable, compact and pleasant to look at. An impossible task, or so it seemed.

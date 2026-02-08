@@ -131,83 +131,20 @@
         }
     }
     
-    /* POST CARDS: Morphing choreography for all cards
-       The clicked card expands into article, others fade elegantly */
-    ::view-transition-group(post-container-1),
-    ::view-transition-group(post-container-2),
-    ::view-transition-group(post-container-3),
-    ::view-transition-group(post-container-4),
-    ::view-transition-group(post-container-5),
-    ::view-transition-group(post-container-6),
-    ::view-transition-group(post-container-7),
-    ::view-transition-group(post-container-8) {
-        animation-duration: var(--motion-duration-core);
-        animation-timing-function: var(--motion-easing);
-    }
+    /* POST CARDS: Morphing choreography using view-transition-class (Chromium 125+)
+       The clicked card expands into article, others fade elegantly.
+       Uses view-transition-class for scalable selectors — no per-post hardcoding needed. */
     
     /* Old state: cards on index fade out, active one morphs to article */
-    ::view-transition-old(post-container-1),
-    ::view-transition-old(post-container-2),
-    ::view-transition-old(post-container-3),
-    ::view-transition-old(post-container-4),
-    ::view-transition-old(post-container-5),
-    ::view-transition-old(post-container-6),
-    ::view-transition-old(post-container-7),
-    ::view-transition-old(post-container-8) {
+    ::view-transition-old(*.post-morph) {
         animation: fade-out-smooth var(--motion-duration-core) var(--motion-easing);
         animation-fill-mode: both; /* Maintain animation state before and after */
     }
     
     /* New state: article morphs back to card, other cards fade in */
-    ::view-transition-new(post-container-1),
-    ::view-transition-new(post-container-2),
-    ::view-transition-new(post-container-3),
-    ::view-transition-new(post-container-4),
-    ::view-transition-new(post-container-5),
-    ::view-transition-new(post-container-6),
-    ::view-transition-new(post-container-7),
-    ::view-transition-new(post-container-8) {
+    ::view-transition-new(*.post-morph) {
         animation: fade-in-smooth var(--motion-duration-core) var(--motion-easing);
         animation-fill-mode: both; /* Start invisible, end visible */
-    }
-    
-    /* Title morphs smoothly - text flowing between contexts */
-    ::view-transition-group(post-title-1),
-    ::view-transition-group(post-title-2),
-    ::view-transition-group(post-title-3),
-    ::view-transition-group(post-title-4),
-    ::view-transition-group(post-title-5),
-    ::view-transition-group(post-title-6),
-    ::view-transition-group(post-title-7),
-    ::view-transition-group(post-title-8) {
-        animation-duration: var(--motion-duration-core);
-        animation-timing-function: var(--motion-easing);
-    }
-    
-    /* Date anchors and morphs */
-    ::view-transition-group(post-date-1),
-    ::view-transition-group(post-date-2),
-    ::view-transition-group(post-date-3),
-    ::view-transition-group(post-date-4),
-    ::view-transition-group(post-date-5),
-    ::view-transition-group(post-date-6),
-    ::view-transition-group(post-date-7),
-    ::view-transition-group(post-date-8) {
-        animation-duration: var(--motion-duration-core);
-        animation-timing-function: var(--motion-easing);
-    }
-    
-    /* Excerpt fades as it transforms to/from article lead */
-    ::view-transition-group(post-excerpt-1),
-    ::view-transition-group(post-excerpt-2),
-    ::view-transition-group(post-excerpt-3),
-    ::view-transition-group(post-excerpt-4),
-    ::view-transition-group(post-excerpt-5),
-    ::view-transition-group(post-excerpt-6),
-    ::view-transition-group(post-excerpt-7),
-    ::view-transition-group(post-excerpt-8) {
-        animation-duration: var(--motion-duration-core);
-        animation-timing-function: var(--motion-easing);
     }
     
     /* Smooth cross-fade animations for different font sizes */
@@ -227,6 +164,41 @@
         to {
             opacity: 1;
         }
+    }
+    
+    /* ABOUT & CV PAGES: Smooth cross-fade for language switches
+       Title stays anchored (morphs in place), body cross-fades content */
+    ::view-transition-old(about-content),
+    ::view-transition-old(cv-content) {
+        animation: fade-out-smooth var(--motion-duration-core) var(--motion-easing);
+        animation-fill-mode: both;
+    }
+    
+    ::view-transition-new(about-content),
+    ::view-transition-new(cv-content) {
+        animation: fade-in-smooth var(--motion-duration-core) var(--motion-easing);
+        animation-fill-mode: both;
+    }
+    
+    /* Titles morph in place (position + size interpolation by the API) */
+    ::view-transition-group(about-title),
+    ::view-transition-group(cv-title) {
+        animation-duration: var(--motion-duration-core);
+        animation-timing-function: var(--motion-easing);
+    }
+    
+    /* Body content cross-fades gracefully */
+    ::view-transition-old(about-body),
+    ::view-transition-old(cv-body) {
+        animation: fade-out-smooth var(--motion-duration-quick) var(--motion-easing);
+        animation-fill-mode: both;
+    }
+    
+    ::view-transition-new(about-body),
+    ::view-transition-new(cv-body) {
+        animation: fade-in-smooth var(--motion-duration-quick) var(--motion-easing);
+        animation-delay: calc(var(--motion-duration-quick) * 0.4);
+        animation-fill-mode: both;
     }
 }
 
@@ -918,6 +890,7 @@ body {
 /* Cards start visible for View Transitions, animate on initial load */
 .post-card {
     opacity: 1;
+    view-transition-class: post-morph;
 }
 
 /* Initial page load stagger - only when NOT in a view transition */
@@ -1157,17 +1130,21 @@ body {
 /* Skip to main content link */
 .skip-link {
     position: absolute;
-    top: -40px;
     left: 0;
     background: var(--color-text);
     color: var(--color-bg);
     padding: var(--space-md) var(--space-lg);
     text-decoration: none;
     z-index: 100;
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
 }
 
 .skip-link:focus {
-    top: 0;
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1511,6 +1488,7 @@ button:focus-visible {
    JavaScript only toggles display/hidden state, CSS handles the motion */
 .post-card {
     opacity: 1;
+    transform: scale(1) translateY(0);
     transition: opacity var(--motion-duration-core) var(--motion-easing),
                 transform var(--motion-duration-core) var(--motion-easing);
 }
@@ -1526,13 +1504,34 @@ button:focus-visible {
     transform: translate(var(--flip-x, 0), var(--flip-y, 0));
 }
 
-/* Cards being filtered out - fade elegantly */
+/* Cards being filtered out - dissolve with scale + fade */
 .post-card.filtering-out {
     opacity: 0;
+    transform: scale(0.95) translateY(8px);
+    transition: opacity 350ms cubic-bezier(0.4, 0, 1, 1),
+                transform 350ms cubic-bezier(0.4, 0, 1, 1);
+    pointer-events: none;
 }
 
+/* Cards removed from layout flow */
 .post-card.filtered-out {
     display: none;
+}
+
+/* Cards being revealed - grow into place */
+.post-card.filtering-in {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+    transition: none;
+    pointer-events: none;
+}
+
+.post-card.filtering-in.filtering-in-active {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    transition: opacity 400ms cubic-bezier(0, 0, 0.2, 1),
+                transform 400ms cubic-bezier(0, 0, 0.2, 1);
+    pointer-events: auto;
 }
 
 .post-card[hidden] {

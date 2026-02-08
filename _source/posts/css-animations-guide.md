@@ -1,5 +1,5 @@
 ---
-content_hash: a2c222c7776931084d1f1860671c6e97
+content_hash: 97a1e395074ae4b664741b86859aae854ada478cda24146668b790ff9ed4210d
 created_at: '2025-10-24T00:49:34.910255'
 date: 2025-10-23
 excerpt: Creating smooth, performant animations using only CSS. A deep dive into building
@@ -12,7 +12,7 @@ tags:
 - animations
 - performance
 title: The Art of CSS Animations
-updated_at: '2025-11-25T23:01:33.869239'
+updated_at: '2026-02-08T01:10:31.322071'
 ---
 
 ## Why CSS Animations?

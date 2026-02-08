@@ -1,5 +1,5 @@
 ---
-content_hash: 06bf0df79f32f3b9c04615620eda4f94
+content_hash: 5c656e152a30f2d7e3752b6b82af0ad29c8e761768cac4af36ba37a55247faa1
 created_at: '2025-10-25T14:30:24.827911'
 date: 2025-01-24
 excerpt: 'How this blog works: Python static generation, automatic Gemini translation,
@@ -11,7 +11,7 @@ tags:
 - Gemini AI
 - Static Sites
 title: Building a Bilingual Blog with View Transitions
-updated_at: '2025-11-25T22:57:53.024858'
+updated_at: '2026-02-08T01:10:31.306014'
 ---
 
 This blog is a platform built with Python static site generation, automatic translation via Gemini AI and seamless page transitions using the View Transitions API. No frameworks, no heavy dependencies. Just native web standards doing real work. The architecture is simple enough to understand in an afternoon, powerful enough to feel continuous in use and small enough to maintain alone.

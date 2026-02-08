@@ -806,6 +806,256 @@ P4:
         
         return result
     
+    def translate_cv(self, cv_data: Dict, force: bool = False) -> Optional[Dict]:
+        """Translate CV content to Brazilian Portuguese.
+        
+        Translates the prose content of the CV (summary, descriptions,
+        achievements, education degrees, languages spoken) while keeping
+        technical terms, company names, skills, and contact info unchanged.
+        
+        Args:
+            cv_data (Dict): Parsed CV data from parse_cv_reference().
+            force (bool): If True, bypasses cache and forces new translation.
+        
+        Returns:
+            Optional[Dict]: Translated CV data dict with same structure as input.
+                           None if translation fails.
+        """
+        content = json.dumps(cv_data, sort_keys=True)
+        content_hash = self._calculate_hash(content)
+        slug = 'cv-page'
+        
+        if not force:
+            cached = self.cache.get_translation(slug, content_hash)
+            if cached:
+                # Validate cached data has the expected structure
+                if cached.get('summary') and cached.get('experience'):
+                    print(f"   Content unchanged: CV")
+                    return cached
+                else:
+                    print(f"   Cached CV has incomplete data, retranslating")
+                    force = True
+        
+        print(f"   Translating: CV")
+        
+        # Build experience block for the prompt
+        experience_block = ""
+        for i, exp in enumerate(cv_data.get('experience', []), 1):
+            achievements_text = ""
+            if exp.get('achievements'):
+                achievements_text = "\n".join(f"  - {a}" for a in exp['achievements'])
+                achievements_text = f"\n  Achievements:\n{achievements_text}"
+            experience_block += f"""
+EXP_{i}:
+  Company: {exp.get('company', '')}
+  Title: {exp.get('title', '')}
+  Period: {exp.get('period', '')}
+  Location: {exp.get('location', '')}
+  Description: {exp.get('description', '')}{achievements_text}
+"""
+        
+        # Build education block
+        education_block = ""
+        for i, edu in enumerate(cv_data.get('education', []), 1):
+            education_block += f"""
+EDU_{i}:
+  Degree: {edu.get('degree', '')}
+  School: {edu.get('school', '')}
+  Period: {edu.get('period', '')}
+"""
+        
+        # Build languages block
+        languages_block = "\n".join(cv_data.get('languages_spoken', []))
+        
+        prompt = f"""Translate this CV/resume content to natural Brazilian Portuguese.
+
+RULES:
+- CRITICAL: Maintain FIRST-PERSON voice throughout. The author is describing their own work.
+  English CVs often use implicit first-person ("Led the team", "Built pipelines").
+  In Portuguese, use explicit first-person: "Liderei a equipe", "Construí pipelines".
+  NEVER use third-person ("Liderou", "Construiu") — this is MY resume, not someone else describing me.
+- Keep company names (Nubank, PicPay, M4U, Oi S.A, frete.com, etc.) EXACTLY as they are
+- Keep technical terms (MLOps, CUDA, GPU, AWS, SageMaker, Kubeflow, Dagster, etc.) in English
+- Keep job titles in English (Machine Learning Engineer, Senior Machine Learning Engineer, etc.)
+- Keep proper nouns and product names unchanged
+- Keep date periods EXACTLY as they are (e.g. "September 2023 - Present")
+- Keep location names unchanged
+- Keep school names unchanged
+- Translate descriptions, achievements, and summary to natural Brazilian Portuguese
+- Translate degree names to Portuguese
+- Translate language proficiency descriptions to Portuguese
+- Do NOT add explanations or extra text
+- Output ONLY the sections below in the exact format specified
+
+INPUT:
+
+TAGLINE: {cv_data.get('tagline', '')}
+
+SUMMARY: {cv_data.get('summary', '')}
+
+EXPERIENCE:
+{experience_block}
+
+EDUCATION:
+{education_block}
+
+LANGUAGES_SPOKEN:
+{languages_block}
+
+OUTPUT FORMAT (provide ONLY these sections, keep the exact labels):
+
+TAGLINE:
+[translated tagline]
+
+SUMMARY:
+[translated summary]
+
+{self._build_cv_output_format(cv_data)}"""
+        
+        response_text = self._call_api(prompt)
+        if not response_text:
+            return None
+        
+        translated = self._parse_cv_response(response_text, cv_data)
+        
+        # Post-process to remove backticks
+        for key in ['tagline', 'summary']:
+            if translated.get(key):
+                translated[key] = self._clean_backticks_from_text(translated[key])
+        for exp in translated.get('experience', []):
+            if exp.get('description'):
+                exp['description'] = self._clean_backticks_from_text(exp['description'])
+            exp['achievements'] = [
+                self._clean_backticks_from_text(a) for a in exp.get('achievements', [])
+            ]
+        
+        self.cache.store_translation(slug, content_hash, translated)
+        return translated
+    
+    def _build_cv_output_format(self, cv_data: Dict) -> str:
+        """Build the expected output format section of the CV translation prompt.
+        
+        Args:
+            cv_data (Dict): Original CV data to determine number of entries.
+        
+        Returns:
+            str: Prompt section describing expected output format.
+        """
+        lines = []
+        for i, exp in enumerate(cv_data.get('experience', []), 1):
+            ach_lines = ""
+            if exp.get('achievements'):
+                ach_lines = "\n".join(f"  - [translated achievement]" for _ in exp['achievements'])
+                ach_lines = f"\n  Achievements:\n{ach_lines}"
+            lines.append(f"""EXP_{i}:
+  Description: [translated description]{ach_lines}
+""")
+        
+        for i in range(1, len(cv_data.get('education', [])) + 1):
+            lines.append(f"""EDU_{i}:
+  Degree: [translated degree]
+""")
+        
+        lines.append("""LANGUAGES_SPOKEN:
+[translated language 1]
+[translated language 2]
+...""")
+        
+        return "\n".join(lines)
+    
+    def _parse_cv_response(self, response: str, original: Dict) -> Dict:
+        """Parse CV translation response into structured data.
+        
+        Extracts translated fields from the structured API response and
+        merges them back into the original CV data structure, preserving
+        all untranslated fields (names, dates, contacts, skills).
+        
+        Args:
+            response (str): API response with labeled sections.
+            original (Dict): Original CV data for fallback/untranslated fields.
+        
+        Returns:
+            Dict: Complete translated CV data with same structure as input.
+        """
+        import re as re_mod
+        
+        result = {
+            'name': original.get('name', ''),
+            'tagline': original.get('tagline', ''),
+            'location': original.get('location', ''),
+            'contact': original.get('contact', {}),
+            'skills': original.get('skills', []),
+            'languages_spoken': list(original.get('languages_spoken', [])),
+            'summary': original.get('summary', ''),
+            'experience': [dict(exp) for exp in original.get('experience', [])],
+            'education': [dict(edu) for edu in original.get('education', [])],
+        }
+        
+        lines = response.strip().split('\n')
+        
+        # Extract TAGLINE
+        tagline_match = re_mod.search(r'TAGLINE:\s*\n(.+)', response)
+        if tagline_match:
+            result['tagline'] = tagline_match.group(1).strip()
+        
+        # Extract SUMMARY (everything between SUMMARY: and next top-level section)
+        summary_match = re_mod.search(
+            r'SUMMARY:\s*\n(.*?)(?=\nEXP_1:|$)', response, re_mod.DOTALL
+        )
+        if summary_match:
+            result['summary'] = summary_match.group(1).strip()
+        
+        # Extract each EXP_N block
+        for i in range(len(result['experience'])):
+            exp_num = i + 1
+            next_section = f'EXP_{exp_num + 1}:' if exp_num < len(result['experience']) else f'EDU_1:'
+            pattern = rf'EXP_{exp_num}:\s*\n(.*?)(?=\n{re_mod.escape(next_section)}|$)'
+            exp_match = re_mod.search(pattern, response, re_mod.DOTALL)
+            
+            if exp_match:
+                exp_block = exp_match.group(1)
+                
+                # Extract description
+                desc_match = re_mod.search(r'Description:\s*(.+?)(?=\n\s*Achievements:|$)', exp_block, re_mod.DOTALL)
+                if desc_match:
+                    result['experience'][i]['description'] = desc_match.group(1).strip()
+                
+                # Extract achievements
+                ach_match = re_mod.search(r'Achievements:\s*\n(.*)', exp_block, re_mod.DOTALL)
+                if ach_match:
+                    ach_text = ach_match.group(1)
+                    achievements = []
+                    for line in ach_text.split('\n'):
+                        line = line.strip()
+                        if line.startswith('- '):
+                            achievements.append(line[2:].strip())
+                        elif line.startswith('* '):
+                            achievements.append(line[2:].strip())
+                    if achievements:
+                        result['experience'][i]['achievements'] = achievements
+        
+        # Extract education degrees
+        for i in range(len(result['education'])):
+            edu_num = i + 1
+            next_section = f'EDU_{edu_num + 1}:' if edu_num < len(result['education']) else 'LANGUAGES_SPOKEN:'
+            pattern = rf'EDU_{edu_num}:\s*\n(.*?)(?=\n{re_mod.escape(next_section)}|$)'
+            edu_match = re_mod.search(pattern, response, re_mod.DOTALL)
+            
+            if edu_match:
+                edu_block = edu_match.group(1)
+                degree_match = re_mod.search(r'Degree:\s*(.+)', edu_block)
+                if degree_match:
+                    result['education'][i]['degree'] = degree_match.group(1).strip()
+        
+        # Extract translated languages spoken
+        lang_match = re_mod.search(r'LANGUAGES_SPOKEN:\s*\n(.*)', response, re_mod.DOTALL)
+        if lang_match:
+            lang_lines = [l.strip() for l in lang_match.group(1).strip().split('\n') if l.strip()]
+            if lang_lines:
+                result['languages_spoken'] = lang_lines
+        
+        return result
+
     def translate_if_needed(self, post: Dict, target_lang: str = 'pt') -> Optional[Dict]:
         """Translate complete post - returns translated post with Portuguese content"""
         if target_lang != 'pt':

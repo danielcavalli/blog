@@ -264,11 +264,12 @@
         });
 
         /**
-         * Filter posts with two-phase choreography: dissolve, then reorganize
+         * Filter posts with three-phase choreography: dissolve → reorganize → reveal
          * 
          * Phase 1 (Dissolve):
          * - Identifies non-matching cards based on activeFilters state
-         * - Applies 'filtering-out' class to trigger fade-out CSS transition (400ms)
+         * - Applies 'filtering-out' class to trigger scale-down + fade CSS transition (350ms)
+         * - Identifies cards transitioning from hidden to visible for later reveal
          * - Listens for transitionend event to detect when dissolve completes
          * 
          * Phase 2 (Reorganize):
@@ -279,11 +280,16 @@
          *   3. Invert: Apply inverse transform (--flip-x, --flip-y) to freeze cards at initial positions
          *   4. Play: Animate transforms to (0, 0) to slide cards to final positions (500ms)
          * 
+         * Phase 3 (Reveal):
+         * - Newly-visible cards enter with staggered scale-up + fade-in (400ms each, 60ms stagger)
+         * - Reveal begins 150ms into FLIP animation for overlap, or immediately if no FLIP
+         * 
          * Side Effects:
          * - Updates clear button visibility based on activeFilters state
-         * - Modifies card classes: filtering-out, filtered-out, flip-measuring, flip-animating
+         * - Modifies card classes: filtering-out, filtered-out, filtering-in, filtering-in-active,
+         *   flip-measuring, flip-animating
          * - Sets CSS custom properties: --flip-x, --flip-y
-         * - Cleans up FLIP classes and properties after animation completes
+         * - Cleans up all animation classes and properties after completion
          * 
          * Performance Notes:
          * - Uses requestAnimationFrame for browser-driven timing
@@ -305,6 +311,7 @@
             });
 
             const cardsToHide = [];
+            const cardsToReveal = [];
 
             // Phase 1: Identify and start dissolving non-matching cards
             requestAnimationFrame(() => {
@@ -322,12 +329,19 @@
                     const shouldShow = yearMatch && monthMatch && tagsMatch;
 
                     if (shouldShow) {
-                        // Card should be visible - ensure it's not in filtering state
+                        const wasHidden = card.classList.contains('filtered-out') || card.classList.contains('filtering-out');
                         card.classList.remove('filtering-out', 'filtered-out');
+                        if (wasHidden) {
+                            // Card is being revealed — stage it for animated entrance
+                            card.classList.add('filtering-in');
+                            cardsToReveal.push(card);
+                        }
                     } else {
-                        // Card doesn't match - begin dissolve (Phase 1)
-                        card.classList.add('filtering-out');
-                        cardsToHide.push(card);
+                        if (!card.classList.contains('filtered-out')) {
+                            // Card doesn't match — begin dissolve (Phase 1)
+                            card.classList.add('filtering-out');
+                            cardsToHide.push(card);
+                        }
                     }
                 });
 
@@ -348,38 +362,25 @@
                         const grid = document.querySelector('.posts-grid');
                         grid.removeEventListener('transitionend', handleDissolveComplete);
 
-                        performReorganization();
+                        performReorganization(cardsToReveal);
                     };
 
                     const grid = document.querySelector('.posts-grid');
                     grid.addEventListener('transitionend', handleDissolveComplete);
                 } else {
                     // No cards to hide OR animations disabled - reorganize immediately
-                    performReorganization();
+                    performReorganization(cardsToReveal);
                 }
             });
 
             /**
-             * Perform spatial reorganization of visible cards using FLIP technique
+             * Perform spatial reorganization of visible cards using FLIP technique,
+             * then reveal any newly-visible cards with staggered animation.
              * 
-             * Called after Phase 1 dissolve completes. Applies 'filtered-out' class to dissolved cards,
-             * waits for layout to settle, then animates remaining cards to their new grid positions.
-             * 
-             * FLIP Steps:
-             * 1. Last: Capture final positions after layout change
-             * 2. Invert: Calculate deltas and apply inverse transforms to freeze cards at initial positions
-             * 3. Play: Animate transforms to (0, 0) over 500ms to slide cards to final positions
-             * 
-             * Side Effects:
-             * - Adds 'filtered-out' class to cards with 'filtering-out' class
-             * - Adds 'flip-measuring' class during transform application (disables transitions)
-             * - Adds 'flip-animating' class during animation (enables transitions)
-             * - Sets --flip-x and --flip-y custom properties
-             * - Cleans up classes and properties after 500ms
-             * 
+             * @param {Element[]} revealCards - Cards to animate into view after reorganization
              * @returns {void}
              */
-            function performReorganization() {
+            function performReorganization(revealCards) {
                 // Re-query current cards for reorganization
                 const currentCards = document.querySelectorAll('.post-card');
                 
@@ -402,8 +403,9 @@
                     });
 
                     // Calculate deltas and apply inverse transforms (FLIP: Invert)
+                    let hasFlipAnimations = false;
                     currentCards.forEach(card => {
-                        if (!card.classList.contains('filtered-out')) {
+                        if (!card.classList.contains('filtered-out') && !card.classList.contains('filtering-in')) {
                             const initial = initialPositions.get(card);
                             const final = finalPositions.get(card);
                             
@@ -413,6 +415,7 @@
                                 
                                 // Only animate if position actually changed
                                 if (Math.abs(deltaY) > 1 || Math.abs(deltaX) > 1) {
+                                    hasFlipAnimations = true;
                                     // Freeze transitions to set initial position (FLIP: Invert)
                                     card.classList.add('flip-measuring');
                                     card.style.setProperty('--flip-x', `${deltaX}px`);
@@ -435,22 +438,47 @@
                         }
                     });
 
+                    // Reveal cards with staggered entrance after FLIP settles
+                    const flipDuration = hasFlipAnimations ? 500 : 0;
+                    const revealDelay = Math.min(flipDuration, 150); // Start reveal slightly into FLIP
+
+                    if (revealCards.length > 0) {
+                        setTimeout(() => {
+                            revealCards.forEach((card, i) => {
+                                // Stagger each card's entrance by 60ms
+                                setTimeout(() => {
+                                    requestAnimationFrame(() => {
+                                        card.classList.add('filtering-in-active');
+                                    });
+                                }, i * 60);
+                            });
+
+                            // Clean up filtering-in classes after all reveals complete
+                            const totalRevealTime = 400 + (revealCards.length * 60);
+                            setTimeout(() => {
+                                requestAnimationFrame(() => {
+                                    revealCards.forEach(card => {
+                                        card.classList.remove('filtering-in', 'filtering-in-active');
+                                    });
+                                });
+                            }, totalRevealTime);
+                        }, revealDelay);
+                    }
+
                     // Clean up FLIP classes after animation completes
-                    // Use double RAF + class removal strategy to prevent flicker
-                    setTimeout(() => {
-                        requestAnimationFrame(() => {
+                    if (hasFlipAnimations) {
+                        setTimeout(() => {
                             requestAnimationFrame(() => {
-                                currentCards.forEach(card => {
-                                    // Remove the class first to prevent CSS transitions from firing
-                                    card.classList.remove('flip-animating');
-                                    // Then clean up custom properties and inline styles
-                                    // These no longer trigger transitions since flip-animating is removed
-                                    card.style.removeProperty('--flip-x');
-                                    card.style.removeProperty('--flip-y');
+                                requestAnimationFrame(() => {
+                                    currentCards.forEach(card => {
+                                        card.classList.remove('flip-animating');
+                                        card.style.removeProperty('--flip-x');
+                                        card.style.removeProperty('--flip-y');
+                                    });
                                 });
                             });
-                        });
-                    }, 500); // Match motion-duration-core
+                        }, 500); // Match motion-duration-core
+                    }
                 });
             }
 

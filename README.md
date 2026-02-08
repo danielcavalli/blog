@@ -41,8 +41,7 @@ blog/
 │   └── images/       # Images
 ├── en/               # Generated English site
 ├── pt/               # Generated Portuguese site
-├── index.html        # Root redirect
-└── landing.html      # Landing page
+└── index.html        # Landing page (served at dan.rio/)
 ```
 
 ## Quick Start

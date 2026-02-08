@@ -12,8 +12,14 @@ from pathlib import Path
 from datetime import datetime
 import markdown
 import frontmatter
-from config import BASE_PATH, SITE_NAME, SITE_DESCRIPTION, AUTHOR_BIO, LANGUAGES, DEFAULT_LANGUAGE
+from config import BASE_PATH, SITE_URL, SITE_NAME, SITE_DESCRIPTION, AUTHOR, AUTHOR_BIO, LANGUAGES, DEFAULT_LANGUAGE, SOCIAL_LINKS
 from translator import MultiAgentTranslator
+
+# Build version for cache-busting (generated once per build)
+BUILD_VERSION = datetime.now().strftime('%Y%m%d%H%M%S')
+
+# Current year for copyright
+CURRENT_YEAR = datetime.now().year
 
 # Project structure paths
 PROJECT_ROOT = Path(__file__).parent.parent  # Go up from _source to project root
@@ -43,18 +49,18 @@ for lang_dir in LANG_DIRS.values():
 
 
 def calculate_content_hash(content):
-    """Calculate MD5 hash of content for change detection.
+    """Calculate SHA-256 hash of content for change detection.
     
-    Used to determine if post content has changed since last build,
-    enabling incremental rebuilds and cache invalidation.
+    Uses SHA-256 to match the translator's hashing algorithm,
+    enabling consistent cache invalidation across the pipeline.
     
     Args:
         content (str): Post content to hash.
     
     Returns:
-        str: MD5 hexadecimal digest string.
+        str: SHA-256 hexadecimal digest string.
     """
-    return hashlib.md5(content.encode('utf-8')).hexdigest()
+    return hashlib.sha256(content.encode('utf-8')).hexdigest()
 
 
 def calculate_reading_time(content):
@@ -89,7 +95,7 @@ def format_date(date_str):
     try:
         date = datetime.strptime(str(date_str), "%Y-%m-%d")
         return date.strftime("%B %d, %Y")
-    except:
+    except (ValueError, TypeError):
         return str(date_str)
 
 
@@ -108,7 +114,7 @@ def format_iso_date(iso_str):
     try:
         dt = datetime.fromisoformat(iso_str)
         return dt.strftime("%B %d, %Y")
-    except:
+    except (ValueError, TypeError):
         return str(iso_str)
 
 
@@ -120,6 +126,225 @@ def get_lang_path(lang: str, path: str = '') -> str:
     else:
         # Portuguese at /pt/
         return f"{BASE_PATH}/pt/{path}" if path else f"{BASE_PATH}/pt"
+
+
+# ============================================================
+# Shared HTML Template Helpers
+# ============================================================
+
+def render_theme_toggle_svg():
+    """Render the sun/moon SVG icons used by all theme toggle buttons.
+    
+    Returns:
+        str: SVG HTML for sun and moon icons.
+    """
+    return """<svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>"""
+
+
+def render_skip_link():
+    """Render skip-to-content accessibility link.
+    
+    Returns:
+        str: HTML for skip navigation link.
+    """
+    return '<a href="#main-content" class="skip-link">Skip to content</a>'
+
+
+def render_nav(lang, active_page, lang_toggle_html):
+    """Render the site navigation bar shared across all pages.
+    
+    Args:
+        lang (str): Current language code ('en' or 'pt').
+        active_page (str): Which nav item is active ('blog', 'about', 'cv').
+        lang_toggle_html (str): Pre-rendered language toggle HTML.
+    
+    Returns:
+        str: Complete <nav> HTML element.
+    """
+    ui = LANGUAGES[lang]['ui']
+    
+    blog_class = ' class="active"' if active_page == 'blog' else ''
+    about_class = ' class="active"' if active_page == 'about' else ''
+    cv_class = ' class="active"' if active_page == 'cv' else ''
+    
+    return f"""<nav class="nav" style="view-transition-name: site-nav;">
+        <div class="nav-container">
+            <a href="{get_lang_path(lang, 'index.html')}" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="{get_lang_path(lang, 'index.html')}"{blog_class} style="view-transition-name: nav-blog;">{ui['blog']}</a></li>
+                    <li><a href="{get_lang_path(lang, 'about.html')}"{about_class} style="view-transition-name: nav-about;">{ui['about']}</a></li>
+                    <li><a href="{get_lang_path(lang, 'cv.html')}"{cv_class} style="view-transition-name: nav-cv;">{ui['cv']}</a></li>
+                </ul>
+                <div style="view-transition-name: lang-toggle;">{lang_toggle_html}</div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
+                    {render_theme_toggle_svg()}
+                </button>
+            </div>
+        </div>
+    </nav>"""
+
+
+def render_footer():
+    """Render the site footer shared across all pages.
+    
+    Uses SOCIAL_LINKS from config and dynamic CURRENT_YEAR for copyright.
+    
+    Returns:
+        str: Complete <footer> HTML element.
+    """
+    return f"""<footer class="footer" style="view-transition-name: site-footer;">
+        <div class="footer-container">
+            <div class="social-links">
+                <a href="{SOCIAL_LINKS['twitter']}" target="_blank" rel="noopener" aria-label="Twitter">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </a>
+                <a href="{SOCIAL_LINKS['github']}" target="_blank" rel="noopener" aria-label="GitHub">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+                <a href="{SOCIAL_LINKS['linkedin']}" target="_blank" rel="noopener" aria-label="LinkedIn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                </a>
+            </div>
+            <p class="copyright">&copy; {CURRENT_YEAR} All Rights Reserved.</p>
+        </div>
+    </footer>"""
+
+
+def render_person_jsonld():
+    """Return a reusable Person JSON-LD dict for the site author.
+    
+    Used as the author reference in BlogPosting, WebSite, and standalone
+    Person schema. Links social profiles via sameAs for entity disambiguation.
+    
+    Returns:
+        dict: JSON-LD Person object.
+    """
+    return {
+        "@type": "Person",
+        "name": AUTHOR,
+        "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"],
+        "url": f"{SITE_URL}/",
+        "jobTitle": "Machine Learning Engineer",
+        "worksFor": {
+            "@type": "Organization",
+            "name": "Nubank"
+        },
+        "sameAs": [
+            SOCIAL_LINKS.get("github", ""),
+            SOCIAL_LINKS.get("linkedin", ""),
+            SOCIAL_LINKS.get("twitter", ""),
+        ],
+        "knowsAbout": [
+            "Machine Learning", "Artificial Intelligence", "CUDA",
+            "Distributed Training", "MLOps", "Software Engineering",
+            "Deep Learning", "Python"
+        ]
+    }
+
+
+def render_jsonld_script(data):
+    """Serialize a JSON-LD object into a <script> tag.
+    
+    Args:
+        data: dict or list of dicts to serialize.
+    
+    Returns:
+        str: <script type="application/ld+json"> HTML element.
+    """
+    return f'<script type="application/ld+json">{json.dumps(data, ensure_ascii=False)}</script>'
+
+
+def render_head(title, description, lang, current_url, other_lang=None, other_url=None,
+                extra_meta='', stylesheets=None, scripts_head=None, scripts_defer=None):
+    """Render the <head> section shared across all pages.
+    
+    Args:
+        title (str): Page title for <title> tag.
+        description (str): Meta description content.
+        lang (str): Current language code.
+        current_url (str): Canonical URL for this page.
+        other_lang (str, optional): Alternate language code.
+        other_url (str, optional): Alternate language URL.
+        extra_meta (str): Additional meta tags (Open Graph, etc.).
+        stylesheets (list, optional): CSS file paths to include.
+        scripts_head (list, optional): JS files to load in head (blocking).
+        scripts_defer (list, optional): JS files to load deferred.
+    
+    Returns:
+        str: Complete <head> HTML element.
+    """
+    if stylesheets is None:
+        stylesheets = [f'{BASE_PATH}/static/css/styles.css']
+    if scripts_head is None:
+        scripts_head = [f'{BASE_PATH}/static/js/theme.js']
+    if scripts_defer is None:
+        scripts_defer = [f'{BASE_PATH}/static/js/transitions.js']
+    
+    # Build versioned stylesheet links
+    css_links = '\n    '.join(
+        f'<link rel="stylesheet" href="{css}?v={BUILD_VERSION}">'
+        for css in stylesheets
+    )
+    
+    # Build script tags (head scripts get preloaded + loaded, defer scripts get deferred)
+    head_script_tags = '\n    '.join(
+        f'<link rel="preload" href="{js}?v={BUILD_VERSION}" as="script">\n    <script src="{js}?v={BUILD_VERSION}"></script>'
+        for js in scripts_head
+    )
+    
+    defer_script_tags = '\n    '.join(
+        f'<script src="{js}?v={BUILD_VERSION}" defer></script>'
+        for js in scripts_defer
+    )
+    
+    # Language alternate links (includes x-default for language-neutral fallback)
+    lang_alternates = ''
+    if other_lang and other_url:
+        lang_alternates = f"""
+    <link rel="alternate" hreflang="x-default" href="{SITE_URL}/">
+    <link rel="alternate" hreflang="{lang}" href="{current_url}">
+    <link rel="alternate" hreflang="{other_lang}" href="{other_url}">"""
+    
+    return f"""<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <meta name="description" content="{description}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{current_url}">
+    
+    {extra_meta}
+    
+    <!-- Additional SEO -->
+    <meta name="author" content="{AUTHOR}">
+    <meta name="robots" content="index, follow">
+    {lang_alternates}
+    
+    {css_links}
+    {head_script_tags}
+    {defer_script_tags}
+</head>"""
 
 
 def parse_cv_reference():
@@ -412,7 +637,6 @@ def generate_post_html(post, post_number, lang='en'):
         str: Complete HTML document for the post.
     """
     # Generate language-specific paths
-    lang_dir = LANGUAGES[lang]['dir']
     current_page = f"blog/{post['slug']}.html"
     lang_toggle_html = generate_lang_toggle_html(lang, current_page)
     
@@ -428,92 +652,80 @@ def generate_post_html(post, post_number, lang='en'):
     
     last_updated_html = ''
     if updated_date and created_date and updated_date != created_date:
-        # Parse the ISO datetime and format with date and time
         updated_dt = datetime.fromisoformat(updated_date)
         updated_formatted = updated_dt.strftime('%B %d, %Y at %I:%M %p')
         last_updated_html = f'<div class="last-updated">Last updated: {updated_formatted}</div>'
     
-    # Get alternate language info for hreflang
+    # SEO URLs
     other_lang = get_alternate_lang(lang)
-    other_lang_path = f"https://dan.rio/{other_lang}/blog/{post['slug']}.html"
-    current_url = f"https://dan.rio/{lang}/blog/{post['slug']}.html"
-    
-    # Generate excerpt for meta description (strip HTML, limit length)
+    other_url = f"{SITE_URL}/{other_lang}/blog/{post['slug']}.html"
+    current_url = f"{SITE_URL}/{lang}/blog/{post['slug']}.html"
     meta_description = post['excerpt'][:160].replace('"', '&quot;')
     
-    return f"""<!DOCTYPE html>
-<html lang="{lang}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{post['title']} - dan.rio</title>
-    <meta name="description" content="{meta_description}">
+    # JSON-LD: BlogPosting
+    post_jsonld = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": post['title'],
+        "description": meta_description,
+        "url": current_url,
+        "inLanguage": lang,
+        "datePublished": post.get('created_date', ''),
+        "author": render_person_jsonld(),
+        "publisher": render_person_jsonld(),
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": current_url,
+        },
+    }
+    if updated_date:
+        post_jsonld["dateModified"] = updated_date
+    if post.get('tags'):
+        post_jsonld["keywords"] = ', '.join(post['tags'])
+    jsonld = render_jsonld_script(post_jsonld)
     
-    <!-- Canonical URL -->
-    <link rel="canonical" href="{current_url}">
-    
-    <!-- Open Graph / Social -->
+    # Open Graph meta
+    extra_meta = f"""<!-- Open Graph / Social -->
     <meta property="og:type" content="article">
     <meta property="og:url" content="{current_url}">
     <meta property="og:title" content="{post['title']}">
     <meta property="og:description" content="{meta_description}">
-    <meta property="og:site_name" content="dan.rio">
+    <meta property="og:site_name" content="{SITE_NAME}">
     <meta property="og:locale" content="{'en_US' if lang == 'en' else 'pt_BR'}">
     <meta property="og:locale:alternate" content="{'pt_BR' if lang == 'en' else 'en_US'}">
     <meta property="article:published_time" content="{post.get('created_date', '')}">
-    <meta property="article:author" content="Daniel Cavalli">
+    <meta property="article:author" content="{AUTHOR}">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="{post['title']}">
     <meta name="twitter:description" content="{meta_description}">
     
-    <!-- Additional SEO -->
-    <meta name="author" content="Daniel Cavalli">
-    <meta name="robots" content="index, follow">
+    {jsonld}"""
     
-    <!-- Language alternates -->
-    <link rel="alternate" hreflang="{lang}" href="{current_url}">
-    <link rel="alternate" hreflang="{other_lang}" href="{other_lang_path}">
+    head = render_head(
+        title=f"{post['title']} – {AUTHOR} | {SITE_NAME}",
+        description=meta_description,
+        lang=lang,
+        current_url=current_url,
+        other_lang=other_lang,
+        other_url=other_url,
+        extra_meta=extra_meta,
+        stylesheets=[f'{BASE_PATH}/static/css/styles.css', f'{BASE_PATH}/static/css/post.css'],
+    )
     
-    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
-    <link rel="stylesheet" href="{BASE_PATH}/static/css/post.css">
-    <link rel="preload" href="{BASE_PATH}/static/js/theme.js" as="script">
-    <script src="{BASE_PATH}/static/js/theme.js"></script>
-    <script src="{BASE_PATH}/static/js/transitions.js" defer></script>
-</head>
+    nav = render_nav(lang, 'blog', lang_toggle_html)
+    footer = render_footer()
+    skip_link = render_skip_link()
+    
+    return f"""<!DOCTYPE html>
+<html lang="{lang}">
+{head}
 <body>
-    <nav class="nav" style="view-transition-name: site-nav;">
-        <div class="nav-container">
-            <a href="{get_lang_path(lang, 'index.html')}" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
-            <div class="nav-right">
-                <ul class="nav-links">
-                    <li><a href="{get_lang_path(lang, 'index.html')}" class="active" style="view-transition-name: nav-blog;">BLOG</a></li>
-                    <li><a href="{get_lang_path(lang, 'about.html')}" style="view-transition-name: nav-about;">ABOUT</a></li>
-                    <li><a href="{get_lang_path(lang, 'cv.html')}" style="view-transition-name: nav-cv;">CV</a></li>
-                </ul>
-                <div style="view-transition-name: lang-toggle;">{lang_toggle_html}</div>
-                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
-                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="5"/>
-                        <line x1="12" y1="1" x2="12" y2="3"/>
-                        <line x1="12" y1="21" x2="12" y2="23"/>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                        <line x1="1" y1="12" x2="3" y2="12"/>
-                        <line x1="21" y1="12" x2="23" y2="12"/>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                    </svg>
-                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </nav>
+    {skip_link}
+    {nav}
 
-    <main class="container">
+    <main id="main-content" class="container">
         <article class="post" style="view-transition-name: post-container-{post_number};">
             <header class="post-header">
                 <a href="{get_lang_path(lang, 'index.html')}" class="back-link">← Back to Blog</a>
@@ -536,28 +748,7 @@ def generate_post_html(post, post_number, lang='en'):
         </article>
     </main>
 
-    <footer class="footer" style="view-transition-name: site-footer;">
-        <div class="footer-container">
-            <div class="social-links">
-                <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                    </svg>
-                </a>
-                <a href="https://github.com/danielcavalli" target="_blank" rel="noopener" aria-label="GitHub">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                    </svg>
-                </a>
-                <a href="https://www.linkedin.com/in/cavallidaniel/" target="_blank" rel="noopener" aria-label="LinkedIn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                    </svg>
-                </a>
-            </div>
-            <p class="copyright">© 2025 All Rights Reserved.</p>
-        </div>
-    </footer>
+    {footer}
 </body>
 </html>"""
 
@@ -657,82 +848,63 @@ def generate_index_html(posts, lang='en'):
     
     # Generate language-specific SEO info
     other_lang = get_alternate_lang(lang)
-    current_url = f"https://dan.rio/{lang}/index.html"
-    other_url = f"https://dan.rio/{other_lang}/index.html"
-    meta_description = f"Daniel Cavalli - Machine Learning Engineer. Blog on MLOps, distributed systems, CUDA optimization, and AI infrastructure."
+    current_url = f"{SITE_URL}/{lang}/index.html"
+    other_url = f"{SITE_URL}/{other_lang}/index.html"
+    meta_description = f"{AUTHOR} – Machine Learning Engineer. Blog on MLOps, distributed systems, CUDA optimization, and AI infrastructure."
     
-    return f"""<!DOCTYPE html>
-<html lang="{lang}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daniel Cavalli | Blog - dan.rio</title>
-    <meta name="description" content="{meta_description}">
+    # JSON-LD: Blog with author
+    jsonld = render_jsonld_script({
+        "@context": "https://schema.org",
+        "@type": "Blog",
+        "name": f"{AUTHOR} | Blog",
+        "url": current_url,
+        "description": meta_description,
+        "inLanguage": lang,
+        "author": render_person_jsonld(),
+        "publisher": render_person_jsonld(),
+    })
     
-    <!-- Canonical URL -->
-    <link rel="canonical" href="{current_url}">
-    
-    <!-- Open Graph / Social -->
+    # Open Graph meta
+    extra_meta = f"""<!-- Open Graph / Social -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="{current_url}">
-    <meta property="og:title" content="Daniel Cavalli | Blog">
+    <meta property="og:title" content="{AUTHOR} | Blog">
     <meta property="og:description" content="{meta_description}">
-    <meta property="og:site_name" content="dan.rio">
+    <meta property="og:site_name" content="{SITE_NAME}">
     <meta property="og:locale" content="{'en_US' if lang == 'en' else 'pt_BR'}">
     <meta property="og:locale:alternate" content="{'pt_BR' if lang == 'en' else 'en_US'}">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Daniel Cavalli | Blog">
+    <meta name="twitter:title" content="{AUTHOR} | Blog">
     <meta name="twitter:description" content="{meta_description}">
     
-    <!-- Additional SEO -->
-    <meta name="author" content="Daniel Cavalli">
-    <meta name="robots" content="index, follow">
+    {jsonld}"""
     
-    <!-- Language alternates -->
-    <link rel="alternate" hreflang="{lang}" href="{current_url}">
-    <link rel="alternate" hreflang="{other_lang}" href="{other_url}">
-    <link rel="alternate" hreflang="x-default" href="https://dan.rio/">
+    head = render_head(
+        title=f"{AUTHOR} | Blog – {SITE_NAME}",
+        description=meta_description,
+        lang=lang,
+        current_url=current_url,
+        other_lang=other_lang,
+        other_url=other_url,
+        extra_meta=extra_meta,
+        stylesheets=[f'{BASE_PATH}/static/css/styles.css'],
+        scripts_defer=[f'{BASE_PATH}/static/js/transitions.js', f'{BASE_PATH}/static/js/filter.js'],
+    )
     
-    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css?v=20251108103307">
-    <link rel="preload" href="{BASE_PATH}/static/js/theme.js?v=20251108103307" as="script">
-    <script src="{BASE_PATH}/static/js/theme.js?v=20251108103307"></script>
-    <script src="{BASE_PATH}/static/js/transitions.js?v=20251108103307" defer></script>
-    <script src="{BASE_PATH}/static/js/filter.js?v=20251108103307" defer></script>
-</head>
+    nav = render_nav(lang, 'blog', lang_toggle_html)
+    footer = render_footer()
+    skip_link = render_skip_link()
+    
+    return f"""<!DOCTYPE html>
+<html lang="{lang}">
+{head}
 <body>
-    <nav class="nav" style="view-transition-name: site-nav;">
-        <div class="nav-container">
-            <a href="{get_lang_path(lang, 'index.html')}" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
-            <div class="nav-right">
-                <ul class="nav-links">
-                    <li><a href="{get_lang_path(lang, 'index.html')}" class="active" style="view-transition-name: nav-blog;">{ui['blog']}</a></li>
-                    <li><a href="{get_lang_path(lang, 'about.html')}" style="view-transition-name: nav-about;">{ui['about']}</a></li>
-                    <li><a href="{get_lang_path(lang, 'cv.html')}" style="view-transition-name: nav-cv;">{ui['cv']}</a></li>
-                </ul>
-                <div style="view-transition-name: lang-toggle;">{lang_toggle_html}</div>
-                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
-                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="5"/>
-                        <line x1="12" y1="1" x2="12" y2="3"/>
-                        <line x1="12" y1="21" x2="12" y2="23"/>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                        <line x1="1" y1="12" x2="3" y2="12"/>
-                        <line x1="21" y1="12" x2="23" y2="12"/>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                    </svg>
-                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </nav>
+    {skip_link}
+    {nav}
 
-    <main class="container">
+    <main id="main-content" class="container">
         <header class="page-header" style="view-transition-name: blog-header;">
             <div class="header-content">
                 <h1 class="page-title">{ui['latest_posts']}</h1>
@@ -783,28 +955,7 @@ def generate_index_html(posts, lang='en'):
         </div>
     </main>
 
-    <footer class="footer" style="view-transition-name: site-footer;">
-        <div class="footer-container">
-            <div class="social-links">
-                <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                    </svg>
-                </a>
-                <a href="https://github.com/danielcavalli" target="_blank" rel="noopener" aria-label="GitHub">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                    </svg>
-                </a>
-                <a href="https://www.linkedin.com/in/cavallidaniel/" target="_blank" rel="noopener" aria-label="LinkedIn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                    </svg>
-                </a>
-            </div>
-            <p class="copyright">© 2025 All Rights Reserved.</p>
-        </div>
-    </footer>
+    {footer}
 </body>
 </html>"""
 
@@ -822,93 +973,73 @@ def generate_about_html(lang='en'):
         str: Complete HTML document for the About page.
     """
     lang_toggle_html = generate_lang_toggle_html(lang, 'about.html')
-    ui = LANGUAGES[lang]['ui']
     about = LANGUAGES[lang]['about']
     
     # SEO info
     other_lang = get_alternate_lang(lang)
-    current_url = f"https://dan.rio/{lang}/about.html"
-    other_url = f"https://dan.rio/{other_lang}/about.html"
-    meta_description = "Daniel Cavalli - Machine Learning Engineer at Nubank. Background in MLOps, distributed systems, and AI infrastructure."
+    current_url = f"{SITE_URL}/{lang}/about.html"
+    other_url = f"{SITE_URL}/{other_lang}/about.html"
+    meta_description = f"{AUTHOR} – Machine Learning Engineer at Nubank. Background in MLOps, distributed systems, and AI infrastructure."
     
-    return f"""<!DOCTYPE html>
-<html lang="{lang}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{about['title']} - dan.rio</title>
-    <meta name="description" content="{meta_description}">
+    # JSON-LD: ProfilePage + Person
+    jsonld = render_jsonld_script({
+        "@context": "https://schema.org",
+        "@type": "ProfilePage",
+        "name": f"About {AUTHOR}",
+        "url": current_url,
+        "mainEntity": {
+            **render_person_jsonld(),
+            "description": AUTHOR_BIO,
+        },
+    })
     
-    <!-- Canonical URL -->
-    <link rel="canonical" href="{current_url}">
-    
-    <!-- Open Graph / Social -->
+    # Open Graph meta
+    extra_meta = f"""<!-- Open Graph / Social -->
     <meta property="og:type" content="profile">
     <meta property="og:url" content="{current_url}">
-    <meta property="og:title" content="{about['title']} - Daniel Cavalli">
+    <meta property="og:title" content="{about['title']} – {AUTHOR}">
     <meta property="og:description" content="{meta_description}">
-    <meta property="og:site_name" content="dan.rio">
+    <meta property="og:site_name" content="{SITE_NAME}">
     <meta property="og:locale" content="{'en_US' if lang == 'en' else 'pt_BR'}">
     <meta property="profile:first_name" content="Daniel">
     <meta property="profile:last_name" content="Cavalli">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="{about['title']} - Daniel Cavalli">
+    <meta name="twitter:title" content="{about['title']} – {AUTHOR}">
     <meta name="twitter:description" content="{meta_description}">
     
-    <!-- Additional SEO -->
-    <meta name="author" content="Daniel Cavalli">
-    <meta name="robots" content="index, follow">
+    {jsonld}"""
     
-    <!-- Language alternates -->
-    <link rel="alternate" hreflang="{lang}" href="{current_url}">
-    <link rel="alternate" hreflang="{other_lang}" href="{other_url}">
+    head = render_head(
+        title=f"{about['title']} – {AUTHOR} | {SITE_NAME}",
+        description=meta_description,
+        lang=lang,
+        current_url=current_url,
+        other_lang=other_lang,
+        other_url=other_url,
+        extra_meta=extra_meta,
+        stylesheets=[f'{BASE_PATH}/static/css/styles.css', f'{BASE_PATH}/static/css/post.css'],
+    )
     
-    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
-    <link rel="stylesheet" href="{BASE_PATH}/static/css/post.css">
-    <link rel="preload" href="{BASE_PATH}/static/js/theme.js" as="script">
-    <script src="{BASE_PATH}/static/js/theme.js"></script>
-    <script src="{BASE_PATH}/static/js/transitions.js" defer></script>
-</head>
+    nav = render_nav(lang, 'about', lang_toggle_html)
+    footer = render_footer()
+    skip_link = render_skip_link()
+    
+    return f"""<!DOCTYPE html>
+<html lang="{lang}">
+{head}
 <body>
-    <nav class="nav" style="view-transition-name: site-nav;">
-        <div class="nav-container">
-            <a href="{get_lang_path(lang, 'index.html')}" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
-            <div class="nav-right">
-                <ul class="nav-links">
-                    <li><a href="{get_lang_path(lang, 'index.html')}" style="view-transition-name: nav-blog;">{ui['blog']}</a></li>
-                    <li><a href="{get_lang_path(lang, 'about.html')}" class="active" style="view-transition-name: nav-about;">{ui['about']}</a></li>
-                    <li><a href="{get_lang_path(lang, 'cv.html')}" style="view-transition-name: nav-cv;">{ui['cv']}</a></li>
-                </ul>
-                <div style="view-transition-name: lang-toggle;">{lang_toggle_html}</div>
-                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
-                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="5"/>
-                        <line x1="12" y1="1" x2="12" y2="3"/>
-                        <line x1="12" y1="21" x2="12" y2="23"/>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                        <line x1="1" y1="12" x2="3" y2="12"/>
-                        <line x1="21" y1="12" x2="23" y2="12"/>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                    </svg>
-                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </nav>
+    {skip_link}
+    {nav}
 
-    <main class="container">
-        <article class="post">
+    <main id="main-content" class="container">
+        <article class="post" style="view-transition-name: about-content;">
             <header class="post-header">
-                <h1 class="post-title-large">{about['title']}</h1>
+                <h1 class="post-title-large" style="view-transition-name: about-title;">{about['title']}</h1>
             </header>
 
-            <div class="post-body">
+            <div class="post-body" style="view-transition-name: about-body;">
                 <p>{about['p1']}</p>
 
                 <p>{about['p2']}</p>
@@ -922,55 +1053,35 @@ def generate_about_html(lang='en'):
         </article>
     </main>
 
-    <footer class="footer" style="view-transition-name: site-footer;">
-        <div class="footer-container">
-            <div class="social-links">
-                <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                    </svg>
-                </a>
-                <a href="https://github.com/danielcavalli" target="_blank" rel="noopener" aria-label="GitHub">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                    </svg>
-                </a>
-                <a href="https://www.linkedin.com/in/cavallidaniel/" target="_blank" rel="noopener" aria-label="LinkedIn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                    </svg>
-                </a>
-            </div>
-            <p class="copyright">© 2025 All Rights Reserved.</p>
-        </div>
-    </footer>
+    {footer}
 </body>
 </html>"""
 
 
-def generate_cv_html(lang='en'):
+def generate_cv_html(lang='en', translated_cv=None):
     """Generate CV page with professional experience and skills.
     
     Reads CV data from cv_reference.md (single source of truth) and generates
-    HTML. For Portuguese, translates the content using the translation system.
+    HTML. For Portuguese, uses pre-translated content.
     
     Args:
         lang (str): Language code ('en' or 'pt').
+        translated_cv (Dict, optional): Pre-translated CV data for Portuguese.
     
     Returns:
         str: Complete HTML document for the CV page.
     """
     lang_toggle_html = generate_lang_toggle_html(lang, 'cv.html')
-    ui = LANGUAGES[lang]['ui']
     
-    # Parse CV from reference file (single source of truth)
-    cv_data = parse_cv_reference()
-    if not cv_data:
-        print("Error: Could not parse cv_reference.md")
-        return ""
+    # Use translated data for Portuguese, otherwise parse from reference
+    if lang == 'pt' and translated_cv:
+        cv_data = translated_cv
+    else:
+        cv_data = parse_cv_reference()
+        if not cv_data:
+            print("Error: Could not parse cv_reference.md")
+            return ""
     
-    # For Portuguese, we would translate here. For now, use English content
-    # with Portuguese UI labels
     cv = {
         'title': cv_data['name'].upper(),
         'tagline': cv_data['tagline'],
@@ -1029,91 +1140,75 @@ def generate_cv_html(lang='en'):
     
     # SEO info
     other_lang = get_alternate_lang(lang)
-    current_url = f"https://dan.rio/{lang}/cv.html"
-    other_url = f"https://dan.rio/{other_lang}/cv.html"
-    meta_description = "Daniel Cavalli - Machine Learning Engineer at Nubank. Experience in MLOps, distributed systems, and AI infrastructure powering hundreds of Data Scientists."
+    current_url = f"{SITE_URL}/{lang}/cv.html"
+    other_url = f"{SITE_URL}/{other_lang}/cv.html"
+    meta_description = f"{AUTHOR} – Machine Learning Engineer at Nubank. Experience in MLOps, distributed systems, and AI infrastructure powering hundreds of Data Scientists."
     
-    return f"""<!DOCTYPE html>
-<html lang="{lang}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daniel Cavalli | CV - dan.rio</title>
-    <meta name="description" content="{meta_description}">
+    # JSON-LD: Person (full CV entity)
+    jsonld = render_jsonld_script({
+        "@context": "https://schema.org",
+        "@type": "ProfilePage",
+        "name": f"{AUTHOR} – CV",
+        "url": current_url,
+        "mainEntity": {
+            **render_person_jsonld(),
+            "description": meta_description,
+        },
+    })
     
-    <!-- Canonical URL -->
-    <link rel="canonical" href="{current_url}">
-    
-    <!-- Open Graph / Social -->
+    # Open Graph meta
+    extra_meta = f"""<!-- Open Graph / Social -->
     <meta property="og:type" content="profile">
     <meta property="og:url" content="{current_url}">
-    <meta property="og:title" content="Daniel Cavalli | CV">
+    <meta property="og:title" content="{AUTHOR} | CV">
     <meta property="og:description" content="{meta_description}">
-    <meta property="og:site_name" content="dan.rio">
+    <meta property="og:site_name" content="{SITE_NAME}">
     <meta property="og:locale" content="{'en_US' if lang == 'en' else 'pt_BR'}">
     <meta property="profile:first_name" content="Daniel">
     <meta property="profile:last_name" content="Cavalli">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Daniel Cavalli | CV">
+    <meta name="twitter:title" content="{AUTHOR} | CV">
     <meta name="twitter:description" content="{meta_description}">
     
-    <!-- Additional SEO -->
-    <meta name="author" content="Daniel Cavalli">
-    <meta name="robots" content="index, follow">
+    {jsonld}"""
     
-    <!-- Language alternates -->
-    <link rel="alternate" hreflang="{lang}" href="{current_url}">
-    <link rel="alternate" hreflang="{other_lang}" href="{other_url}">
+    head = render_head(
+        title=f"{AUTHOR} | CV – {SITE_NAME}",
+        description=meta_description,
+        lang=lang,
+        current_url=current_url,
+        other_lang=other_lang,
+        other_url=other_url,
+        extra_meta=extra_meta,
+        stylesheets=[
+            f'{BASE_PATH}/static/css/styles.css',
+            f'{BASE_PATH}/static/css/post.css',
+            f'{BASE_PATH}/static/css/cv.css',
+        ],
+    )
     
-    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
-    <link rel="stylesheet" href="{BASE_PATH}/static/css/post.css">
-    <link rel="stylesheet" href="{BASE_PATH}/static/css/cv.css">
-    <link rel="preload" href="{BASE_PATH}/static/js/theme.js" as="script">
-    <script src="{BASE_PATH}/static/js/theme.js"></script>
-    <script src="{BASE_PATH}/static/js/transitions.js" defer></script>
-</head>
+    nav = render_nav(lang, 'cv', lang_toggle_html)
+    footer = render_footer()
+    skip_link = render_skip_link()
+    
+    return f"""<!DOCTYPE html>
+<html lang="{lang}">
+{head}
 <body>
-    <nav class="nav" style="view-transition-name: site-nav;">
-        <div class="nav-container">
-            <a href="{get_lang_path(lang, 'index.html')}" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
-            <div class="nav-right">
-                <ul class="nav-links">
-                    <li><a href="{get_lang_path(lang, 'index.html')}" style="view-transition-name: nav-blog;">{ui['blog']}</a></li>
-                    <li><a href="{get_lang_path(lang, 'about.html')}" style="view-transition-name: nav-about;">{ui['about']}</a></li>
-                    <li><a href="{get_lang_path(lang, 'cv.html')}" class="active" style="view-transition-name: nav-cv;">{ui['cv']}</a></li>
-                </ul>
-                <div style="view-transition-name: lang-toggle;">{lang_toggle_html}</div>
-                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
-                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="5"/>
-                        <line x1="12" y1="1" x2="12" y2="3"/>
-                        <line x1="12" y1="21" x2="12" y2="23"/>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                        <line x1="1" y1="12" x2="3" y2="12"/>
-                        <line x1="21" y1="12" x2="23" y2="12"/>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                    </svg>
-                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </nav>
+    {skip_link}
+    {nav}
 
-    <main class="container">
-        <article class="post cv-container">
+    <main id="main-content" class="container">
+        <article class="post cv-container" style="view-transition-name: cv-content;">
             <header class="post-header cv-header">
-                <h1 class="post-title-large">{cv['title']}</h1>
+                <h1 class="post-title-large" style="view-transition-name: cv-title;">{cv['title']}</h1>
                 <p class="cv-tagline">{cv['tagline']}</p>
                 <p class="cv-location">{cv['location']}</p>
             </header>
 
-            <div class="post-body cv-body">
+            <div class="post-body cv-body" style="view-transition-name: cv-body;">
                 <!-- Contact Section - Prominent for recruiters -->
                 <section class="cv-section cv-section-highlight">
                     <h2 class="cv-section-title">{'Contact' if lang == 'en' else 'Contato'}</h2>
@@ -1163,28 +1258,7 @@ def generate_cv_html(lang='en'):
         </article>
     </main>
 
-    <footer class="footer" style="view-transition-name: site-footer;">
-        <div class="footer-container">
-            <div class="social-links">
-                <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                    </svg>
-                </a>
-                <a href="https://github.com/danielcavalli" target="_blank" rel="noopener" aria-label="GitHub">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                    </svg>
-                </a>
-                <a href="https://www.linkedin.com/in/cavallidaniel/" target="_blank" rel="noopener" aria-label="LinkedIn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                    </svg>
-                </a>
-            </div>
-            <p class="copyright">© 2025 All Rights Reserved.</p>
-        </div>
-    </footer>
+    {footer}
 </body>
 </html>"""
 
@@ -1259,7 +1333,7 @@ def parse_markdown_post(filepath):
         post_date = datetime.strptime(str(date_str), "%Y-%m-%d")
         year = post_date.year
         month = post_date.strftime("%B")  # Full month name
-    except:
+    except (ValueError, TypeError):
         year = datetime.now().year
         month = datetime.now().strftime("%B")
     
@@ -1286,36 +1360,76 @@ def parse_markdown_post(filepath):
     }
 
 
-def generate_landing_html():
-    """Generate landing page with morphing transition to blog"""
+def generate_root_index():
+    """Generate root index.html as the landing page.
+    
+    The landing page is served directly at dan.rio/ for:
+    - Better SEO (no redirect overhead)
+    - AI/bot accessibility (content visible without JS)
+    - Cleaner URL structure
+    
+    Features morphing transition to blog pages via View Transitions API.
+    Includes WebSite + Person JSON-LD for entity disambiguation.
+    """
+    # JSON-LD: WebSite + Person (entity home)
+    jsonld = render_jsonld_script([
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": SITE_NAME,
+            "alternateName": [f"{AUTHOR} Blog", f"{AUTHOR}"],
+            "url": f"{SITE_URL}/",
+            "description": SITE_DESCRIPTION,
+            "inLanguage": ["en", "pt"],
+            "author": render_person_jsonld(),
+            "publisher": render_person_jsonld(),
+        },
+        {
+            "@context": "https://schema.org",
+            **render_person_jsonld(),
+            "description": AUTHOR_BIO,
+            "mainEntityOfPage": f"{SITE_URL}/",
+        }
+    ])
+    
+    head = render_head(
+        title=f"{AUTHOR} – {SITE_NAME}",
+        description=SITE_DESCRIPTION,
+        lang='en',
+        current_url=f'{SITE_URL}/',
+        extra_meta=f"""<!-- Language alternates -->
+    <link rel="alternate" hreflang="x-default" href="{SITE_URL}/">
+    <link rel="alternate" hreflang="en" href="{SITE_URL}/en/index.html">
+    <link rel="alternate" hreflang="pt" href="{SITE_URL}/pt/index.html">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{SITE_URL}/">
+    <meta property="og:title" content="{AUTHOR} – {SITE_NAME}">
+    <meta property="og:description" content="{SITE_DESCRIPTION}">
+    <meta property="og:site_name" content="{SITE_NAME}">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{AUTHOR} – {SITE_NAME}">
+    <meta name="twitter:description" content="{SITE_DESCRIPTION}">
+    
+    {jsonld}""",
+        stylesheets=[
+            f'{BASE_PATH}/static/css/styles.css',
+            f'{BASE_PATH}/static/css/landing.css',
+        ],
+        scripts_head=[f'{BASE_PATH}/static/js/theme.js'],
+        scripts_defer=[],
+    )
+    
     return f"""<!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{SITE_NAME}</title>
-    <meta name="description" content="{SITE_DESCRIPTION}">
-    <link rel="stylesheet" href="{BASE_PATH}/static/css/styles.css">
-    <link rel="stylesheet" href="{BASE_PATH}/static/css/landing.css">
-    <script src="{BASE_PATH}/static/js/theme.js"></script>
-</head>
+{head}
 <body>
     <!-- Theme toggle (minimal, top-right corner) -->
     <button id="theme-toggle" class="theme-toggle-minimal" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
-        <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="5"/>
-            <line x1="12" y1="1" x2="12" y2="3"/>
-            <line x1="12" y1="21" x2="12" y2="23"/>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-            <line x1="1" y1="12" x2="3" y2="12"/>
-            <line x1="21" y1="12" x2="23" y2="12"/>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-        </svg>
-        <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
+        {render_theme_toggle_svg()}
     </button>
 
     <!-- Landing surface -->
@@ -1330,34 +1444,82 @@ def generate_landing_html():
         </div>
     </div>
 
-    <script src="{BASE_PATH}/static/js/landing.js"></script>
+    <script src="{BASE_PATH}/static/js/landing.js?v={BUILD_VERSION}"></script>
 </body>
 </html>"""
 
 
-def generate_root_index():
-    """Generate root index.html that redirects to landing page"""
-    return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{SITE_NAME}</title>
-    <meta name="description" content="{SITE_DESCRIPTION}">
-    <script>
-        // Redirect to landing page
-        window.location.href = '{BASE_PATH}/landing.html';
-    </script>
-    <noscript>
-        <meta http-equiv="refresh" content="0; url={BASE_PATH}/landing.html">
-    </noscript>
-</head>
-<body>
-    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, -apple-system, sans-serif;">
-        <p>Loading...</p>
-    </div>
-</body>
-</html>"""
+def generate_sitemap(posts_en, posts_pt):
+    """Generate sitemap.xml with correct hreflang annotations.
+    
+    Produces a sitemap with:
+    - Root landing page as x-default
+    - All EN/PT page pairs with reciprocal hreflang links
+    - lastmod dates derived from actual post metadata
+    
+    Args:
+        posts_en (list): English post dictionaries with 'slug', 'updated_date', 'created_date'.
+        posts_pt (list): Portuguese post dictionaries (same structure).
+    
+    Returns:
+        str: Complete sitemap.xml content.
+    """
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    urls = []
+    
+    # Root landing page (x-default)
+    urls.append(f"""    <url>
+        <loc>{SITE_URL}/</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="{SITE_URL}/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="{SITE_URL}/en/index.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="{SITE_URL}/pt/index.html"/>
+        <lastmod>{today}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>1.0</priority>
+    </url>""")
+    
+    # Static pages: index, about, cv
+    for page, priority, freq in [('index.html', '0.9', 'weekly'), ('about.html', '0.7', 'monthly'), ('cv.html', '0.8', 'monthly')]:
+        for lang in ['en', 'pt']:
+            other_lang = 'pt' if lang == 'en' else 'en'
+            urls.append(f"""    <url>
+        <loc>{SITE_URL}/{lang}/{page}</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="{SITE_URL}/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="{SITE_URL}/en/{page}"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="{SITE_URL}/pt/{page}"/>
+        <lastmod>{today}</lastmod>
+        <changefreq>{freq}</changefreq>
+        <priority>{priority}</priority>
+    </url>""")
+    
+    # Blog posts
+    for post in posts_en:
+        slug = post['slug']
+        lastmod = post.get('updated_date', post.get('created_date', today))
+        # Normalize date to YYYY-MM-DD
+        if 'T' in lastmod:
+            lastmod = lastmod.split('T')[0]
+        
+        for lang in ['en', 'pt']:
+            urls.append(f"""    <url>
+        <loc>{SITE_URL}/{lang}/blog/{slug}.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="{SITE_URL}/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="{SITE_URL}/en/blog/{slug}.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="{SITE_URL}/pt/blog/{slug}.html"/>
+        <lastmod>{lastmod}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>""")
+    
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    
+{chr(10).join(urls)}
+    
+</urlset>
+"""
 
 
 def build():
@@ -1370,6 +1532,7 @@ def build():
         4. Translate About page (with caching)
         5. Generate HTML files for both languages
         6. Generate root index and landing pages
+        7. Generate sitemap.xml with hreflang annotations
     
     Returns:
         bool: True if build succeeds, False if validation or translation fails.
@@ -1399,6 +1562,15 @@ def build():
             raise Exception("About page translation failed")
         
         LANGUAGES['pt']['about'] = about_pt_translated
+        
+        # Translate CV content
+        cv_en = parse_cv_reference()
+        if cv_en:
+            cv_pt_translated = translator.translate_cv(cv_en, force=False)
+            if not cv_pt_translated:
+                raise Exception("CV translation failed")
+        else:
+            raise Exception("Could not parse cv_reference.md for translation")
         
     except Exception as e:
         print(f"Translation system error: {e}")
@@ -1521,7 +1693,7 @@ def build():
         
         # Generate Portuguese CV
         try:
-            cv_html = generate_cv_html(lang='pt')
+            cv_html = generate_cv_html(lang='pt', translated_cv=cv_pt_translated)
             cv_file = LANG_DIRS['pt'] / 'cv.html'
             cv_file.write_text(cv_html, encoding='utf-8')
             print(f"      cv.html")
@@ -1529,26 +1701,26 @@ def build():
             print(f"      Error generating cv.html: {e}")
             return False
     
-    # Generate landing page
-    print("\n   Landing page:")
-    try:
-        landing_html = generate_landing_html()
-        landing_file = Path("landing.html")
-        landing_file.write_text(landing_html, encoding='utf-8')
-        print(f"      landing.html")
-    except Exception as e:
-        print(f"      Error generating landing.html: {e}")
-        return False
-    
-    # Generate root index.html with redirect to landing
-    print("\n   Root redirect:")
+    # Generate root index.html (landing page)
+    print("\n   Root landing page:")
     try:
         root_html = generate_root_index()
-        root_index = Path("index.html")
+        root_index = PROJECT_ROOT / "index.html"
         root_index.write_text(root_html, encoding='utf-8')
-        print(f"      index.html (redirect)")
+        print(f"      index.html")
     except Exception as e:
         print(f"      Error generating root index.html: {e}")
+        return False
+    
+    # Generate sitemap.xml
+    print("\n   Sitemap:")
+    try:
+        sitemap_xml = generate_sitemap(posts_en, posts_pt)
+        sitemap_file = PROJECT_ROOT / "sitemap.xml"
+        sitemap_file.write_text(sitemap_xml, encoding='utf-8')
+        print(f"      sitemap.xml")
+    except Exception as e:
+        print(f"      Error generating sitemap.xml: {e}")
         return False
     
     lang_count = 2 if posts_pt else 1

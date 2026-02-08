@@ -5,6 +5,7 @@
 .post {
     max-width: 720px;
     margin: 0 auto;
+    view-transition-class: post-morph;
 }
 
 /* Ensure smooth transitions for post elements */

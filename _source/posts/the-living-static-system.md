@@ -1,5 +1,5 @@
 ---
-content_hash: 9e6c73c23c93281c830e214ef4b5c8ab
+content_hash: f376fc36df021a1d7977b337e5907986548b8aa5f726bce6451c27c3c269d693
 created_at: '2025-10-25T14:30:40.761318'
 date: 2025-01-25
 excerpt: 'Inside a bilingual static site that moves as one surface: a Python build,
@@ -12,7 +12,7 @@ tags:
 - Static Sites
 - Python
 title: The Living Static System
-updated_at: '2025-11-25T23:03:18.473070'
+updated_at: '2026-02-08T01:10:31.331791'
 ---
 
 The system began as a question: how little does a blog need to feel alive. Not animated for its own sake, but alive in the way a tide advances: inevitable, continuous, without edges. What emerged is a static generator that writes two mirrors of itself, one in English and one in Portuguese, and a thin layer of motion that never breaks the surface. Pages do not switch. Space reorganizes.
