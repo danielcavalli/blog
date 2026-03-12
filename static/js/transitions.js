@@ -467,6 +467,8 @@
                             }
                             // Update href in case of language change
                             link.href = matchedNew.href;
+                            // Sync visible nav label for cross-language switches
+                            link.textContent = matchedNew.textContent;
                         }
                     });
                     
