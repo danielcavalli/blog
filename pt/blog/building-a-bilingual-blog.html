@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Construindo um Blog Bilíngue com View Transitions – Daniel Cavalli | dan.rio</title>
-    <meta name="description" content="Como este blog funciona: geração estática em Python, tradução automática via Gemini, API View Transitions para navegação fluida e uma filosofia de construção co">
+    <meta name="description" content="Como este blog funciona: geração estática em Python, tradução automática via Gemini, View Transitions API para uma navegação fluida e uma filosofia de construçã">
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://dan.rio/pt/blog/building-a-bilingual-blog.html">
@@ -13,19 +13,20 @@
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://dan.rio/pt/blog/building-a-bilingual-blog.html">
     <meta property="og:title" content="Construindo um Blog Bilíngue com View Transitions">
-    <meta property="og:description" content="Como este blog funciona: geração estática em Python, tradução automática via Gemini, API View Transitions para navegação fluida e uma filosofia de construção co">
+    <meta property="og:description" content="Como este blog funciona: geração estática em Python, tradução automática via Gemini, View Transitions API para uma navegação fluida e uma filosofia de construçã">
     <meta property="og:site_name" content="dan.rio">
     <meta property="og:locale" content="pt_BR">
     <meta property="og:locale:alternate" content="en_US">
-    <meta property="article:published_time" content="2025-10-25T14:30:24.827911">
+    <meta property="article:published_time" content="2025-01-24">
+    <meta property="article:modified_time" content="2025-01-24">
     <meta property="article:author" content="Daniel Cavalli">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Construindo um Blog Bilíngue com View Transitions">
-    <meta name="twitter:description" content="Como este blog funciona: geração estática em Python, tradução automática via Gemini, API View Transitions para navegação fluida e uma filosofia de construção co">
+    <meta name="twitter:description" content="Como este blog funciona: geração estática em Python, tradução automática via Gemini, View Transitions API para uma navegação fluida e uma filosofia de construçã">
     
-    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Construindo um Blog Bilíngue com View Transitions", "description": "Como este blog funciona: geração estática em Python, tradução automática via Gemini, API View Transitions para navegação fluida e uma filosofia de construção co", "url": "https://dan.rio/pt/blog/building-a-bilingual-blog.html", "inLanguage": "pt", "datePublished": "2025-10-25T14:30:24.827911", "author": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "publisher": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://dan.rio/pt/blog/building-a-bilingual-blog.html"}, "dateModified": "2026-02-08T01:10:31.306014", "keywords": "Desenvolvimento Web, API View Transitions, Gemini AI, Sites Estáticos"}</script>
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Construindo um Blog Bilíngue com View Transitions", "description": "Como este blog funciona: geração estática em Python, tradução automática via Gemini, View Transitions API para uma navegação fluida e uma filosofia de construçã", "url": "https://dan.rio/pt/blog/building-a-bilingual-blog.html", "inLanguage": "pt", "datePublished": "2025-01-24", "dateModified": "2025-01-24", "author": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "publisher": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://dan.rio/pt/blog/building-a-bilingual-blog.html"}, "keywords": "Desenvolvimento Web, View Transitions API, Gemini AI, Sites Estáticos"}</script>
     
     <!-- Additional SEO -->
     <meta name="author" content="Daniel Cavalli">
@@ -35,14 +36,14 @@
     <link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/building-a-bilingual-blog.html">
     <link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/building-a-bilingual-blog.html">
     
-    <link rel="stylesheet" href="/static/css/styles.css?v=20260208011246">
-    <link rel="stylesheet" href="/static/css/post.css?v=20260208011246">
-    <link rel="preload" href="/static/js/theme.js?v=20260208011246" as="script">
-    <script src="/static/js/theme.js?v=20260208011246"></script>
-    <script src="/static/js/transitions.js?v=20260208011246" defer></script>
+    <link rel="stylesheet" href="/static/css/styles.css?v=c89a74a1">
+    <link rel="stylesheet" href="/static/css/post.css?v=69615460">
+    <link rel="preload" href="/static/js/theme.js?v=30ebbd0e" as="script">
+    <script src="/static/js/theme.js?v=30ebbd0e"></script>
+    <script src="/static/js/transitions.js?v=7b4e8f51" defer></script>
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Skip to content</a>
+    <a href="#main-content" class="skip-link">Pular para o conteúdo</a>
     <nav class="nav" style="view-transition-name: site-nav;">
         <div class="nav-container">
             <a href="/pt/index.html" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
@@ -52,7 +53,7 @@
                     <li><a href="/pt/about.html" style="view-transition-name: nav-about;">SOBRE</a></li>
                     <li><a href="/pt/cv.html" style="view-transition-name: nav-cv;">CV</a></li>
                 </ul>
-                <div style="view-transition-name: lang-toggle;"><a href="/en/blog/building-a-bilingual-blog.html" class="lang-toggle" aria-label="Switch to English (currently Português)" data-current-lang="pt">
+                <div style="view-transition-name: lang-toggle;"><a href="/en/blog/building-a-bilingual-blog.html" class="lang-toggle" aria-label="Mudar para English (atualmente Português)" data-current-lang="pt">
         <svg class="lang-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
@@ -63,7 +64,7 @@
             <span class="lang-pt active">PT</span>
         </span>
     </a></div>
-                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
+                <button id="theme-toggle" class="theme-toggle" aria-label="Alternar tema" style="view-transition-name: theme-toggle;">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="5"/>
                         <line x1="12" y1="1" x2="12" y2="3"/>
@@ -84,28 +85,28 @@
     </nav>
 
     <main id="main-content" class="container">
-        <article class="post" style="view-transition-name: post-container-3;">
+        <article class="post" style="view-transition-name: post-container-7;">
             <header class="post-header">
-                <a href="/pt/index.html" class="back-link">← Back to Blog</a>
-                <div class="last-updated">Last updated: February 08, 2026 at 01:10 AM</div>
-                <h1 class="post-title-large" style="view-transition-name: post-title-3;">CONSTRUINDO UM BLOG BILÍNGUE COM VIEW TRANSITIONS</h1>
+                <a href="/pt/index.html" class="back-link">← Voltar ao Blog</a>
+                
+                <h1 class="post-title-large" style="view-transition-name: post-title-7;">CONSTRUINDO UM BLOG BILÍNGUE COM VIEW TRANSITIONS</h1>
                 <div class="post-meta">
-                    <time class="post-date" style="view-transition-name: post-date-3;">October 25, 2025</time>
+                    <time class="post-date" style="view-transition-name: post-date-7;">24 de Janeiro de 2025</time>
                     <span class="post-separator">•</span>
-                    <span class="post-reading-time">11 min read</span>
+                    <span class="post-reading-time">11 min de leitura</span>
                 </div>
-                <div class="post-tags"><span class="tag-pill">Desenvolvimento Web</span><span class="tag-pill">API View Transitions</span><span class="tag-pill">Gemini AI</span><span class="tag-pill">Sites Estáticos</span></div>
+                <div class="post-tags"><span class="tag-pill">Desenvolvimento Web</span><span class="tag-pill">View Transitions API</span><span class="tag-pill">Gemini AI</span><span class="tag-pill">Sites Estáticos</span></div>
             </header>
 
             <div class="post-body">
-                <p class="lead" style="view-transition-name: post-excerpt-3;">
-                    Como este blog funciona: geração estática em Python, tradução automática via Gemini, API View Transitions para navegação fluida e uma filosofia de construção com padrões web nativos.
+                <p class="lead" style="view-transition-name: post-excerpt-7;">
+                    Como este blog funciona: geração estática em Python, tradução automática via Gemini, View Transitions API para uma navegação fluida e uma filosofia de construção baseada em padrões web nativos.
                 </p>
-                <p>Este blog é uma plataforma construída com geração de site estático em Python, tradução automática via Gemini AI e transições de página fluidas usando a API View Transitions. Sem frameworks, sem dependências pesadas. Apenas padrões web nativos realizando um trabalho real. A arquitetura é simples o suficiente para entender em uma tarde, poderosa o suficiente para proporcionar uma sensação de continuidade no uso e pequena o suficiente para manter sozinho.</p>
-<p>O objetivo do design não era construir o motor de blog mais completo em recursos. Era construir o mais discreto. Um lugar onde a escrita aparece sem cerimônia, onde a navegação parece reorganizar o espaço em vez de carregar novas páginas e onde uma segunda língua surge tão naturalmente quanto a primeira. Cada escolha técnica serve a esse objetivo.</p>
+                <p>Este blog é uma plataforma construída com geração de site estático em Python, tradução automática via Gemini AI e transições de página fluidas usando a View Transitions API. Sem frameworks, sem dependências pesadas. Apenas padrões web nativos fazendo o trabalho pesado. A arquitetura é simples o suficiente para ser compreendida em uma tarde, poderosa o bastante para parecer contínua durante o uso e pequena o suficiente para ser mantida sozinho.</p>
+<p>O objetivo do design não era construir o motor de blog mais completo em funcionalidades. Era construir o mais silencioso. Um lugar onde a escrita aparece sem cerimônia, onde a navegação pareça uma reorganização do espaço em vez de carregar novas páginas e onde um segundo idioma surja de forma tão natural quanto o primeiro. Cada escolha técnica serve a esse propósito.</p>
 <h2>Geração Estática com Propósito</h2>
-<p>No seu cerne, há um script Python que lê arquivos markdown de <code>_source/posts</code> e escreve HTML em dois diretórios de saída: <code>/enpara inglês e/pt</code> para português. O script usa frontmatter para fazer o parse de metadata YAML e markdown para converter o conteúdo do corpo. Não há sistema de plugins, nem marketplace de temas, nem abstrações sobre abstrações. O script compõe arquivos. Isso é tudo o que precisa fazer.</p>
-<p>Cada arquivo markdown contém front matter com título, data, trecho e tags opcionais. O script percorre o diretório de posts, carrega cada arquivo, extrai os metadata, converte o markdown para HTML e o injeta em um template. O template não é um sistema separado. É uma f-string Python que sabe onde a navegação se encaixa, onde o título do post fica e como o footer deve fechar. O HTML de saída é escrito no disco com nomes de arquivo determinísticos derivados do slug do post.</p>
+<p>No coração de tudo está um script em Python que lê arquivos markdown de <code>_source/posts</code> e escreve HTML em dois diretórios de saída: <code>/enpara inglês e/pt</code> para português. O script usa frontmatter para analisar metadata YAML e markdown para converter o conteúdo do corpo. Não existe sistema de plugins, nem mercado de temas, nem abstrações sobre abstrações. O script compõe arquivos. Isso é tudo o que ele precisa fazer.</p>
+<p>Cada arquivo markdown contém metadados iniciais com título, data, trecho e tags opcionais. O script percorre o diretório de posts, carrega cada arquivo, extrai a metadata, converte o markdown para HTML e o injeta em um template. O template não é um sistema à parte. É uma f-string do Python que sabe onde a navegação entra, onde o título do post fica e como o rodapé deve fechar. O HTML de saída é gravado no disco com nomes de arquivos determinísticos derivados do slug do post.</p>
 <pre><code class="language-python">def generate_post_html(post, post_number, lang='en'):
     lang_dir = LANGUAGES[lang]['dir']
     current_page = f&quot;blog/{post['slug']}.html&quot;
@@ -127,11 +128,11 @@
 &lt;/body&gt;
 &lt;/html&gt;&quot;&quot;&quot;
 </code></pre>
-<p>O build é determinístico. Execute-o duas vezes com a mesma entrada e você obterá uma saída idêntica em bytes. Isso torna o caching trivial e os rebuilds previsíveis. O único estado que persiste entre os builds é o translation cache, que discutiremos em um momento.</p>
+<p>O build é determinístico. Execute-o duas vezes com a mesma entrada e você terá uma saída idêntica byte a byte. Isso torna o cache trivial e os rebuilds previsíveis. O único estado que persiste entre builds é o cache de tradução, que discutiremos em um momento.</p>
 <h2>Tradução como Conteúdo de Primeira Classe</h2>
-<p>Cada post é escrito em inglês. Cada post é automaticamente traduzido para o português do Brasil usando o modelo Gemini 2.0 Flash do Google. A tradução não é um afterthought. É parte do processo de build, cached por content hash e regenerada apenas quando a fonte em inglês muda.</p>
-<p>O tradutor reside em <code>_source/translator.py</code>. Ele mantém um JSON cache em <code>_cache/translation-cache.json</code>, indexado por post slug e content hash. Antes de solicitar uma tradução, o script verifica se o content hash atual corresponde ao hash cached. Se sim, a tradução cached é usada. Caso contrário, uma nova tradução é solicitada via Gemini API e o cache é atualizado.</p>
-<p>O prompt de tradução é cuidadoso. Ele instrui o modelo a localizar, não a traduzir literalmente. Termos técnicos que os brasileiros usam em inglês (como framework, backend, API, deploy e commit) são preservados. Code blocks são deixados intocados. A voz narrativa é adaptada para soar natural em português, mantendo o mesmo tom e ritmo do original.</p>
+<p>Cada post é escrito em inglês. Cada post é traduzido automaticamente para o português brasileiro usando o modelo Gemini 2.0 Flash do Google. A tradução não é algo pensado depois. Ela faz parte do processo de build, armazenada em cache por hash de conteúdo e regenerada apenas quando o código-fonte em inglês muda.</p>
+<p>O tradutor fica em <code>_source/translator.py</code>. Ele mantém um cache JSON em <code>_cache/translation-cache.json</code>, indexado pelo slug do post e pelo hash de conteúdo. Antes de solicitar uma tradução, o script verifica se o hash de conteúdo atual corresponde ao hash em cache. Se corresponder, a tradução em cache é usada. Caso contrário, uma nova tradução é solicitada via Gemini API e o cache é atualizado.</p>
+<p>O prompt de tradução é cuidadoso. Ele instrui o modelo a localizar, não a traduzir literalmente. Termos técnicos que brasileiros usam em inglês (como framework, backend, API, deploy e commit) são preservados. Blocos de código não são tocados. A voz narrativa é adaptada para soar natural em português, mantendo o mesmo tom e ritmo do original.</p>
 <pre><code class="language-python">def translate_post(self, slug: str, frontmatter: Dict, content: str):
     content_hash = self._calculate_content_hash(content)
     cached = self.cache.get_translation(slug, content_hash)
@@ -145,10 +146,10 @@
     self.cache.set_translation(slug, content_hash, translated)
     return translated
 </code></pre>
-<p>O resultado são dois sites completos e paralelos. Ambos são HTML estático. Ambos são autocontidos. Ambos podem ser servidos de uma CDN sem infraestrutura de backend. O site em inglês reside em <code>/en</code>, o site em português em <code>/pt</code> e o usuário pode alternar entre eles com um único clique. O alternador de idioma não recarrega a página. Ele navega com uma View Transition que preserva a posição de scroll e o estado do filtro, fazendo com que a troca pareça um overlay em vez de um salto.</p>
-<h2>Navegação Que Lembra</h2>
-<p>O site usa a API View Transitions para animar entre as páginas. Esta API é exclusiva do Chromium, o que significa que o site visa Chrome, Edge, Brave e outros navegadores baseados em Chromium. Não há polyfill. Não há animação de fallback. Se a API não estiver disponível, a navegação funciona normalmente sem transições. Isso é uma troca deliberada: recursos de ponta para usuários em navegadores modernos, degradação graciosa para todos os outros.</p>
-<p>O script que lida com a navegação é pequeno. Ele reside em <code>static/js/transitions.js</code>. Quando você clica em um link interno, o script intercepta o clique, faz um fetch do novo HTML da página, o analisa em um fragmento de documento e inicia uma View Transition. Dentro do callback de transição, o script troca o título do documento, as stylesheets, o conteúdo principal e a navegação, então atualiza a URL com <code>history.pushState</code>. O navegador captura o estado "antes", executa o callback para atualizar o DOM, captura o estado "depois" e anima a diferença.</p>
+<p>O resultado são dois sites completos e paralelos. Ambos são HTML estático. Ambos são autossuficientes. Ambos podem ser servidos a partir de uma CDN sem infraestrutura de backend. O site em inglês vive em <code>/en</code>, o site em português em <code>/pt</code> e o usuário pode fazer o switch entre eles com um único clique. O alternador de idioma não recarrega a página. Ele navega com uma View Transition que preserva a posição de rolagem e o estado do filtro, fazendo com que a troca pareça uma sobreposição em vez de um salto.</p>
+<h2>Navegação que se Lembra</h2>
+<p>O site usa a View Transitions API para animar a transição entre páginas. Esta API é exclusiva para Chromium, o que significa que o site foca no Chrome, Edge, Brave e outros navegadores baseados em Chromium. Não há polyfill. Não há animação de reserva. Se a API não estiver disponível, a navegação funciona normalmente sem transições. Esta é uma escolha deliberada: recursos de ponta para usuários em navegadores modernos e degradação suave para todos os outros.</p>
+<p>O script que lida com a navegação é pequeno. Ele fica em <code>static/js/transitions.js</code>. Quando você clica em um link interno, o script intercepta o clique, busca o HTML da nova página, o transforma em um fragmento de documento e inicia uma View Transition. Dentro do callback da transição, o script troca o título do documento, as folhas de estilo, o conteúdo principal e a navegação, atualizando a URL com history.pushState. O navegador captura o estado anterior, executa o callback para atualizar o DOM, captura o novo estado e anima a diferença.</p>
 <pre><code class="language-javascript">async function navigateTo(url) {
   const response = await fetch(url, { cache: 'no-cache' });
   const html = await response.text();
@@ -165,15 +166,15 @@
   await transition.finished;
 }
 </code></pre>
-<p>Todo o comportamento da animação é definido em CSS usando pseudo-elementos <code>::view-transition-*</code>. O JavaScript apenas dispara a API. O CSS define como o conteúdo antigo desaparece, como o novo conteúdo aparece e como os elementos compartilhados se transformam entre os estados. Cards de posts no índice se expandem em artigos completos. Títulos permanecem no lugar e aumentam. O background se move suavemente. A sensação não é de trocar de páginas, mas de reorganizar uma única superfície contínua.</p>
-<p>A curva de easing é a mesma em todos os lugares: <code>cubic-bezier(0.4, 0, 0.2, 1)</code>. As durações são compartilhadas em todas as interações: 300ms para efeitos rápidos de hover, 500ms para transições principais, 600ms para mudanças de tema. Essas constantes residem em propriedades personalizadas CSS e se propagam por toda animação no site. A consistência não é imposta por um framework. Ela é codificada no próprio design system.</p>
+<p>Todo o comportamento da animação é definido no CSS usando pseudo-elementos ::view-transition-*. O JavaScript apenas dispara a API. O CSS define como o conteúdo antigo desaparece, como o novo aparece e como elementos compartilhados se transformam entre os estados. Os cards de posts na página inicial se expandem para artigos completos. Os títulos permanecem no lugar e crescem. O fundo muda suavemente. A sensação não é a de trocar de página, mas de reorganizar uma única superfície contínua.</p>
+<p>A curva de atenuação (easing) é a mesma em todos os lugares: cubic-bezier(0.4, 0, 0.2, 1). As durações são compartilhadas entre todas as interações: 300ms para efeitos rápidos de hover, 500ms para transições principais, 600ms para mudanças de tema. Essas constantes vivem em propriedades personalizadas do CSS e se propagam por cada animação no site. A consistência não é imposta por um framework. Ela está codificada no próprio sistema de design.</p>
 <h2>Troca de Idioma como Tradução Espacial</h2>
-<p>Uma das continuidades sutis do sistema é como a troca de idioma se manifesta. Quando você alterna de inglês para português, você não está saindo da página. Você está traduzindo a superfície que já está lendo. A posição de scroll é preservada. O estado do filtro na página de índice é preservado. A URL muda de <code>/en/index.htmlpara/pt/index.html</code>, mas sua posição no documento não.</p>
-<p>Este comportamento é detectado no script de navegação. Se a estrutura do path for idêntica, exceto pelo segmento en ou pt, a navegação é classificada como uma troca de idioma. A posição de scroll é capturada antes do fetch e restaurada após a troca do DOM. Se você estava na metade de um artigo em inglês e troca para português, você permanece na metade do mesmo artigo em português. O conteúdo muda, mas o espaço não.</p>
-<p>O mesmo princípio se aplica à filtragem na página de índice. Se você filtrou posts por ano ou tag, e troca de idioma, o filtro permanece ativo. Os posts traduzidos aparecem com os mesmos critérios de seleção. Isso faz com que a experiência bilíngue pareça um único documento visto através de duas lentes, em vez de dois sites separados.</p>
+<p>Uma das continuidades sutis do sistema é como a troca de idioma é percebida. Quando você faz o switch do inglês para o português, você não está saindo da página. Você está traduzindo a superfície que já está lendo. A posição de rolagem é preservada. O estado do filtro na página inicial é preservado. A URL muda de <code>/en/index.htmlpara/pt/index.html</code>, mas o seu lugar no documento não muda.</p>
+<p>Esse comportamento é detectado no script de navegação. Se a estrutura do caminho for idêntica, exceto pelo segmento en ou pt, a navegação é classificada como um switch de idioma. A posição de rolagem é capturada antes da busca e restaurada após a troca do DOM. Se você estava no meio de um artigo em inglês e troca para o português, você continua no meio do mesmo artigo em português. O conteúdo muda, mas o espaço não.</p>
+<p>O mesmo princípio se aplica à filtragem na página inicial. Se você filtrou os posts por ano ou tag e trocar de idioma, o filtro permanece ativo. Os posts traduzidos aparecem com os mesmos critérios de seleção. Isso faz com que a experiência bilíngue pareça um documento único visto através de duas lentes, em vez de dois sites separados.</p>
 <h2>Filtragem com FLIP</h2>
-<p>A página de índice lista todos os posts com um painel de filtro para ano, mês e tags. A filtragem é instantânea. Quando você seleciona um ano, os posts que não correspondem desaparecem e os posts restantes se reorganizam em um grid mais compacto. A reorganização é animada usando a técnica FLIP: First, Last, Invert, Play.</p>
-<p>O script captura a posição inicial de cada card visível. Ele aplica o filtro, que esconde os cards que não correspondem e faz com que o layout faça um reflow. Ele captura a posição final de cada card que permanece visível. Para cada card, ele calcula o delta entre a posição antiga e a nova, aplica um CSS transform para inverter o card de volta à sua posição inicial e então anima o transform de volta a zero.</p>
+<p>A página inicial lista todos os posts com um painel de filtro para ano, mês e tags. A filtragem é instantânea. Quando você seleciona um ano, os posts que não correspondem desaparecem gradualmente e os posts restantes se reorganizam em uma grade mais justa. A reorganização é animada usando a técnica FLIP: First, Last, Invert, Play (Primeiro, Último, Inverter, Tocar).</p>
+<p>O script captura a posição inicial de cada card visível. Ele aplica o filtro, que oculta os cards que não correspondem e faz com que o layout se reorganize. Ele captura a posição final de cada card que permanece visível. Para cada card, calcula a diferença entre a posição antiga e a nova, aplica um transform do CSS para inverter o card de volta à sua posição inicial e, em seguida, anima o transform de volta a zero.</p>
 <pre><code class="language-javascript">const rects = new Map();
 cards.forEach(card =&gt; {
   rects.set(card, card.getBoundingClientRect());
@@ -194,24 +195,24 @@ cards.forEach(card =&gt; {
   });
 });
 </code></pre>
-<p>O grid nunca salta. Ele "expira". Os cards se dissolvem e deslizam para novas posições ao longo da mesma janela de 500ms. O resultado parece deliberado, não surpreendente. O layout é sempre legível. O movimento explica o que mudou.</p>
-<h2>Transições de Tema e Engenharia Anti-Flicker</h2>
-<p>O site suporta temas claros e escuros. O toggle é um botão simples na barra de navegação. Quando você clica nele, o tema se espalha por toda a página em 600 milissegundos. Cores de background mudam, cores de texto se ajustam, bordas suavizam ou realçam e sombras são recalculadas. A transição é suave porque é definida uma vez, em CSS, com uma única classe aplicada ao body.</p>
-<p>Um desafio durante o desenvolvimento foi evitar o flicker visual quando as transições de tema se sobrepunham às View Transitions. Se ambos os sistemas estivessem animando os mesmos elementos simultaneamente, o resultado era um breve flash. A solução foi remover classes CSS conflitantes antes de iniciar uma View Transition e evitar seletores universais que aplicam transições a todos os elementos de uma vez.</p>
-<p>A transição de tema é condicionada. Ela só se aplica quando a classe theme-transitioning está presente no body. Quando você alterna o tema, a classe é adicionada, o atributo do tema é atualizado e a classe é removida após a conclusão da transição. Isso garante que as mudanças de tema sejam animadas, mas a navegação não dispare transições de tema redundantes.</p>
-<p>Outra fonte de flicker foi a remoção atrasada de animações CSS nos cards de posts. Na página de índice, os cards aparecem com uma animação escalonada quando a página é carregada pela primeira vez. Em navegações subsequentes, essa animação não deve ser executada. O script detecta a navegação verificando <code>document.referrer</code>. Se o referrer corresponder à origem do site, o script assume que o usuário navegou de outra página e desabilita imediatamente a animação de introdução adicionando disable-animation ao grid de posts. Os cards aparecem instantaneamente sem piscar ou resetar.</p>
+<p>A grade nunca pula. Ela exala. Os cards se dissolvem e deslizam para novas posições no mesmo intervalo de 500ms. O resultado parece deliberado, não surpreendente. O layout é sempre legível. O movimento explica o que mudou.</p>
+<h2>Transições de Tema e Engenharia Contra Cintilação</h2>
+<p>O site suporta temas claro e escuro. O alternador é um botão simples na barra de navegação. Quando você clica nele, o tema se espalha por toda a página ao longo de 600 milissegundos. As cores de fundo mudam, as cores do texto se ajustam, as bordas suavizam ou ganham nitidez e as sombras são recalculadas. A transição é suave porque é definida uma única vez, no CSS, com uma única classe aplicada ao corpo.</p>
+<p>Um desafio durante o desenvolvimento foi evitar a cintilação visual (flicker) quando as transições de tema se sobrepunham às View Transitions. Se ambos os sistemas estivessem animando os mesmos elementos simultaneamente, o resultado era um breve clarão. A solução foi remover classes CSS conflitantes antes de iniciar uma View Transition e evitar seletores universais que aplicam transições a todos os elementos de uma vez.</p>
+<p>A transição de tema é controlada. Ela só se aplica quando a classe theme-transitioning está presente no corpo. Quando você alterna o tema, a classe é adicionada, o atributo de tema é atualizado e a classe é removida após a conclusão da transição. Isso garante que as mudanças de tema sejam animadas, mas que a navegação não dispare transições de tema redundantes.</p>
+<p>Outra fonte de cintilação era a remoção atrasada de animações CSS nos cards de posts. Na página inicial, os cards aparecem com uma animação escalonada quando a página carrega pela primeira vez. Em navegações subsequentes, essa animação não deve rodar. O script detecta a navegação verificando document.referrer. Se o referenciador corresponder à origem do site, o script assume que o usuário navegou de outra página e desativa imediatamente a animação de introdução adicionando disable-animation à grade de posts. Os cards aparecem instantaneamente, sem piscar ou resetar.</p>
 <h2>Filosofia da Simplicidade</h2>
-<p>A arquitetura não é mínima por ser mínima. É mínima porque o problema é simples. Um blog é texto, algumas imagens e a sensação de que, ao percorrê-lo, deve ser como virar uma página sem perder o seu lugar. Capacidades nativas do navegador são suficientes. Python é suficiente. As dependências são escolhidas cuidadosamente. Se uma ferramenta não torna o corte mais limpo, ela não entra na codebase.</p>
-<p>A API View Transitions é nativa do Chromium. Ela não exige polyfill, nem wrapper, nem build step. O navegador já sabe como capturar dois estados do DOM e animar entre eles. Meu trabalho é decidir quando isso deve acontecer e evitar que o resto da página interfira. O CSS que descreve o movimento é declarativo. Ele se lê como uma partitura de coreografia, não como um programa.</p>
-<p>As bibliotecas frontmatter e markdown do Python fazem exatamente uma coisa cada: parsear YAML e converter Markdown para HTML. Elas fazem isso bem. Elas não tentam ser build systems ou routers. Elas parseiam texto. Isso é tudo o que preciso que façam. O script de build inteiro tem menos de 600 linhas de Python. Você pode lê-lo de uma vez. Se você pode lê-lo, você pode mudá-lo.</p>
+<p>A arquitetura não é mínima por ser mínima. Ela é mínima porque o problema é simples. Um blog é texto, algumas imagens e a sensação de que percorrê-lo deve ser como virar uma página sem perder o seu lugar. As capacidades nativas do navegador são suficientes. Python é suficiente. As dependências são escolhidas com cuidado. Se uma ferramenta não torna o corte mais limpo, ela não entra na base de código.</p>
+<p>A View Transitions API é nativa do Chromium. Não requer polyfill, nem wrapper, nem etapa de build. O navegador já sabe como capturar dois estados do DOM e animar entre eles. Meu trabalho é decidir quando isso deve acontecer e evitar que o resto da página interfira. O CSS que descreve o movimento é declarativo. Ele se lê como uma partitura de coreografia, não como um programa.</p>
+<p>As bibliotecas frontmatter e markdown do Python fazem exatamente uma coisa cada: analisar YAML e converter markdown para HTML. Elas fazem isso bem. Elas não tentam ser sistemas de build ou roteadores. Elas processam texto. Isso é tudo o que eu preciso que elas façam. Todo o script de build tem menos de 600 linhas de Python. Você pode lê-lo de uma só vez. Se você pode ler, você pode mudar.</p>
 <h2>Manutenção Antecipada</h2>
-<p>Recusar um framework aqui não é nostalgia. É um alinhamento com o problema. Cada linha de código neste sistema é código que terei que ler novamente em seis meses ou seis anos. Cada dependência é uma potencial incompatibilidade futura. Cada abstração é um custo sobre a compreensão. Então o sistema permanece pequeno. Permanece legível. Permanece mutável.</p>
-<p>A ausência de maquinário não é uma ideologia. É manutenção praticada com antecedência. Quando adiciono um novo post, escrevo markdown e executo o build script. A tradução acontece automaticamente. O HTML é gerado. O cache é atualizado. O site está pronto para deploy. Não há hot-reloading server. Não há configuração de webpack. Não há package.json com 300 dependências. Há um script Python, um arquivo markdown e uma pasta de HTML estático.</p>
+<p>Recusar um framework aqui não é nostalgia. É um alinhamento com o problema. Cada linha de código neste sistema é um código que terei que ler novamente em seis meses ou seis anos. Cada dependência é uma incompatibilidade futura em potencial. Cada abstração é um imposto sobre a compreensão. Por isso, o sistema permanece pequeno. Permanece legível. Permanece mutável.</p>
+<p>A ausência de maquinário não é uma ideologia. É manutenção praticada com antecedência. Quando adiciono um novo post, escrevo o markdown e executo o script de build. A tradução acontece automaticamente. O HTML é gerado. O cache é atualizado. O site está pronto para o deploy. Não há servidor de hot-reloading. Não há configuração de webpack. Não há um package.json com 300 dependências. Há um script Python, um arquivo markdown e uma pasta de HTML estático.</p>
 <h2>O Contrato com o Leitor</h2>
-<p>Para aqueles que desejam adaptá-lo, o contrato é pequeno e explícito. Markdown entra, HTML sai. Um tradutor que respeita o code e a voz. Uma camada de navegação que nunca bloqueia paints com trabalho que poderia ter feito antes. Estilos que codificam o ritmo uma vez e o reutilizam em todo lugar. Se você mudar uma coisa, deve parecer que você mudou exatamente uma coisa, e o resto do sistema deve responder com calma proporcional.</p>
-<p>A única inteligência está em saber quando parar. O sistema poderia fazer mais. Poderia ter um CMS. Poderia ter preview em tempo real. Poderia ter analytics e A/B testing e widgets de compartilhamento social. Ele não faz nenhuma dessas coisas porque nenhuma delas melhora a experiência de leitura. O objetivo não é construir uma plataforma. O objetivo é escrever e permitir que a escrita seja lida sem interferência.</p>
-<p>Isso não é uma demonstração. É a versão mais simples de um documento vivo que eu poderia criar sem mentir sobre o que a web já pode fazer. O cache lembra o que não mudou. O tradutor preserva o que não deve ser traduzido. A navegação mantém onde você estava olhando quando o idioma mudou. O sistema de motion codifica quanto tempo as coisas devem levar e se recusa a discutir sobre isso. Cada decisão que o sistema toma está a serviço de uma única ideia: o documento é contínuo. Quando você se move através dele, o espaço se reorganiza, mas ele nunca quebra.</p>
-<p>É isso que significa para um site estático parecer vivo.</p>
+<p>Para aqueles que desejam adaptá-lo, o contrato é pequeno e explícito. Markdown entra, HTML sai. Um tradutor que respeita o código e a voz. Uma camada de navegação que nunca bloqueia a renderização com trabalho que poderia ter sido feito antes. Estilos que codificam o ritmo uma vez e o reutilizam em todos os lugares. Se você mudar uma coisa, deve sentir que mudou exatamente uma coisa, e o resto do sistema deve responder com calma proporcional.</p>
+<p>A única esperteza está em saber quando parar. O sistema poderia fazer mais. Poderia ter um CMS. Poderia ter visualização em tempo real. Poderia ter analytics, testes A/B e widgets de compartilhamento social. Ele não faz nada disso porque nada disso melhora a experiência de leitura. O objetivo não é construir uma plataforma. O objetivo é escrever e permitir que a escrita seja lida sem interferências.</p>
+<p>Isto não é uma demonstração. É a versão mais simples de um documento vivo que eu poderia fazer sem mentir sobre o que a web já é capaz de fazer. O cache lembra o que não mudou. O tradutor preserva o que não deve ser traduzido. A navegação mantém onde você estava olhando quando o idioma mudou. O sistema de movimento codifica quanto tempo as coisas devem levar e se recusa a discutir sobre isso. Cada decisão que o sistema toma é em serviço de uma única ideia: o documento é contínuo. Quando você se move através dele, o espaço se reorganiza, mas nunca se quebra.</p>
+<p>É isso que significa um site estático parecer vivo.</p>
             </div>
         </article>
     </main>
@@ -235,7 +236,7 @@ cards.forEach(card =&gt; {
                     </svg>
                 </a>
             </div>
-            <p class="copyright">&copy; 2026 All Rights Reserved.</p>
+            <p class="copyright">&copy; 2026 Todos os Direitos Reservados.</p>
         </div>
     </footer>
 </body>

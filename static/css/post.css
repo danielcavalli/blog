@@ -210,6 +210,11 @@
     opacity: 0.7;
 }
 
+/* Keep numeric reference targets visible below fixed top nav */
+.post-body span[id^="ref-"] {
+    scroll-margin-top: 6rem;
+}
+
 /* Tables */
 .post-body table {
     width: 100%;

@@ -1,0 +1,27 @@
+[project]
+name = "dan-rio-blog"
+version = "1.0.0"
+description = "Bilingual static site generator for dan.rio"
+requires-python = ">=3.10"
+dependencies = [
+    "markdown>=3.5.0",
+    "python-frontmatter>=1.0.0",
+    "google-genai>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["_source"]
+include = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["_source"]

@@ -1,0 +1,34 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Syntax check
+        run: |
+          uv run python -m py_compile _source/build.py
+          uv run python -m py_compile _source/config.py
+          uv run python -m py_compile _source/helpers.py
+          uv run python -m py_compile _source/paths.py
+          uv run python -m py_compile _source/renderer.py
+          uv run python -m py_compile _source/seo.py
+          uv run python -m py_compile _source/content_loader.py
+          uv run python -m py_compile _source/cv_parser.py
+          uv run python -m py_compile _source/translator.py
+
+      - name: Run unit tests
+        run: uv run pytest tests/ -v

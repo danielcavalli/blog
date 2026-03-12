@@ -1,7 +1,6 @@
 ---
-content_hash: d86da88b2cf3be3b9c0cfa87990a87c203dd006dd8a8492a63a36a4d1c630771
-created_at: '2025-10-24T00:50:34.912728'
 date: 2025-10-20
+lang: en-us
 excerpt: Exploring the latest trends and best practices in modern web development,
   from performance optimization to user experience design.
 order: 2
@@ -11,7 +10,6 @@ tags:
 - css
 - performance
 title: Modern Web Development
-updated_at: '2026-02-08T01:10:31.329611'
 ---
 
 ## The Evolution of Web Development

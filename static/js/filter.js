@@ -49,7 +49,26 @@
 
 (function() {
     'use strict';
-    
+
+    // Locale-aware labels for ARIA attributes.
+    // Keys match the <html lang="..."> attribute set by the build.
+    const I18N = {
+        'en': { dateFilters: 'Date filters', tagFilters: 'Tag filters' },
+        'pt': { dateFilters: 'Filtros de data', tagFilters: 'Filtros de tag' },
+    };
+
+    /** Returns the i18n strings for the current page language, defaulting to EN. */
+    function getStrings() {
+        const lang = document.documentElement.lang || 'en';
+        return I18N[lang] || I18N['en'];
+    }
+
+    // Module-level flag: the "click outside to close dropdowns" listener on
+    // document is stateless and only needs to exist once for the lifetime of
+    // the IIFE module.  Re-adding it on every initFilters() call (which
+    // happens after every SPA navigation) would accumulate stale listeners.
+    let documentClickListenerAdded = false;
+
     /**
      * Initialize the filter system with state, DOM references, and event handlers
      * 
@@ -160,93 +179,233 @@
             const optionElements = wrapper.querySelectorAll('.select-option');
             const label = trigger.querySelector('.select-label');
             
-            // Toggle dropdown
+            // ARIA: make the trigger behave as a combobox-style control
+            trigger.setAttribute('role', 'button');
+            trigger.setAttribute('aria-haspopup', 'listbox');
+            trigger.setAttribute('aria-expanded', 'false');
+            trigger.setAttribute('tabindex', '0');
+            
+            // ARIA: mark option list as a listbox
+            options.setAttribute('role', 'listbox');
+            
+            // ARIA: mark each option with role and aria-selected
+            optionElements.forEach(option => {
+                option.setAttribute('role', 'option');
+                option.setAttribute('aria-selected', option.classList.contains('selected') ? 'true' : 'false');
+            });
+
+            /**
+             * Opens the dropdown, updating ARIA state and measuring overflow.
+             */
+            function openDropdown() {
+                // Close all other dropdowns first
+                document.querySelectorAll('.custom-select.open').forEach(select => {
+                    select.classList.remove('open');
+                    const otherTrigger = select.querySelector('.select-trigger');
+                    if (otherTrigger) otherTrigger.setAttribute('aria-expanded', 'false');
+                });
+                
+                wrapper.classList.add('open');
+                trigger.setAttribute('aria-expanded', 'true');
+                
+                // Focus the currently selected option, or the first option
+                const selected = wrapper.querySelector('.select-option.selected') ||
+                                 wrapper.querySelector('.select-option');
+                if (selected) selected.focus();
+                
+                // Measure potential overflow immediately
+                requestAnimationFrame(() => {
+                    if (filtersPanel && options) {
+                        const optionsScrollHeight = options.scrollHeight;
+                        const filtersRect = filtersPanel.getBoundingClientRect();
+                        const triggerRect = trigger.getBoundingClientRect();
+                        const dropdownBottom = triggerRect.bottom + optionsScrollHeight;
+                        const actualOverflow = dropdownBottom - filtersRect.bottom;
+                        
+                        if (actualOverflow > 0) {
+                            filtersPanel.classList.add('dropdown-active');
+                        }
+                    }
+                });
+            }
+
+            /**
+             * Closes the dropdown, updating ARIA state and returning focus to trigger.
+             * 
+             * @param {boolean} [returnFocus=true] - Whether to move focus back to trigger
+             */
+            function closeDropdown(returnFocus) {
+                wrapper.classList.remove('open');
+                trigger.setAttribute('aria-expanded', 'false');
+                
+                if (returnFocus !== false) {
+                    trigger.focus();
+                }
+                
+                requestAnimationFrame(() => {
+                    const anyOpen = document.querySelector('.custom-select.open');
+                    if (!anyOpen && filtersPanel) {
+                        filtersPanel.classList.remove('dropdown-active');
+                    }
+                });
+            }
+
+            /**
+             * Selects an option, updating display, ARIA state, and notifying callback.
+             * 
+             * @param {HTMLElement} option - The option element to select
+             */
+            function selectOption(option) {
+                const value = option.dataset.value;
+                const text = option.textContent;
+                
+                trigger.dataset.value = value;
+                label.textContent = text;
+                
+                optionElements.forEach(opt => {
+                    opt.classList.remove('selected');
+                    opt.setAttribute('aria-selected', 'false');
+                });
+                option.classList.add('selected');
+                option.setAttribute('aria-selected', 'true');
+                
+                closeDropdown(true);
+                
+                if (onSelect) onSelect(value);
+            }
+
+            // Toggle dropdown on trigger click
             trigger.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const isOpen = wrapper.classList.contains('open');
                 
-                // Close all other dropdowns
-                document.querySelectorAll('.custom-select.open').forEach(select => {
-                    select.classList.remove('open');
-                });
-                
                 if (!isOpen) {
-                    wrapper.classList.add('open');
-                    
-                    // Measure potential overflow immediately
-                    // Use requestAnimationFrame to ensure DOM update has happened
-                    requestAnimationFrame(() => {
-                        if (filtersPanel && options) {
-                            // Get the actual content height of the dropdown
-                            const optionsScrollHeight = options.scrollHeight;
-                            const filtersRect = filtersPanel.getBoundingClientRect();
-                            const triggerRect = trigger.getBoundingClientRect();
-                            
-                            // Calculate where dropdown bottom will be (trigger bottom + dropdown height)
-                            const dropdownBottom = triggerRect.bottom + optionsScrollHeight;
-                            const actualOverflow = dropdownBottom - filtersRect.bottom;
-                            
-                            // Only nudge if dropdown extends beyond filters boundary
-                            if (actualOverflow > 0) {
-                                filtersPanel.classList.add('dropdown-active');
-                            }
-                        }
-                    });
+                    openDropdown();
                 } else {
-                    // Check if any dropdowns remain open
-                    // Use RAF to avoid triggering style recalc during animation
-                    requestAnimationFrame(() => {
-                        const anyOpen = document.querySelector('.custom-select.open');
-                        if (!anyOpen && filtersPanel) {
-                            filtersPanel.classList.remove('dropdown-active');
-                        }
-                    });
+                    closeDropdown(true);
                 }
             });
             
-            // Select option
+            // Keyboard support on trigger: Enter/Space opens, arrow keys navigate
+            trigger.addEventListener('keydown', (e) => {
+                switch (e.key) {
+                    case 'Enter':
+                    case ' ':
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (wrapper.classList.contains('open')) {
+                            closeDropdown(true);
+                        } else {
+                            openDropdown();
+                        }
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!wrapper.classList.contains('open')) {
+                            openDropdown();
+                        }
+                        break;
+                    case 'Escape':
+                        e.preventDefault();
+                        if (wrapper.classList.contains('open')) {
+                            closeDropdown(true);
+                        }
+                        break;
+                }
+            });
+
+            // Select option on click
             optionElements.forEach(option => {
+                option.setAttribute('tabindex', '-1');
+                
                 option.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const value = option.dataset.value;
-                    const text = option.textContent;
+                    selectOption(option);
+                });
+                
+                // Keyboard navigation within the listbox
+                option.addEventListener('keydown', (e) => {
+                    const opts = Array.from(optionElements);
+                    const idx = opts.indexOf(option);
                     
-                    // Update trigger
-                    trigger.dataset.value = value;
-                    label.textContent = text;
-                    
-                    // Update selected state
-                    optionElements.forEach(opt => opt.classList.remove('selected'));
-                    option.classList.add('selected');
-                    
-                    // Close dropdown
-                    wrapper.classList.remove('open');
-                    
-                    // Contract filters block when dropdown closes
-                    // Use RAF to avoid triggering style recalc during animation
-                    requestAnimationFrame(() => {
-                        const anyOpen = document.querySelector('.custom-select.open');
-                        if (!anyOpen && filtersPanel) {
-                            filtersPanel.classList.remove('dropdown-active');
-                        }
-                    });
-                    
-                    // Callback
-                    if (onSelect) onSelect(value);
+                    switch (e.key) {
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            if (idx < opts.length - 1) opts[idx + 1].focus();
+                            break;
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            if (idx > 0) {
+                                opts[idx - 1].focus();
+                            } else {
+                                closeDropdown(true);
+                            }
+                            break;
+                        case 'Enter':
+                        case ' ':
+                            e.preventDefault();
+                            selectOption(option);
+                            break;
+                        case 'Escape':
+                            e.preventDefault();
+                            closeDropdown(true);
+                            break;
+                        case 'Home':
+                            e.preventDefault();
+                            opts[0].focus();
+                            break;
+                        case 'End':
+                            e.preventDefault();
+                            opts[opts.length - 1].focus();
+                            break;
+                        case 'Tab':
+                            // Let tab close the dropdown naturally
+                            closeDropdown(false);
+                            break;
+                    }
                 });
             });
         }
         
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', () => {
-            document.querySelectorAll('.custom-select.open').forEach(select => {
-                select.classList.remove('open');
+        // Close dropdowns when clicking outside.
+        // Guard with module-level flag so this listener is only ever registered
+        // once, regardless of how many times initFilters() is called across SPA
+        // navigations.  The handler is stateless (queries DOM at call time) so a
+        // single registration is safe and correct.
+        if (!documentClickListenerAdded) {
+            documentClickListenerAdded = true;
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.custom-select.open').forEach(select => {
+                    select.classList.remove('open');
+                    const t = select.querySelector('.select-trigger');
+                    if (t) t.setAttribute('aria-expanded', 'false');
+                });
+                // Contract filters block when all dropdowns close
+                const panel = document.getElementById('filters-panel');
+                if (panel) {
+                    panel.classList.remove('dropdown-active');
+                }
             });
-            // Contract filters block when all dropdowns close
-            if (filtersPanel) {
-                filtersPanel.classList.remove('dropdown-active');
-            }
-        });
+        }
+
+        // ARIA: annotate filter sections for assistive technology
+        const filterRow = filtersPanel.querySelector('.filter-row');
+        const filterTagsContainer = filtersPanel.querySelector('.filter-tags');
+        const ariaStrings = getStrings();
+        
+        if (filterRow) {
+            filterRow.setAttribute('role', 'group');
+            filterRow.setAttribute('aria-label', ariaStrings.dateFilters);
+        }
+        if (filterTagsContainer) {
+            filterTagsContainer.setAttribute('role', 'group');
+            filterTagsContainer.setAttribute('aria-label', ariaStrings.tagFilters);
+        }
+
+        // Set initial ARIA state for filter toggle
+        filterToggle.setAttribute('aria-expanded', filtersPanel.classList.contains('expanded') ? 'true' : 'false');
+        filterToggle.setAttribute('aria-controls', 'filters-panel');
 
         // Toggle filter panel - breathing motion
         filterToggle.addEventListener('click', () => {
@@ -256,10 +415,12 @@
                 // Inhale - contract
                 filtersPanel.classList.remove('expanded');
                 filterToggle.classList.remove('active');
+                filterToggle.setAttribute('aria-expanded', 'false');
             } else {
                 // Exhale - expand
                 filtersPanel.classList.add('expanded');
                 filterToggle.classList.add('active');
+                filterToggle.setAttribute('aria-expanded', 'true');
             }
         });
 
@@ -504,6 +665,9 @@
         if (orderToggle) {
             const textSpan = orderToggle.querySelector('.order-toggle-text');
             
+            // Set initial aria-pressed: false = "created" (default), true = "updated"
+            orderToggle.setAttribute('aria-pressed', currentOrderBy === 'updated' ? 'true' : 'false');
+
             orderToggle.addEventListener('click', () => {
                 // Toggle order
                 currentOrderBy = currentOrderBy === 'updated' ? 'created' : 'updated';
@@ -520,6 +684,7 @@
                     requestAnimationFrame(() => {
                         textSpan.textContent = currentOrderBy === 'updated' ? labelUpdated : labelCreated;
                         orderToggle.dataset.order = currentOrderBy;
+                        orderToggle.setAttribute('aria-pressed', currentOrderBy === 'updated' ? 'true' : 'false');
                         orderToggle.classList.remove('morphing');
                         
                         // Sort posts with new order
@@ -636,7 +801,10 @@
         }
 
         // Tag filter toggle
-        tagButtons.forEach(button => {
+        tagButtons.forEach((button, btnIndex) => {
+            // Set initial aria-pressed state (false on fresh init)
+            button.setAttribute('aria-pressed', 'false');
+
             button.addEventListener('click', (e) => {
                 // Use currentTarget to always get the button element, not child elements
                 const tag = e.currentTarget.dataset.tag;
@@ -648,12 +816,43 @@
                 if (activeFilters.tags.has(tag)) {
                     activeFilters.tags.delete(tag);
                     e.currentTarget.classList.remove('active');
+                    e.currentTarget.setAttribute('aria-pressed', 'false');
                 } else {
                     activeFilters.tags.add(tag);
                     e.currentTarget.classList.add('active');
+                    e.currentTarget.setAttribute('aria-pressed', 'true');
                 }
                 
                 filterPosts();
+            });
+            
+            // Keyboard navigation: arrow keys move between tag buttons
+            button.addEventListener('keydown', (e) => {
+                const allTags = Array.from(document.querySelectorAll('.filter-tag'));
+                const idx = allTags.indexOf(button);
+                
+                let target = null;
+                switch (e.key) {
+                    case 'ArrowRight':
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        target = allTags[idx + 1] || allTags[0]; // Wrap around
+                        break;
+                    case 'ArrowLeft':
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        target = allTags[idx - 1] || allTags[allTags.length - 1]; // Wrap around
+                        break;
+                    case 'Home':
+                        e.preventDefault();
+                        target = allTags[0];
+                        break;
+                    case 'End':
+                        e.preventDefault();
+                        target = allTags[allTags.length - 1];
+                        break;
+                }
+                if (target) target.focus();
             });
         });
 
@@ -672,8 +871,12 @@
                     const firstOption = yearFilterWrapper.querySelector('.select-option');
                     trigger.dataset.value = '';
                     label.textContent = firstOption.textContent;
-                    yearFilterWrapper.querySelectorAll('.select-option').forEach(opt => opt.classList.remove('selected'));
+                    yearFilterWrapper.querySelectorAll('.select-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                        opt.setAttribute('aria-selected', 'false');
+                    });
                     firstOption.classList.add('selected');
+                    firstOption.setAttribute('aria-selected', 'true');
                 }
                 
                 if (monthFilterWrapper) {
@@ -682,11 +885,18 @@
                     const firstOption = monthFilterWrapper.querySelector('.select-option');
                     trigger.dataset.value = '';
                     label.textContent = firstOption.textContent;
-                    monthFilterWrapper.querySelectorAll('.select-option').forEach(opt => opt.classList.remove('selected'));
+                    monthFilterWrapper.querySelectorAll('.select-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                        opt.setAttribute('aria-selected', 'false');
+                    });
                     firstOption.classList.add('selected');
+                    firstOption.setAttribute('aria-selected', 'true');
                 }
                 
-                tagButtons.forEach(btn => btn.classList.remove('active'));
+                tagButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.setAttribute('aria-pressed', 'false');
+                });
 
                 // Show all posts with gentle reveal
                 filterPosts();
@@ -699,13 +909,61 @@
         if (clearButton) {
             clearButton.style.display = 'none';
         }
+        
+        /**
+         * Cleanup function: removes event listeners and ARIA attributes added
+         * during initialization.  Called automatically before re-initialization
+         * on SPA navigation so stale references don't accumulate.
+         * 
+         * Note: Most listeners are on elements replaced by View Transitions,
+         * so they are implicitly garbage-collected.  This function handles
+         * the few module-level or document-level side effects that persist.
+         * 
+         * @returns {void}
+         */
+        function cleanup() {
+            // Close any open dropdowns and reset their ARIA state
+            document.querySelectorAll('.custom-select.open').forEach(select => {
+                select.classList.remove('open');
+                const t = select.querySelector('.select-trigger');
+                if (t) t.setAttribute('aria-expanded', 'false');
+            });
+            
+            // Reset filter panel expansion state
+            if (filtersPanel) {
+                filtersPanel.classList.remove('expanded', 'dropdown-active');
+            }
+            if (filterToggle) {
+                filterToggle.classList.remove('active');
+                filterToggle.setAttribute('aria-expanded', 'false');
+            }
+        }
+        
+        // Expose cleanup so the module can call it before re-init
+        return cleanup;
+    }
+
+    // Tracks the cleanup function from the last initFilters() call.
+    // Invoked before each re-initialization to tear down the previous instance.
+    let currentCleanup = null;
+
+    /**
+     * Wraps initFilters with cleanup lifecycle management.
+     * Calls the previous instance's cleanup before creating a new one.
+     */
+    function safeInit() {
+        if (currentCleanup) {
+            currentCleanup();
+            currentCleanup = null;
+        }
+        currentCleanup = initFilters() || null;
     }
 
     // Initialize on load
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initFilters);
+        document.addEventListener('DOMContentLoaded', safeInit);
     } else {
-        initFilters();
+        safeInit();
     }
 
     // Re-initialize after View Transitions navigation
@@ -716,8 +974,10 @@
         if (filterToggle) {
             // Always re-initialize after navigation because DOM elements are replaced
             // The data-filter-initialized attribute is on the NEW DOM, not the old one
-            initFilters();
+            safeInit();
         }
+        // Note: focus management after SPA navigation is handled by
+        // transitions.js (which accounts for language switches).
     });
 
 })();

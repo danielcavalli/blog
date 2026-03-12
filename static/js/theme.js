@@ -27,6 +27,29 @@
 (function() {
     'use strict';
     
+    // Locale-aware labels for accessibility announcements.
+    // Keys match the <html lang="..."> attribute set by the build.
+    const I18N = {
+        'en': {
+            darkActivated: 'Dark mode activated',
+            lightActivated: 'Light mode activated',
+            switchToDark: 'Switch to dark mode',
+            switchToLight: 'Switch to light mode',
+        },
+        'pt': {
+            darkActivated: 'Modo escuro ativado',
+            lightActivated: 'Modo claro ativado',
+            switchToDark: 'Mudar para modo escuro',
+            switchToLight: 'Mudar para modo claro',
+        },
+    };
+
+    /** Returns the i18n strings for the current page language, defaulting to EN. */
+    function getStrings() {
+        const lang = document.documentElement.lang || 'en';
+        return I18N[lang] || I18N['en'];
+    }
+    
     /**
      * Retrieves initial theme from localStorage or system preference.
      * 
@@ -87,7 +110,8 @@
         announcement.setAttribute('aria-live', 'polite');
         announcement.setAttribute('aria-atomic', 'true');
         announcement.className = 'sr-only';
-        announcement.textContent = `${theme === 'dark' ? 'Dark' : 'Light'} mode activated`;
+        const strings = getStrings();
+        announcement.textContent = theme === 'dark' ? strings.darkActivated : strings.lightActivated;
         announcement.style.position = 'absolute';
         announcement.style.left = '-10000px';
         announcement.style.width = '1px';
@@ -115,18 +139,63 @@
         applyTheme(getInitialTheme());
     }
     
+    // Tracks the active MutationObserver for the ARIA label sync so we can
+    // disconnect it before creating a new one on re-initialization.
+    let themeObserver = null;
+
+    // System-preference listener is registered once at module level (not inside
+    // init()) so repeated calls to init() after SPA navigation don't accumulate
+    // duplicate listeners on the MediaQueryList.
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            // Only update if user hasn't set a preference
+            if (!localStorage.getItem('theme-preference')) {
+                applyTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+    }
+
     /**
      * Initializes theme toggle button and event listeners.
      * Called on DOMContentLoaded and after View Transitions navigation.
      * 
-     * Prevents duplicate event listeners by cloning button if already initialized.
-     * Sets up MutationObserver to keep ARIA labels synchronized with theme state.
+     * Prevents duplicate event listeners by cloning the button element.
+     * Disconnects any previous MutationObserver before creating a new one.
+     * The matchMedia listener is registered only once (above, at module level).
+     * 
+     * Accessibility:
+     * - Sets aria-pressed to reflect whether dark mode is active
+     * - Updates aria-label to describe the next toggle action
+     * - Adds keydown handler for Enter/Space activation
      */
+    /**
+     * Updates ARIA attributes on the toggle button to reflect current theme.
+     * Sets aria-label (next action) and aria-pressed (dark mode active).
+     * 
+     * @param {HTMLElement} button - The theme toggle button element
+     */
+    function updateToggleAria(button) {
+        const theme = document.documentElement.getAttribute('data-theme') || 'light';
+        const strings = getStrings();
+        button.setAttribute('aria-label', 
+            theme === 'light' ? strings.switchToDark : strings.switchToLight
+        );
+        button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+    }
+
     function init() {
         let toggleButton = document.getElementById('theme-toggle');
         if (toggleButton) {
-            // Remove old listener if it exists by replacing the button with a clone
-            // This prevents duplicate event listeners after navigation
+            // Disconnect the previous ARIA-label observer before creating a new one.
+            // Without this, every navigation adds another live observer on
+            // document.documentElement, leaking memory and doing redundant work.
+            if (themeObserver) {
+                themeObserver.disconnect();
+                themeObserver = null;
+            }
+
+            // Remove old click listener if it exists by replacing the button with a clone.
+            // This prevents duplicate event listeners after navigation.
             if (toggleButton.hasAttribute('data-theme-initialized')) {
                 const newButton = toggleButton.cloneNode(true);
                 toggleButton.parentNode.replaceChild(newButton, toggleButton);
@@ -136,33 +205,28 @@
             toggleButton.setAttribute('data-theme-initialized', 'true');
             toggleButton.addEventListener('click', toggleTheme);
             
-            // Set initial ARIA label
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-            toggleButton.setAttribute('aria-label', 
-                `Switch to ${currentTheme === 'light' ? 'dark' : 'light'} mode`
-            );
-            
-            // Update ARIA label on theme change
-            const observer = new MutationObserver(() => {
-                const theme = document.documentElement.getAttribute('data-theme') || 'light';
-                toggleButton.setAttribute('aria-label', 
-                    `Switch to ${theme === 'light' ? 'dark' : 'light'} mode`
-                );
+            // Keyboard support: ensure Enter and Space activate the toggle.
+            // Native <button> handles these, but this guards against cases where
+            // the element is rendered as a non-button or has default prevented.
+            toggleButton.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleTheme();
+                }
             });
             
-            observer.observe(document.documentElement, {
+            // Set initial ARIA attributes (label + pressed state)
+            updateToggleAria(toggleButton);
+            
+            // Update ARIA attributes whenever the theme attribute changes.
+            // Store the observer reference so we can disconnect it next time.
+            themeObserver = new MutationObserver(() => {
+                updateToggleAria(toggleButton);
+            });
+            
+            themeObserver.observe(document.documentElement, {
                 attributes: true,
                 attributeFilter: ['data-theme']
-            });
-        }
-        
-        // Listen for system theme changes
-        if (window.matchMedia) {
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                // Only update if user hasn't set a preference
-                if (!localStorage.getItem('theme-preference')) {
-                    applyTheme(e.matches ? 'dark' : 'light');
-                }
             });
         }
     }

@@ -1,3 +1,9 @@
+<!--
+  ARCHIVED CV REFERENCE (human-readable)
+  The canonical CV source of truth is now cv_data.yaml (structured YAML),
+  loaded by cv_parser.py at build time.
+  This file is kept as a readable reference but is NOT parsed by the build.
+-->
 # Daniel Cavalli
 Machine Learning Engineer @ Nubank | MLOps, AI
 Rio de Janeiro, Rio de Janeiro, Brazil

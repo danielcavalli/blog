@@ -1,0 +1,41 @@
+# ADR 7: CSS Custom Properties Design System
+
+## Context
+
+The dan.rio blog is a bilingual personal site whose design identity is built around motion. The project's design philosophy, documented in .github/design-philosophy.md, defines a vocabulary of morphing, sliding, expansion, unfolding, and dissolve, all governed by a shared temporal rhythm of 400 to 600 milliseconds with consistent easing curves. Every visual behavior on the site must speak this language, from a post card expanding into an article to the entire page shifting between light and dark atmospheres.
+
+The project operates under a strict no-framework constraint, established in ADR 1. There is no Node.js, no npm, no Sass, no PostCSS, and no build pipeline for frontend assets. CSS files are served directly to the browser as authored. This means any design system must work within what vanilla CSS provides natively, without compilation, transformation, or code generation.
+
+The site requires runtime theming. Users can toggle between light and dark modes, and the system must also respect the operating system preference via prefers-color-scheme. Dark mode uses true black (#000000) for OLED optimization, while light mode uses white (#ffffff). The theme switch needs to feel like a change in atmosphere rather than a swap between two skins, which means every surface, border, text color, and accent must transition simultaneously using the same timing and easing. The toggle script in static/js/theme.js sets a data-theme attribute on the document root before the DOM renders to prevent a flash of unstyled content, and the CSS must respond to that attribute instantly.
+
+The site's motion system extends beyond simple hover states. The View Transitions API drives page-to-page navigation, where post cards morph into articles, headers slide behind the navigation bar, and filters unfold from the page surface. These animations require a shared set of duration and easing values so that concurrent transitions maintain the "single continuous surface" illusion described in the design philosophy. The same motion tokens must also be honored by prefers-reduced-motion, which needs to suppress all animation and transition durations globally.
+
+The CSS spans 2722 lines across four files: styles.css at 1617 lines handles the design system, navigation, post grid, filters, view transitions, and accessibility; post.css at 413 lines handles article typography and code blocks; cv.css at 399 lines handles the CV page layout; and landing.css at 293 lines handles the landing page with its ocean-gradient hero and morph-to-nav transition.
+
+## Decision
+
+We will build the entire design system in vanilla CSS using custom properties defined on :root and overridden via [data-theme] attribute selectors. All design tokens live in the :root block of styles.css: color primitives (--color-bg, --color-text, --color-border, --color-hover, --color-surface-elevated, --accent-color), a spacing scale (--space-xs through --space-4xl), typography stacks (--font-sans, --font-mono), layout constraints (--max-width-content, --max-width-text, --border-radius), and motion tokens (--motion-duration-core at 500ms, --motion-duration-quick at 300ms, --motion-duration-ripple at 600ms, --motion-easing as cubic-bezier(0.4, 0, 0.2, 1)).
+
+We will implement theming through a two-layer cascade. The [data-theme="dark"] selector on the document root overrides every color token for explicit user preference. A @media (prefers-color-scheme: dark) block targeting :root:not([data-theme="light"]) provides the same overrides as a fallback when no user preference exists. The theme.js script applies the data-theme attribute synchronously before the document renders, reading from localStorage or falling back to the system preference, which eliminates FOUC without requiring a blocking stylesheet swap.
+
+We will use the motion tokens as the single source of timing for all animation: CSS transitions on hover and theme changes, @keyframes for page-load stagger and view-transition choreography, and ::view-transition-group pseudo-elements that reference var(--motion-duration-core) and var(--motion-easing) directly. A global @media (prefers-reduced-motion: reduce) rule will override all animation-duration and transition-duration values to 0.01ms, ensuring accessibility compliance in one declaration.
+
+We will follow a BEM-ish class naming convention (.post-card, .filter-toggle, .nav-links, .tag-pill) without strict BEM methodology, and organize each CSS file with comment-delimited sections rather than separate module files. View Transition participation will be declared via view-transition-name and view-transition-class properties directly on the relevant selectors.
+
+## Status
+
+Accepted.
+
+## Consequences
+
+The design system requires zero build infrastructure. CSS files are authored, committed, and served as-is. There is no compilation step, no source maps to debug, and no configuration to maintain. Adding a new design token means adding one line to the :root block, and it is immediately available everywhere.
+
+Runtime theming is instantaneous and complete. Because every color value references a custom property, changing the data-theme attribute on the root element triggers a cascade that updates every surface, border, and text color simultaneously. The 600ms ripple duration on body transitions creates the atmospheric shift described in the design philosophy. DevTools make this visible and editable in real time: a developer can adjust --motion-duration-core from 500ms to 200ms and see the entire motion system respond immediately, which accelerates tuning and debugging.
+
+The motion token system enforces the design philosophy mechanically. A developer cannot accidentally use a 250ms duration or a linear easing because the tokens are the only values used in transition and animation declarations. The three-tier duration hierarchy (quick, core, ripple) maps directly to the design vocabulary: quick for micro-interactions like hover feedback, core for morphing and sliding, ripple for atmospheric changes like theme transitions. This vocabulary is legible in the CSS itself, not hidden in a configuration file or documentation.
+
+View Transition integration is clean. The ::view-transition-group(*) rule in styles.css sets animation-duration and animation-timing-function from the motion tokens, so every named transition inherits the system's rhythm without per-element configuration. The view-transition-class property on post cards enables scalable selectors that work regardless of how many posts exist on the page.
+
+The tradeoffs are real. At 2722 lines across four files with no splitting mechanism beyond comment headers, navigating the CSS requires familiarity with the codebase. There is no CSS Modules-style scoping, so class name collisions are prevented by convention alone. The project has no minification in its pipeline, meaning the full authored source is sent to the browser, though at under 3000 lines this is a modest cost. Selector patterns for dark mode are repeated three ways: once for [data-theme="dark"], once inside @media (prefers-color-scheme: dark) for the system fallback, and sometimes on individual components that need theme-specific adjustments like the select trigger chevron SVGs. This repetition is the price of supporting both explicit and implicit dark mode without a preprocessor's mixins or variables.
+
+There is no automated documentation of the token system. A new contributor must read the :root block in styles.css to discover available tokens, and there is no linting to catch a hardcoded color value or a raw duration that bypasses the motion tokens. Alternatives like Tailwind CSS would provide a constrained utility vocabulary with built-in documentation and deviation warnings. Sass or SCSS would allow mixins to eliminate the dark-mode selector repetition and enable file splitting with @use. CSS-in-JS solutions would co-locate styles with components and provide type-safe token access. CSS Modules would provide scoping guarantees. Each of these would solve specific pain points at the cost of violating the no-framework, no-build-step constraint established in ADR 1, and that constraint remains the higher-priority decision for this project.

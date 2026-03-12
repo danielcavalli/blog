@@ -8,8 +8,21 @@ venv/
 .venv/
 env/
 
+# Python tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Packaging artifacts
+*.egg-info/
+pip-wheel-metadata/
+
 # Build cache and artifacts
 _cache/
+_staging/
 
 # Environment & Secrets
 .env
@@ -23,5 +36,11 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Local workflow state
+.pm/
+
+# Local scratch files
+{target}
 
 # Note: Generated HTML files (index.html, en/, pt/) are tracked for GitHub Pages

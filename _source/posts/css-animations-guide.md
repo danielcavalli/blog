@@ -1,7 +1,6 @@
 ---
-content_hash: 97a1e395074ae4b664741b86859aae854ada478cda24146668b790ff9ed4210d
-created_at: '2025-10-24T00:49:34.910255'
 date: 2025-10-23
+lang: en-us
 excerpt: Creating smooth, performant animations using only CSS. A deep dive into building
   coherent motion systems for the modern web.
 order: 1
@@ -12,7 +11,6 @@ tags:
 - animations
 - performance
 title: The Art of CSS Animations
-updated_at: '2026-02-08T01:10:31.322071'
 ---
 
 ## Why CSS Animations?

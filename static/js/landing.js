@@ -17,6 +17,16 @@
  * - Single continuous surface throughout
  * - Physical plausibility in motion
  * - Calm energy - purposeful, not performative
+ * 
+ * SPA Boundary:
+ * - The landing page does NOT participate in the inner-page SPA router
+ *   (transitions.js).  It has a completely different DOM structure: no
+ *   <main>, no <nav class="nav">, no <footer>.
+ * - After the morphing transition, the full inner-page DOM is in place
+ *   and transitions.js (loaded via the new scripts) takes over all
+ *   subsequent navigations.
+ * - Back-navigation from an inner page to the landing page is handled
+ *   by transitions.js via a full reload (see its "/" guard).
  */
 
 (function() {
@@ -27,6 +37,12 @@
         // Graceful degradation - just navigate normally
         return;
     }
+
+    // Concurrency guard — prevent double-click from firing two transitions.
+    let isMorphing = false;
+
+    // AbortController for in-flight fetch cancellation.
+    let morphFetchController = null;
     
     // Get all landing links
     const landingLinks = document.querySelectorAll('.landing-link');
@@ -59,6 +75,19 @@
      * @param {string} url - Target page URL
      */
     async function morphToSite(url) {
+        // Abort any previous in-flight fetch (e.g. rapid double-click)
+        if (morphFetchController) {
+            morphFetchController.abort();
+            morphFetchController = null;
+            isMorphing = false;
+        }
+
+        if (isMorphing) return;
+        isMorphing = true;
+
+        morphFetchController = new AbortController();
+        const { signal } = morphFetchController;
+
         try {
             // Fetch the target page
             const response = await fetch(url, {
@@ -66,14 +95,24 @@
                 headers: {
                     'Cache-Control': 'no-cache, no-store, must-revalidate',
                     'Pragma': 'no-cache'
-                }
+                },
+                signal
             });
             
-            if (!response.ok) throw new Error('Navigation failed');
+            if (!response.ok) throw new Error('Navigation failed: ' + response.status);
             
             const html = await response.text();
             const parser = new DOMParser();
             const newDoc = parser.parseFromString(html, 'text/html');
+
+            // Validate that the fetched page has a <body> with content.
+            if (!newDoc.body || !newDoc.body.innerHTML.trim()) {
+                throw new Error('Fetched page has empty body');
+            }
+            
+            // Track load promises for scripts injected during the transition
+            // callback, so we can await them after the transition finishes.
+            let scriptLoadPromises = [];
             
             // Start the view transition
             const transition = document.startViewTransition(() => {
@@ -84,7 +123,10 @@
                 document.title = newDoc.title;
                 
                 // Update language attribute
-                document.documentElement.setAttribute('lang', newDoc.documentElement.getAttribute('lang') || 'en');
+                const newLang = newDoc.documentElement.getAttribute('lang');
+                if (newLang) {
+                    document.documentElement.setAttribute('lang', newLang);
+                }
                 
                 // CRITICAL: Ensure theme is set on documentElement BEFORE body swap
                 // This prevents flash of unstyled content during the transition
@@ -110,17 +152,21 @@
                 const currentScripts = Array.from(document.querySelectorAll('script[src]')).map(s => s.src);
                 const newScripts = Array.from(newDoc.querySelectorAll('script[src]')).map(s => s.getAttribute('src'));
                 
+                // Track load promises so we can wait for all scripts before
+                // dispatching page-navigation-complete.
+                const scriptLoadPromises = [];
+                
                 // Add any new scripts that don't exist
                 newScripts.forEach(src => {
                     const fullSrc = new URL(src, url).href;
                     if (!currentScripts.includes(fullSrc)) {
                         const script = document.createElement('script');
                         script.src = src;
-                        // Preserve defer attribute if it exists
-                        const originalScript = newDoc.querySelector(`script[src="${src}"]`);
-                        if (originalScript && originalScript.hasAttribute('defer')) {
-                            script.defer = true;
-                        }
+                        const loadPromise = new Promise(resolve => {
+                            script.onload = resolve;
+                            script.onerror = resolve; // don't block on failure
+                        });
+                        scriptLoadPromises.push(loadPromise);
                         document.head.appendChild(script);
                     }
                 });
@@ -128,8 +174,10 @@
                 // Replace body content (theme is already preserved above)
                 document.body.innerHTML = newDoc.body.innerHTML;
                 
-                // Update URL
-                history.pushState(null, '', url);
+                // Update URL with proper state object so transitions.js popstate
+                // handler and scroll restoration work correctly.
+                // scrollY: 0 because the inner page starts at the top.
+                history.pushState({ scrollY: 0 }, '', url);
             });
             
             // Wait for transition to complete
@@ -143,13 +191,26 @@
                 }
             });
             
+            // Wait for all injected scripts to finish loading before
+            // dispatching page-navigation-complete.  Without this, the
+            // SPA router (transitions.js) and filter system (filter.js)
+            // may not be active yet when the event fires.
+            if (scriptLoadPromises.length > 0) {
+                await Promise.all(scriptLoadPromises);
+            }
+            
             // Re-initialize scripts on the new page
             reinitializeScripts();
             
         } catch (error) {
+            // AbortError is expected when a newer navigation cancels this one
+            if (error.name === 'AbortError') return;
             console.error('Morphing transition error:', error);
             // Fallback to normal navigation
             window.location.href = url;
+        } finally {
+            morphFetchController = null;
+            isMorphing = false;
         }
     }
     

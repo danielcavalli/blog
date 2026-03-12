@@ -7,7 +7,7 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/index.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/index.html"/>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-03-12</lastmod>
         <changefreq>monthly</changefreq>
         <priority>1.0</priority>
     </url>
@@ -16,7 +16,7 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/index.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/index.html"/>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-03-12</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
@@ -25,7 +25,7 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/index.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/index.html"/>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-03-12</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
@@ -34,7 +34,7 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/about.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/about.html"/>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-03-12</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>
@@ -43,7 +43,7 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/about.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/about.html"/>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-03-12</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>
@@ -52,7 +52,7 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/cv.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/cv.html"/>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-03-12</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -61,7 +61,25 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/cv.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/cv.html"/>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-03-12</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/en/blog/semiconductors-and-sovereignty.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/semiconductors-and-sovereignty.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/semiconductors-and-sovereignty.html"/>
+        <lastmod>2026-03-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/pt/blog/semiconductors-and-sovereignty.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/semiconductors-and-sovereignty.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/semiconductors-and-sovereignty.html"/>
+        <lastmod>2026-03-11</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -70,7 +88,7 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/a-network-setup-that-works-for-me.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/a-network-setup-that-works-for-me.html"/>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2025-11-05</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -79,79 +97,7 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/a-network-setup-that-works-for-me.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/a-network-setup-that-works-for-me.html"/>
-        <lastmod>2026-02-08</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://dan.rio/en/blog/the-living-static-system.html</loc>
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/the-living-static-system.html"/>
-        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/the-living-static-system.html"/>
-        <lastmod>2026-02-08</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://dan.rio/pt/blog/the-living-static-system.html</loc>
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/the-living-static-system.html"/>
-        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/the-living-static-system.html"/>
-        <lastmod>2026-02-08</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://dan.rio/en/blog/building-a-bilingual-blog.html</loc>
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/building-a-bilingual-blog.html"/>
-        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/building-a-bilingual-blog.html"/>
-        <lastmod>2026-02-08</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://dan.rio/pt/blog/building-a-bilingual-blog.html</loc>
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/building-a-bilingual-blog.html"/>
-        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/building-a-bilingual-blog.html"/>
-        <lastmod>2026-02-08</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://dan.rio/en/blog/modern-web-development.html</loc>
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/modern-web-development.html"/>
-        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/modern-web-development.html"/>
-        <lastmod>2026-02-08</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://dan.rio/pt/blog/modern-web-development.html</loc>
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/modern-web-development.html"/>
-        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/modern-web-development.html"/>
-        <lastmod>2026-02-08</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://dan.rio/en/blog/choosing-the-right-gpu-for-ai-learning.html</loc>
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/choosing-the-right-gpu-for-ai-learning.html"/>
-        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/choosing-the-right-gpu-for-ai-learning.html"/>
-        <lastmod>2026-02-08</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://dan.rio/pt/blog/choosing-the-right-gpu-for-ai-learning.html</loc>
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/choosing-the-right-gpu-for-ai-learning.html"/>
-        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/choosing-the-right-gpu-for-ai-learning.html"/>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2025-11-05</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -160,7 +106,7 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/css-animations-guide.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/css-animations-guide.html"/>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2025-10-23</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -169,7 +115,79 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/css-animations-guide.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/css-animations-guide.html"/>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2025-10-23</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/en/blog/choosing-the-right-gpu-for-ai-learning.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/choosing-the-right-gpu-for-ai-learning.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/choosing-the-right-gpu-for-ai-learning.html"/>
+        <lastmod>2025-10-20</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/pt/blog/choosing-the-right-gpu-for-ai-learning.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/choosing-the-right-gpu-for-ai-learning.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/choosing-the-right-gpu-for-ai-learning.html"/>
+        <lastmod>2025-10-20</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/en/blog/modern-web-development.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/modern-web-development.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/modern-web-development.html"/>
+        <lastmod>2025-10-20</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/pt/blog/modern-web-development.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/modern-web-development.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/modern-web-development.html"/>
+        <lastmod>2025-10-20</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/en/blog/the-living-static-system.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/the-living-static-system.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/the-living-static-system.html"/>
+        <lastmod>2025-01-25</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/pt/blog/the-living-static-system.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/the-living-static-system.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/the-living-static-system.html"/>
+        <lastmod>2025-01-25</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/en/blog/building-a-bilingual-blog.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/building-a-bilingual-blog.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/building-a-bilingual-blog.html"/>
+        <lastmod>2025-01-24</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/pt/blog/building-a-bilingual-blog.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/building-a-bilingual-blog.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/building-a-bilingual-blog.html"/>
+        <lastmod>2025-01-24</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>

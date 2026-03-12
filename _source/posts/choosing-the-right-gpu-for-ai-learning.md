@@ -1,8 +1,7 @@
 ---
 canonical: https://example.com/blog/choosing-the-right-gpu-for-ai-learning
-content_hash: 851451dcebf516bd7a087370d8a740b3d198fa340b7808a225f83713499a543d
-created_at: '2025-10-24T00:49:34.911567'
 date: 2025-10-20
+lang: en-us
 excerpt: A somewhat technical blog on how GPU choice shapes what you can actually
   learn about CUDA, distributed training, and training optimization and the realities
   of running a personal ML workstation.
@@ -16,7 +15,6 @@ tags:
 - workstation
 - hardware
 title: Choosing the Right GPU Setup for AI Engineering (and Learning)
-updated_at: '2026-02-08T01:10:31.312887'
 ---
 
 # Choosing the Right GPU Setup for AI Engineering (and Learning)

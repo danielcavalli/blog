@@ -34,12 +34,12 @@
     <link rel="alternate" hreflang="en" href="https://dan.rio/en/cv.html">
     <link rel="alternate" hreflang="pt" href="https://dan.rio/pt/cv.html">
     
-    <link rel="stylesheet" href="/static/css/styles.css?v=20260208011246">
-    <link rel="stylesheet" href="/static/css/post.css?v=20260208011246">
-    <link rel="stylesheet" href="/static/css/cv.css?v=20260208011246">
-    <link rel="preload" href="/static/js/theme.js?v=20260208011246" as="script">
-    <script src="/static/js/theme.js?v=20260208011246"></script>
-    <script src="/static/js/transitions.js?v=20260208011246" defer></script>
+    <link rel="stylesheet" href="/static/css/styles.css?v=c89a74a1">
+    <link rel="stylesheet" href="/static/css/post.css?v=69615460">
+    <link rel="stylesheet" href="/static/css/cv.css?v=57e70d06">
+    <link rel="preload" href="/static/js/theme.js?v=30ebbd0e" as="script">
+    <script src="/static/js/theme.js?v=30ebbd0e"></script>
+    <script src="/static/js/transitions.js?v=7b4e8f51" defer></script>
 </head>
 <body>
     <a href="#main-content" class="skip-link">Skip to content</a>
@@ -87,7 +87,7 @@
         <article class="post cv-container" style="view-transition-name: cv-content;">
             <header class="post-header cv-header">
                 <h1 class="post-title-large" style="view-transition-name: cv-title;">DANIEL CAVALLI</h1>
-                <p class="cv-tagline">Machine Learning Engineer @ Nubank | MLOps, AI</p>
+                <p class="cv-tagline">Senior Machine Learning Engineer @ Nubank | MLOps, AI, ML Infrastructure</p>
                 <p class="cv-location">Rio de Janeiro, Rio de Janeiro, Brazil</p>
             </header>
 
@@ -114,7 +114,7 @@
                 <!-- Summary Section -->
                 <section class="cv-section">
                     <h2 class="cv-section-title">Summary</h2>
-                    <p class="cv-summary">Machine Learning Engineer at Nubank, helping build and scale the company’s AI platform that powers hundreds of Data Scientists across multiple business units. My work bridges infrastructure and applied ML, optimizing distributed training with multi-cluster, multiGPU strategies and designing deployment workflows through Argo and Tekton. I focus on creating reliable, reusable systems that turn complex models into production-ready services. My interests lie in MLOps, Distributed Systems, and Machine Learning Infrastructure, especially where they intersect with fintech innovation and large-scale data products.</p>
+                    <p class="cv-summary">ML Infrastructure Engineer at Nubank, helping build and scale the company&#x27;s AI platform that powers 150+ Data Scientists and Machine Learning Engineers across multiple business units. My work bridges infrastructure and applied ML, optimizing distributed training with multi-cluster, multi-GPU strategies and designing deployment workflows through Argo and Tekton. I focus on creating reliable, reusable systems that turn complex models into production-ready services. My interests lie in MLOps, Distributed Systems, and Machine Learning Infrastructure, especially where they intersect with fintech innovation and large-scale data products.</p>
                 </section>
 
                 <!-- Experience Section -->
@@ -122,12 +122,21 @@
                     <h2 class="cv-section-title">Experience</h2>
                     <div class="cv-experience-list">
                 <div class="cv-experience-item">
-                    <div class="cv-period">September 2023 - Present</div>
+                    <div class="cv-period">February 2026 - Present</div>
+                    <div class="cv-details">
+                        <h3 class="cv-title">Senior Machine Learning Engineer</h3>
+                        <div class="cv-company">Nubank · Rio de Janeiro, Brazil</div>
+                        <p class="cv-description">Leading the next generation of Nubank&#x27;s AI Platform infrastructure, serving 150+ Data Scientists and MLEs across the organization.</p>
+                        <ul class="cv-achievements"><li>Orchestrating a full greenfield migration from a shell-script-based deployment to Infrastructure as Code using Pulumi, replacing all existing tooling and integrating Nubank&#x27;s networking, OAuth, and security requirements at scale.</li><li>Leading the upgrade from Kubeflow 1.7 (AWS distribution) to Kubeflow 1.11 (Community Manifests) in a complete platform rebuild adopting KFP v2, enhanced network policies, and open-standard tooling with no carry-over from the previous stack.</li></ul>
+                    </div>
+                </div>
+                <div class="cv-experience-item">
+                    <div class="cv-period">September 2023 - February 2026</div>
                     <div class="cv-details">
                         <h3 class="cv-title">Machine Learning Engineer</h3>
                         <div class="cv-company">Nubank · Brazil</div>
-                        <p class="cv-description">Evolving Nubank’s AI Platform to empower hundreds of Data Scientists with reproducible training pipelines and scalable infrastructure.</p>
-                        <ul class="cv-achievements"><li>Enhanced the AI Platform by improving integrations across Kubeflow, Dagster, Clojure Services, Argo, and the in-house CPW library, adding new features and revamping core components to increase reliability and reusability.</li><li>Increased model-training throughput through multi-cluster, multi-GPU distribution strategies and reproducible, optimized, job assets.</li><li>Led the international expansion of Nubank’s AI Platform, adapting infrastructure, governance, and deployment pipelines to support new GEOs and enable the company’s global growth.</li></ul>
+                        <p class="cv-description">Scaled Nubank&#x27;s AI Platform to serve 150+ Data Scientists across multiple business units, supporting 200+ models in production.</p>
+                        <ul class="cv-achievements"><li>Drove distributed GPU training optimization through multi-cluster, multi-GPU strategies, reducing large model training time from 21 days to 3 days and cutting development iteration cycles from ~25 minutes to under 2 minutes.</li><li>Enhanced platform reliability and reusability by improving integrations across Kubeflow, Dagster, Argo, Tekton, Clojure Services, and the in-house CPW library, revamping core components to increase developer velocity at scale.</li><li>Architected a geo-agnostic expansion framework for Nubank&#x27;s AI Platform, enabling seamless onboarding of new countries without infrastructure rework and directly supporting the company&#x27;s international growth strategy.</li></ul>
                     </div>
                 </div>
                 <div class="cv-experience-item">
@@ -135,8 +144,8 @@
                     <div class="cv-details">
                         <h3 class="cv-title">Senior Machine Learning Engineer</h3>
                         <div class="cv-company">PicPay · Brazil</div>
-                        <p class="cv-description">Laid the foundation for the ML and Data Infrastructure of PicPay’s High Income business unit, establishing scalable systems that bridged Data Engineering and MLOps practices.</p>
-                        <ul class="cv-achievements"><li>Designed and maintained an end-to-end MLOps environment for real-time model deployment, monitoring, and experimentation using AWS SageMaker.</li><li>Built DataOps pipelines for efficient DAG deployment and EMR cluster management, improving performance and maintainability across workflows.</li><li>Developed data pipelines fully integrated with the company’s DataLake, ensuring reliability, consistency, and seamless access for analytics and model training.</li></ul>
+                        <p class="cv-description">Laid the foundation for the ML and Data Infrastructure of PicPay&#x27;s High Income business unit, establishing scalable systems that bridged Data Engineering and MLOps practices.</p>
+                        <ul class="cv-achievements"><li>Boosted team contribution rate from under 2 PRs/month to 50+ PRs/month by designing a faster, more accessible MLOps framework on AWS SageMaker that onboarded Data Scientists into the development workflow, enabling the unit&#x27;s first real-time credit/lending models to reach production.</li><li>Built DataOps pipelines supporting 150+ datasets fully integrated with the company&#x27;s DataLake, ensuring reliable and consistent data access for analytics and model training across workflows.</li><li>Designed end-to-end MLOps infrastructure for real-time model deployment, monitoring, and experimentation.</li></ul>
                     </div>
                 </div>
                 <div class="cv-experience-item">
@@ -144,7 +153,7 @@
                     <div class="cv-details">
                         <h3 class="cv-title">Machine Learning Engineer</h3>
                         <div class="cv-company">frete.com · Brazil</div>
-                        <p class="cv-description">Developed early MLOps foundations and machine learning models to enhance the company’s risk management and fraud detection systems for truck drivers and freight operations.</p>
+                        <p class="cv-description">Developed early MLOps foundations and machine learning models to enhance the company&#x27;s risk management and fraud detection systems for truck drivers and freight operations.</p>
                         <ul class="cv-achievements"><li>Designed ML models to expand risk management and fraud prevention tools while improving model deployment efficiency through internal MLOps solutions.</li><li>Evaluated and integrated external data providers to improve model performance and cost-effectiveness across analytics workflows.</li></ul>
                     </div>
                 </div>
@@ -153,8 +162,8 @@
                     <div class="cv-details">
                         <h3 class="cv-title">Machine Learning Engineer</h3>
                         <div class="cv-company">M4U · Brazil</div>
-                        <p class="cv-description">Led the design and implementation of the company’s first Anti-Fraud solution and AI Platform, transforming internal operations and establishing ML infrastructure as a core product capability. This was the stage where I fully owned a product I believed in and drove it from concept to impact.</p>
-                        <ul class="cv-achievements"><li>Spearheaded the development of an end-to-end anti-fraud system combining a rule-based engine and a machine learning model, built on top of a new MLOps platform using GitOps, AWS SageMaker, and Terraform.</li><li>Advocated for and defined the Anti-Fraud platform as a key product initiative, aligning engineering and business teams around its strategic value.</li><li>Designed scalable deployment and monitoring workflows, ensuring reliability and compliance across multiple production environments.</li></ul>
+                        <p class="cv-description">Built M4U&#x27;s first Anti-Fraud solution and AI Platform from concept to production, establishing ML infrastructure as a core product capability within a small ML team.</p>
+                        <ul class="cv-achievements"><li>Developed an end-to-end anti-fraud system for online payments combining a rule-based engine and an ML model, reducing fraud by ~30% and preventing ~15,000 fraudulent transactions/month at under $0.01 cost per transaction scored.</li><li>Built an MLOps platform using GitOps, AWS SageMaker, and Terraform that accelerated model delivery from 1 deployment/year to 1 deployment/month.</li><li>Advocated for and defined the Anti-Fraud platform as a key product initiative, aligning engineering and business teams around its strategic value and deployment across multiple production environments.</li></ul>
                     </div>
                 </div>
                 <div class="cv-experience-item">
@@ -162,8 +171,8 @@
                     <div class="cv-details">
                         <h3 class="cv-title">Junior Data Scientist</h3>
                         <div class="cv-company">M4U · Brazil</div>
-                        <p class="cv-description">Contributed across the full ML workflow while helping shape the early data foundations that later evolved into the company’s AI Platform.</p>
-                        <ul class="cv-achievements"><li>Designed and maintained observability tools for ML models in staging and production, enabling data and concept drift detection.</li><li>Conducted exploratory and descriptive analyses across multiple M4U products, creating visual reports that accelerated operational diagnostics and insight generation.</li></ul>
+                        <p class="cv-description">Contributed across the full ML workflow while helping shape the early data foundations that later evolved into the company&#x27;s AI Platform.</p>
+                        <ul class="cv-achievements"><li>Designed and maintained observability tooling for ML models in staging and production, enabling data and concept drift detection across the platform.</li><li>Delivered exploratory and descriptive analyses for 4 telecom client companies and 2 internal platform teams (Recharging and Recurrence), producing visual reports that accelerated operational diagnostics and identifying key improvements.</li></ul>
                     </div>
                 </div>
                 <div class="cv-experience-item">
@@ -171,7 +180,7 @@
                     <div class="cv-details">
                         <h3 class="cv-title">Junior Data Scientist</h3>
                         <div class="cv-company">Oi S.A · Rio de Janeiro Area, Brazil</div>
-                        <p class="cv-description">Started my career within Oi’s UX Research Lab, where I combined analytics, user research, and data science to improve digital experiences for millions of users of the Minha Oi platform.</p>
+                        <p class="cv-description">Started my career within Oi&#x27;s UX Research Lab, where I combined analytics, user research, and data science to improve digital experiences for millions of users of the Minha Oi platform.</p>
                         <ul class="cv-achievements"><li>Developed an early NLP model leveraging BERT, before the rise of LLMs, to analyze open-text feedback from user surveys, automatically extracting insights for product and design teams.</li><li>Conducted analytical and exploratory studies to validate hypotheses raised by the UX team regarding user behavior and engagement patterns.</li><li>Retrieved and structured data that served as the foundation for UX improvements and decision-making across web and mobile channels.</li></ul>
                     </div>
                 </div>
@@ -181,7 +190,7 @@
                 <!-- Skills Section -->
                 <section class="cv-section cv-section-compact">
                     <h2 class="cv-section-title">Skills</h2>
-                    <p class="cv-skills-inline">Distributed Systems · Machine Learning Infrastructure · MLOps</p>
+                    <p class="cv-skills-inline">Kubeflow · Distributed Systems · Machine Learning Infrastructure</p>
                 </section>
 
                 <!-- Education Section -->

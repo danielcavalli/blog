@@ -1,0 +1,187 @@
+# Canonical CV Source of Truth
+# build.py loads this via yaml.safe_load() — no heuristic parsing needed.
+#
+# The Portuguese CV is produced by translating this data at build time.
+# Schema validation happens in build.py at load time; missing or empty
+# required fields cause a clear build error.
+
+name: Daniel Cavalli
+tagline: "Senior Machine Learning Engineer @ Nubank | MLOps, AI, ML Infrastructure"
+location: "Rio de Janeiro, Rio de Janeiro, Brazil"
+
+contact:
+  email: daniel@cavalli.dev
+  phone: "+55(21)985979780"
+  linkedin: cavallidaniel
+  github: danielcavalli
+
+skills:
+  - Kubeflow
+  - Distributed Systems
+  - Machine Learning Infrastructure
+
+languages_spoken:
+  - "Portuguese (Native or Bilingual)"
+  - "English (Full Professional)"
+
+summary: >-
+  ML Infrastructure Engineer at Nubank, helping build and scale the company's
+  AI platform that powers 150+ Data Scientists and Machine Learning Engineers
+  across multiple business units. My work bridges infrastructure and applied ML,
+  optimizing distributed training with multi-cluster, multi-GPU strategies and
+  designing deployment workflows through Argo and Tekton. I focus on creating
+  reliable, reusable systems that turn complex models into production-ready services.
+  My interests lie in MLOps, Distributed Systems, and Machine Learning
+  Infrastructure, especially where they intersect with fintech innovation and
+  large-scale data products.
+
+experience:
+  - title: Senior Machine Learning Engineer
+    company: Nubank
+    location: "Rio de Janeiro, Brazil"
+    period: "February 2026 - Present"
+    description: >-
+      Leading the next generation of Nubank's AI Platform infrastructure,
+      serving 150+ Data Scientists and MLEs across the organization.
+    achievements:
+      - >-
+        Orchestrating a full greenfield migration from a shell-script-based
+        deployment to Infrastructure as Code using Pulumi, replacing all
+        existing tooling and integrating Nubank's networking, OAuth, and
+        security requirements at scale.
+      - >-
+        Leading the upgrade from Kubeflow 1.7 (AWS distribution) to Kubeflow
+        1.11 (Community Manifests) in a complete platform rebuild adopting
+        KFP v2, enhanced network policies, and open-standard tooling with
+        no carry-over from the previous stack.
+
+  - title: Machine Learning Engineer
+    company: Nubank
+    location: Brazil
+    period: "September 2023 - February 2026"
+    description: >-
+      Scaled Nubank's AI Platform to serve 150+ Data Scientists across multiple
+      business units, supporting 200+ models in production.
+    achievements:
+      - >-
+        Drove distributed GPU training optimization through multi-cluster,
+        multi-GPU strategies, reducing large model training time from 21 days
+        to 3 days and cutting development iteration cycles from ~25 minutes
+        to under 2 minutes.
+      - >-
+        Enhanced platform reliability and reusability by improving integrations
+        across Kubeflow, Dagster, Argo, Tekton, Clojure Services, and the
+        in-house CPW library, revamping core components to increase developer
+        velocity at scale.
+      - >-
+        Architected a geo-agnostic expansion framework for Nubank's AI Platform,
+        enabling seamless onboarding of new countries without infrastructure
+        rework and directly supporting the company's international growth strategy.
+
+  - title: Senior Machine Learning Engineer
+    company: PicPay
+    location: Brazil
+    period: "May 2022 - September 2023"
+    description: >-
+      Laid the foundation for the ML and Data Infrastructure of PicPay's
+      High Income business unit, establishing scalable systems that bridged
+      Data Engineering and MLOps practices.
+    achievements:
+      - >-
+        Boosted team contribution rate from under 2 PRs/month to 50+ PRs/month
+        by designing a faster, more accessible MLOps framework on AWS SageMaker
+        that onboarded Data Scientists into the development workflow, enabling
+        the unit's first real-time credit/lending models to reach production.
+      - >-
+        Built DataOps pipelines supporting 150+ datasets fully integrated with
+        the company's DataLake, ensuring reliable and consistent data access
+        for analytics and model training across workflows.
+      - >-
+        Designed end-to-end MLOps infrastructure for real-time model deployment,
+        monitoring, and experimentation.
+
+  - title: Machine Learning Engineer
+    company: frete.com
+    location: Brazil
+    period: "November 2021 - May 2022"
+    description: >-
+      Developed early MLOps foundations and machine learning models to enhance
+      the company's risk management and fraud detection systems for truck
+      drivers and freight operations.
+    achievements:
+      - >-
+        Designed ML models to expand risk management and fraud prevention tools
+        while improving model deployment efficiency through internal MLOps
+        solutions.
+      - >-
+        Evaluated and integrated external data providers to improve model
+        performance and cost-effectiveness across analytics workflows.
+
+  - title: Machine Learning Engineer
+    company: M4U
+    location: Brazil
+    period: "September 2020 - November 2021"
+    description: >-
+      Built M4U's first Anti-Fraud solution and AI Platform from concept to
+      production, establishing ML infrastructure as a core product capability
+      within a small ML team.
+    achievements:
+      - >-
+        Developed an end-to-end anti-fraud system for online payments combining
+        a rule-based engine and an ML model, reducing fraud by ~30% and
+        preventing ~15,000 fraudulent transactions/month at under $0.01 cost
+        per transaction scored.
+      - >-
+        Built an MLOps platform using GitOps, AWS SageMaker, and Terraform that
+        accelerated model delivery from 1 deployment/year to 1 deployment/month.
+      - >-
+        Advocated for and defined the Anti-Fraud platform as a key product
+        initiative, aligning engineering and business teams around its strategic
+        value and deployment across multiple production environments.
+
+  - title: Junior Data Scientist
+    company: M4U
+    location: Brazil
+    period: "May 2019 - September 2020"
+    description: >-
+      Contributed across the full ML workflow while helping shape the early
+      data foundations that later evolved into the company's AI Platform.
+    achievements:
+      - >-
+        Designed and maintained observability tooling for ML models in staging
+        and production, enabling data and concept drift detection across the
+        platform.
+      - >-
+        Delivered exploratory and descriptive analyses for 4 telecom client
+        companies and 2 internal platform teams (Recharging and Recurrence),
+        producing visual reports that accelerated operational diagnostics and
+        identifying key improvements.
+
+  - title: Junior Data Scientist
+    company: "Oi S.A"
+    location: "Rio de Janeiro Area, Brazil"
+    period: "November 2018 - May 2019"
+    description: >-
+      Started my career within Oi's UX Research Lab, where I combined
+      analytics, user research, and data science to improve digital
+      experiences for millions of users of the Minha Oi platform.
+    achievements:
+      - >-
+        Developed an early NLP model leveraging BERT, before the rise of LLMs,
+        to analyze open-text feedback from user surveys, automatically
+        extracting insights for product and design teams.
+      - >-
+        Conducted analytical and exploratory studies to validate hypotheses
+        raised by the UX team regarding user behavior and engagement patterns.
+      - >-
+        Retrieved and structured data that served as the foundation for UX
+        improvements and decision-making across web and mobile channels.
+
+education:
+  - degree: "Bachelor of Economics - BBA, Economics"
+    school: Federal University of Rio de Janeiro
+    period: "March 2017 - December 2023"
+
+  - degree: "Associate degree in Game Development and Software Engineering, Computer Software Engineering"
+    school: "Nucleo Avançado em Educação - NAVE"
+    period: "2014 - 2016"
