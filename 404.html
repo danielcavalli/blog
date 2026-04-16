@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost at Sea – dan.rio</title>
+    <meta name="description" content="Page not found. The current carried you somewhere unexpected.">
+    <meta name="robots" content="noindex">
+    
+    <link rel="canonical" href="https://dan.rio/404.html">
+    
+    <link rel="preload" href="/static/js/theme.js?v=30ebbd0e" as="script">
+    <script src="/static/js/theme.js?v=30ebbd0e"></script>
+    <script>
+        (function () {
+            const path = window.location.pathname;
+            if (!path || path === "/" || path === "/404.html") {
+                return;
+            }
+
+            const normalizedPath = path.length > 1 && path.endsWith("/")
+                ? path.slice(0, -1)
+                : path;
+            const query = window.location.search || "";
+            const hash = window.location.hash || "";
+            const candidates = [];
+            const seen = new Set();
+            const guardKey = "404-redirect-attempt";
+            const guardValue = `${normalizedPath}${query}${hash}`;
+
+            if (window.sessionStorage.getItem(guardKey) === guardValue) {
+                return;
+            }
+            window.sessionStorage.setItem(guardKey, guardValue);
+
+            function addCandidate(candidate) {
+                if (!candidate || candidate === normalizedPath || seen.has(candidate)) {
+                    return;
+                }
+                seen.add(candidate);
+                candidates.push(candidate);
+            }
+
+            const directMap = {
+                "/en": "/en/index.html",
+                "/pt": "/pt/index.html",
+                "/blog": "/en/index.html",
+                "/about": "/en/about.html",
+                "/cv": "/en/cv.html",
+                "/en/blog/ai-agents-and-the-ilusion-of-continuity": "/en/blog/ai-agents-and-the-illusion-of-continuity.html",
+                "/en/blog/ai-agents-and-the-ilusion-of-continuity.html": "/en/blog/ai-agents-and-the-illusion-of-continuity.html",
+                "/pt/blog/ai-agents-and-the-ilusion-of-continuity": "/pt/blog/ai-agents-and-the-illusion-of-continuity.html",
+                "/pt/blog/ai-agents-and-the-ilusion-of-continuity.html": "/pt/blog/ai-agents-and-the-illusion-of-continuity.html"
+            };
+
+            addCandidate(directMap[normalizedPath]);
+
+            const legacyBlogMatch = normalizedPath.match(/^\/blog\/([^/]+)$/);
+            if (legacyBlogMatch) {
+                addCandidate(`/en/blog/${legacyBlogMatch[1]}.html`);
+            }
+
+            if (!/\.[^/]+$/.test(normalizedPath) && !/^\/(en|pt)$/.test(normalizedPath)) {
+                addCandidate(`${normalizedPath}.html`);
+                addCandidate(`${normalizedPath}/index.html`);
+            }
+
+            async function resolveRedirect() {
+                for (const candidate of candidates) {
+                    try {
+                        let response = await fetch(candidate, {
+                            method: "HEAD",
+                            cache: "no-store"
+                        });
+
+                        if (response.status === 405) {
+                            response = await fetch(candidate, { cache: "no-store" });
+                        }
+
+                        if (response.ok) {
+                            window.location.replace(`${candidate}${query}${hash}`);
+                            return;
+                        }
+                    } catch {
+                        continue;
+                    }
+                }
+
+                window.sessionStorage.removeItem(guardKey);
+            }
+
+            resolveRedirect();
+        })();
+    </script>
+    <script>
+        (function () {
+            function getStoredTheme() {
+                try {
+                    return window.localStorage.getItem("theme-preference");
+                } catch {
+                    return null;
+                }
+            }
+
+            function setStoredTheme(theme) {
+                try {
+                    window.localStorage.setItem("theme-preference", theme);
+                } catch {
+                    return;
+                }
+            }
+
+            function applyTheme(theme) {
+                document.documentElement.setAttribute("data-theme", theme);
+            }
+
+            function resolveInitialTheme() {
+                const stored = getStoredTheme();
+                if (stored === "light" || stored === "dark") {
+                    return stored;
+                }
+
+                if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                    return "dark";
+                }
+
+                return "light";
+            }
+
+            if (!document.documentElement.hasAttribute("data-theme")) {
+                applyTheme(resolveInitialTheme());
+            }
+
+            function initFallbackToggle() {
+                const button = document.getElementById("theme-toggle");
+                if (!button || button.hasAttribute("data-theme-initialized")) {
+                    return;
+                }
+
+                button.addEventListener("click", function () {
+                    const current = document.documentElement.getAttribute("data-theme") || "light";
+                    const next = current === "light" ? "dark" : "light";
+                    applyTheme(next);
+                    setStoredTheme(next);
+                });
+            }
+
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", initFallbackToggle);
+            } else {
+                initFallbackToggle();
+            }
+        })();
+    </script>
+    
+    <style>
+        /* ── Reset & Base ── */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --color-bg: #ffffff;
+            --color-bg-rgb: 255, 255, 255;
+            --color-text: #000000;
+            --color-text-secondary: #555555;
+            --motion-easing: cubic-bezier(0.4, 0, 0.2, 1);
+            --wave-layer-1: rgba(31, 126, 170, 0.1);
+            --wave-layer-2: rgba(79, 172, 214, 0.09);
+            --wave-layer-3: rgba(136, 210, 241, 0.11);
+            --wave-ripple: rgba(20, 88, 128, 0.11);
+        }
+
+        [data-theme="dark"] {
+            --color-bg: #000000;
+            --color-bg-rgb: 0, 0, 0;
+            --color-text: #ffffff;
+            --color-text-secondary: #b8b8b8;
+            --wave-layer-1: rgba(20, 96, 130, 0.18);
+            --wave-layer-2: rgba(35, 125, 161, 0.15);
+            --wave-layer-3: rgba(62, 151, 181, 0.14);
+            --wave-ripple: rgba(148, 217, 238, 0.1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --color-bg: #000000;
+                --color-bg-rgb: 0, 0, 0;
+                --color-text: #ffffff;
+                --color-text-secondary: #b8b8b8;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 600ms var(--motion-easing),
+                        color 600ms var(--motion-easing);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* ── Theme Toggle (same as landing) ── */
+        .theme-toggle-minimal {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: transparent;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+            opacity: 0.6;
+            transition: opacity 300ms var(--motion-easing);
+            z-index: 1000;
+        }
+        .theme-toggle-minimal:hover { opacity: 1; }
+        .theme-toggle-minimal:focus { outline: none; }
+        .theme-toggle-minimal:focus-visible { outline: 2px solid var(--color-text); outline-offset: 4px; }
+        .theme-toggle-minimal .sun-icon { display: none; }
+        .theme-toggle-minimal .moon-icon { display: block; }
+        [data-theme="dark"] .theme-toggle-minimal .sun-icon { display: block; }
+        [data-theme="dark"] .theme-toggle-minimal .moon-icon { display: none; }
+
+        /* ── Canvas ── */
+        .lost-surface {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+        }
+
+        .lost-surface::before,
+        .lost-surface::after {
+            content: "";
+            position: absolute;
+            inset: -18%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .lost-surface::before {
+            background:
+                linear-gradient(180deg, transparent 12%, rgba(var(--color-bg-rgb), 0.25) 100%),
+                radial-gradient(150% 70% at 16% 118%, var(--wave-layer-1) 0%, transparent 62%),
+                radial-gradient(145% 74% at 84% 120%, var(--wave-layer-2) 0%, transparent 64%),
+                radial-gradient(140% 78% at 50% 128%, var(--wave-layer-3) 0%, transparent 68%);
+            filter: blur(10px);
+            animation: swell 18s ease-in-out infinite;
+            transform-origin: 50% 50%;
+        }
+
+        .lost-surface::after {
+            background:
+                radial-gradient(170% 98% at 50% 118%, transparent 56%, var(--wave-ripple) 58%, transparent 60%),
+                radial-gradient(175% 104% at 50% 122%, transparent 59%, var(--wave-ripple) 61%, transparent 63%),
+                radial-gradient(180% 110% at 50% 127%, transparent 62%, var(--wave-ripple) 64%, transparent 66%);
+            opacity: 0.65;
+            animation: tide 20s ease-in-out infinite;
+        }
+
+        .lost-surface > *:not(.wave-layer) {
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes swell {
+            0%,
+            100% {
+                transform: translate3d(0, 0, 0) scale(1);
+            }
+            50% {
+                transform: translate3d(0, -1.4%, 0) scale(1.02);
+            }
+        }
+
+        @keyframes tide {
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+            50% {
+                transform: translate3d(-1.2%, -0.8%, 0);
+            }
+            100% {
+                transform: translate3d(0, 0, 0);
+            }
+        }
+
+        /* ── Drifting particles — ocean debris ── */
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            border-radius: 50%;
+            background: var(--color-text-secondary);
+            opacity: 0;
+            animation: drift var(--drift-duration, 18s) var(--drift-delay, 0s) ease-in-out infinite;
+        }
+
+        @keyframes drift {
+            0% {
+                opacity: 0;
+                transform: translate(0, 0) scale(0.5);
+            }
+            15% {
+                opacity: 0.25;
+            }
+            50% {
+                opacity: 0.12;
+                transform: translate(var(--drift-x, 80px), var(--drift-y, -8px)) scale(1);
+            }
+            85% {
+                opacity: 0.2;
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--drift-x2, 160px), var(--drift-y2, 6px)) scale(0.5);
+            }
+        }
+
+        /* ── Ocean wave layers ── */
+        .wave-layer {
+            position: absolute;
+            bottom: 0;
+            left: -5%;
+            width: 110%;
+            height: 120px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wave-layer svg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .wave-layer--back svg path {
+            fill: var(--wave-layer-1);
+            animation: wave-shift-back 12s ease-in-out infinite;
+        }
+
+        .wave-layer--mid svg path {
+            fill: var(--wave-layer-2);
+            animation: wave-shift-mid 10s ease-in-out infinite;
+        }
+
+        .wave-layer--front svg path {
+            fill: var(--wave-layer-3);
+            animation: wave-shift-front 8s ease-in-out infinite;
+        }
+
+        @keyframes wave-shift-back {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(-12px) translateY(-4px); }
+        }
+
+        @keyframes wave-shift-mid {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(10px) translateY(-6px); }
+        }
+
+        @keyframes wave-shift-front {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(-8px) translateY(-3px); }
+        }
+
+        /* ── The number — massive, quiet, moving ── */
+        .error-code {
+            font-size: clamp(8rem, 25vw, 16rem);
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            line-height: 1;
+            margin-bottom: 2rem;
+            text-transform: lowercase;
+
+            background: linear-gradient(
+                135deg,
+                #0a2f3d 0%,
+                #0d3b4c 15%,
+                #1a5a5e 30%,
+                #4ecdc4 50%,
+                #2d8a8a 70%,
+                #1a5a5e 85%,
+                #0a2f3d 100%
+            );
+            background-size: 400% 400%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+
+            animation: ocean-drift-404 20s ease-in-out infinite;
+            
+            /* Gentle vertical float */
+            position: relative;
+        }
+
+        .error-code::after {
+            content: '';
+            display: block;
+        }
+
+        @keyframes ocean-drift-404 {
+            0%, 100% { background-position: 0% 25%; }
+            25% { background-position: 50% 50%; }
+            50% { background-position: 100% 75%; }
+            75% { background-position: 50% 50%; }
+        }
+
+        /* Gentle breathing — the number floats */
+        .error-code-wrap {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-8px) rotate(0.4deg); }
+            50% { transform: translateY(-12px) rotate(0deg); }
+            75% { transform: translateY(-8px) rotate(-0.4deg); }
+        }
+
+        /* ── Message ── */
+        .error-message {
+            font-size: 1.125rem;
+            font-weight: 400;
+            color: var(--color-text-secondary);
+            letter-spacing: 0.02em;
+            margin-bottom: 3rem;
+            text-align: center;
+            max-width: 400px;
+            line-height: 1.6;
+            opacity: 0;
+            animation: fadeUp 800ms 400ms var(--motion-easing) forwards;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Navigation — same as landing links ── */
+        .error-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            align-items: center;
+            opacity: 0;
+            animation: fadeUp 800ms 700ms var(--motion-easing) forwards;
+        }
+
+        .error-link {
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: color 600ms var(--motion-easing);
+        }
+
+        .error-link:hover { color: var(--color-text); opacity: 0.85; }
+
+        .error-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 1px;
+            background-color: var(--color-text);
+            transition: width 300ms var(--motion-easing);
+        }
+
+        .error-link:hover::after { width: 100%; }
+        .error-link:focus { outline: none; }
+        .error-link:focus-visible { outline: 2px solid var(--color-text); outline-offset: 4px; }
+
+        /* ── Reduced motion ── */
+        @media (prefers-reduced-motion: reduce) {
+            .error-code { animation: none; background-position: 50% 50%; }
+            .error-code-wrap { animation: none; }
+            .particle { animation: none; display: none; }
+            .lost-surface::before,
+            .lost-surface::after { animation: none; }
+            .wave-layer svg path { animation: none; }
+            .error-message, .error-nav {
+                animation: none;
+                opacity: 1;
+            }
+        }
+
+        /* ── Mobile ── */
+        @media (max-width: 768px) {
+            .error-code { font-size: clamp(6rem, 20vw, 10rem); }
+            .error-message { font-size: 1rem; }
+            .theme-toggle-minimal { top: 1rem; right: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Theme toggle -->
+    <button id="theme-toggle" class="theme-toggle-minimal" aria-label="Toggle theme">
+        <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+    </button>
+
+    <div class="lost-surface">
+        <!-- Drifting particles — current-driven -->
+        <div class="particle" style="top:12%;left:8%;--drift-duration:22s;--drift-delay:0s;--drift-x:180px;--drift-y:-6px;--drift-x2:260px;--drift-y2:4px;width:3px;height:3px;"></div>
+        <div class="particle" style="top:28%;right:15%;--drift-duration:18s;--drift-delay:2s;--drift-x:-160px;--drift-y:5px;--drift-x2:-240px;--drift-y2:-3px;"></div>
+        <div class="particle" style="bottom:20%;left:20%;--drift-duration:24s;--drift-delay:4s;--drift-x:140px;--drift-y:-8px;--drift-x2:200px;--drift-y2:6px;width:2.5px;height:2.5px;"></div>
+        <div class="particle" style="top:60%;right:10%;--drift-duration:20s;--drift-delay:1s;--drift-x:-120px;--drift-y:4px;--drift-x2:-200px;--drift-y2:-5px;"></div>
+        <div class="particle" style="top:45%;left:5%;--drift-duration:26s;--drift-delay:6s;--drift-x:200px;--drift-y:7px;--drift-x2:300px;--drift-y2:-4px;width:1.5px;height:1.5px;"></div>
+        <div class="particle" style="bottom:35%;right:25%;--drift-duration:19s;--drift-delay:3s;--drift-x:-100px;--drift-y:-5px;--drift-x2:-180px;--drift-y2:8px;width:2px;height:2px;"></div>
+        <div class="particle" style="top:75%;left:40%;--drift-duration:23s;--drift-delay:5s;--drift-x:160px;--drift-y:3px;--drift-x2:220px;--drift-y2:-6px;width:1.5px;height:1.5px;"></div>
+
+        <!-- Wave layers -->
+        <div class="wave-layer wave-layer--back" style="height:100px;">
+            <svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path d="M0,60 C180,40 360,80 540,55 C720,30 900,70 1080,50 C1260,30 1350,65 1440,45 L1440,100 L0,100 Z"/></svg>
+        </div>
+        <div class="wave-layer wave-layer--mid" style="height:80px;">
+            <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0,45 C200,60 400,30 600,50 C800,70 1000,35 1200,55 C1350,40 1400,60 1440,50 L1440,80 L0,80 Z"/></svg>
+        </div>
+        <div class="wave-layer wave-layer--front" style="height:60px;">
+            <svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,35 C240,50 480,25 720,40 C960,55 1200,30 1440,42 L1440,60 L0,60 Z"/></svg>
+        </div>
+
+        <!-- The number -->
+        <div class="error-code-wrap">
+            <h1 class="error-code">404</h1>
+        </div>
+
+        <!-- Message -->
+        <p class="error-message">
+            The current carried you somewhere unexpected.<br>
+            This page doesn't exist, or it drifted away.
+        </p>
+
+        <!-- Navigation -->
+        <nav class="error-nav">
+            <a href="/" class="error-link">Surface</a>
+            <a href="/en/index.html" class="error-link">Blog</a>
+            <a href="/en/about.html" class="error-link">About</a>
+        </nav>
+    </div>
+</body>
+</html>

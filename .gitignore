@@ -43,4 +43,9 @@ Thumbs.db
 # Local scratch files
 {target}
 
+# Docs: keep ADRs tracked, ignore other docs content
+docs/*
+!docs/adr/
+!docs/adr/**
+
 # Note: Generated HTML files (index.html, en/, pt/) are tracked for GitHub Pages

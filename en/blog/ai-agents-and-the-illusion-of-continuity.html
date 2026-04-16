@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agents and the Illusion of Continuity – Daniel Cavalli | dan.rio</title>
+    <meta name="description" content="AI agents feel continuous because the software around them is good at reconstruction. But reconstruction has failure modes, and understanding where continuity a">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://dan.rio/en/blog/ai-agents-and-the-illusion-of-continuity.html">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://dan.rio/en/blog/ai-agents-and-the-illusion-of-continuity.html">
+    <meta property="og:title" content="AI Agents and the Illusion of Continuity">
+    <meta property="og:description" content="AI agents feel continuous because the software around them is good at reconstruction. But reconstruction has failure modes, and understanding where continuity a">
+    <meta property="og:site_name" content="dan.rio">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="pt_BR">
+    <meta property="article:published_time" content="2026-04-13">
+    <meta property="article:modified_time" content="2026-04-13">
+    <meta property="article:author" content="Daniel Cavalli">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="AI Agents and the Illusion of Continuity">
+    <meta name="twitter:description" content="AI agents feel continuous because the software around them is good at reconstruction. But reconstruction has failure modes, and understanding where continuity a">
+    
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "AI Agents and the Illusion of Continuity", "description": "AI agents feel continuous because the software around them is good at reconstruction. But reconstruction has failure modes, and understanding where continuity a", "url": "https://dan.rio/en/blog/ai-agents-and-the-illusion-of-continuity.html", "inLanguage": "en", "datePublished": "2026-04-13", "dateModified": "2026-04-13", "author": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "publisher": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://dan.rio/en/blog/ai-agents-and-the-illusion-of-continuity.html"}, "keywords": "AI Agents, LLMs, Context Engineering, Workflows"}</script>
+    
+    <!-- Additional SEO -->
+    <meta name="author" content="Daniel Cavalli">
+    <meta name="robots" content="index, follow">
+    
+    <link rel="alternate" hreflang="x-default" href="https://dan.rio/">
+    <link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/ai-agents-and-the-illusion-of-continuity.html">
+    <link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/ai-agents-and-the-illusion-of-continuity.html">
+    
+    <link rel="stylesheet" href="/static/css/styles.css?v=c89a74a1">
+    <link rel="stylesheet" href="/static/css/post.css?v=69615460">
+    <link rel="preload" href="/static/js/theme.js?v=30ebbd0e" as="script">
+    <script src="/static/js/theme.js?v=30ebbd0e"></script>
+    <script src="/static/js/transitions.js?v=bc364081" defer></script>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to content</a>
+    <nav class="nav" style="view-transition-name: site-nav;">
+        <div class="nav-container">
+            <a href="/en/index.html" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="/en/index.html" class="active" style="view-transition-name: nav-blog;">BLOG</a></li>
+                    <li><a href="/en/about.html" style="view-transition-name: nav-about;">ABOUT</a></li>
+                    <li><a href="/en/cv.html" style="view-transition-name: nav-cv;">CV</a></li>
+                </ul>
+                <div style="view-transition-name: lang-toggle;"><a href="/pt/blog/ai-agents-and-the-illusion-of-continuity.html" class="lang-toggle" aria-label="Switch to Português (currently English)" data-current-lang="en">
+        <svg class="lang-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span class="lang-text">
+            <span class="lang-en active">EN</span>
+            <span class="lang-sep">/</span>
+            <span class="lang-pt">PT</span>
+        </span>
+    </a></div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main-content" class="container">
+        <article class="post" style="view-transition-name: post-container-2;">
+            <header class="post-header">
+                <a href="/en/index.html" class="back-link">← Back to Blog</a>
+                
+                <h1 class="post-title-large" style="view-transition-name: post-title-2;">AI AGENTS AND THE ILLUSION OF CONTINUITY</h1>
+                <div class="post-meta">
+                    <time class="post-date" style="view-transition-name: post-date-2;">April 13, 2026</time>
+                    <span class="post-separator">•</span>
+                    <span class="post-reading-time">6 min read</span>
+                </div>
+                <div class="post-tags"><span class="tag-pill">AI Agents</span><span class="tag-pill">LLMs</span><span class="tag-pill">Context Engineering</span><span class="tag-pill">Workflows</span></div>
+            </header>
+
+            <div class="post-body">
+                <p class="lead" style="view-transition-name: post-excerpt-2;">
+                    AI agents feel continuous because the software around them is good at reconstruction. But reconstruction has failure modes, and understanding where continuity actually lives changes how you build, debug, and trust these systems.
+                </p>
+                <p>Resume an agent session after a few hours and it picks up exactly where you left off. It refers back to an earlier decision, continues a line of work, uses the same tools, as if no time had passed.</p>
+<p>It is tempting to read that as evidence of a persistent mind. I think that picture is mostly wrong. Across ordinary API calls, the model is not carrying the thread forward by itself. What persists is software state around it: stored messages, tool outputs, summaries, notes, and whatever the harness decides to replay into the next request 1<a href="#ref-2">[2]</a>.</p>
+<p>That is the first distinction that matters. During an active generation, the model can keep temporary inference state such as a KV cache, but that is request-local. It is not the same thing as durable memory across pauses, resumptions, or fresh calls 4<a href="#ref-8">[8]</a>. When an agent feels continuous, what you are seeing is successful reconstruction.</p>
+<p>Once I started looking at agents that way, a lot of the usual conversation felt backwards. The interesting problem is not whether the model has hidden continuity. The interesting problem is how you package, partition, and reactivate context. That is where most of the reliability comes from, and that is also where most failures come from.</p>
+<h2>More Context Is Not A Strategy</h2>
+<p>The obvious reaction is to keep more history alive. In practice, that is not a great default. Long context is useful, but it is not uniform. Relevant information becomes harder to recover when it drifts into the middle of a long prompt, models can get anchored by stale or self-generated context, and longer inputs can hurt performance even when retrieval is perfect 5<a href="#ref-6">[6]</a>[7]. A bigger context window is not a permission slip to stop making editorial decisions.</p>
+<p>That is why I care more about context selection than context size. Provider-side conversations, stored responses, prompt caches, and compaction features all help with cost, latency, or ergonomics, but they do not fully solve the real question: what should still be active for this turn, and what should be collapsed into an artifact instead 1<a href="#ref-2">[2]</a>3<a href="#ref-4">[4]</a>. In most practical workflows, that selection problem still lands on you.</p>
+<h2>What I Think Matters More Than Skills</h2>
+<p>This is where I part ways a bit with the current agent discourse. I do not think skills are where most of the leverage is. They can help, but only if they improve the real work: context management, planning discipline, and system design.</p>
+<p>My setup today is pretty simple. I keep a knowledge base in the Karpathy sense: notes, decisions, fragments, and artifacts that outlive any one session. On top of that, I use a custom subagent orchestrator. I built it before newer team-style agent features existed, and at this point I am used to it. But the exact orchestrator matters less than people think. The value is not in some magical reusable skill prompt. The value is in deciding how work gets broken down, what each session is allowed to see, and what artifact it must leave behind.</p>
+<p>That also matches where current models seem strongest. They are very good at execution against a reasonably clear target. Coding is often the easy part. Planning is still harder. Closing the open loops is harder. Designing a system cleanly enough that execution can stay local is harder. So I would rather spend more time on problem framing, tradeoffs, and artifact quality than on trying to squeeze one giant session into acting like a durable brain.</p>
+<h2>One Session, One Task</h2>
+<p>My default is one session, one task. Not because longer sessions never work, but because they accumulate residue: dead ends, mixed goals, stale constraints, and abandoned branches that still look locally plausible.</p>
+<p>The boundary I care about most is phase separation. The session that researches a problem should usually not write the final spec. The session that writes the spec should usually not be the session that implements it. Research is divergent. It is supposed to explore options, reject ideas, and surface unknowns. A spec is convergent. It is supposed to decide. Implementation is narrower still: it should execute against a target, not keep reopening the whole design space.</p>
+<p>If you let one session do all three, you get contamination. The implementation context now contains rejected approaches, half-decided constraints, and exploratory reasoning that was useful earlier but is harmful now. That is exactly the kind of context that later gets revived by accident.</p>
+<p>So the handoff artifact matters more than the raw session. A research session should leave a research note: options considered, the chosen direction, rejection reasons, open questions. A spec session should turn that into an implementation packet: scope, acceptance criteria, constraints, tests, non-goals. Then the implementation session should start fresh from that packet. If something important changes, stop and spin a new research or spec session instead of dragging the old context forward.</p>
+<p>To me, this is the most practical form of continuity: not one immortal thread, but a chain of clean artifacts.</p>
+<h2>Personal Workflow, Not Doctrine</h2>
+<p>All of this is personal workflow advice, not a claim that the field has converged on the one correct pattern. Nobody really knows the best way to work with AI yet. I also do not expect the center of gravity to move that much in the next few months. For now, I still think the leverage is in context management, planning, and system design more than in ever-fancier session persistence.</p>
+<p>That is also why I am skeptical of copying someone else's skills wholesale. Workflows are personal. They depend on your codebase, your review habits, your risk tolerance, your taste for specs, and the kinds of mistakes you keep seeing. Borrow the idea if it helps. Then rebuild it for your own context and constraints.</p>
+<p>That, at least, is the workflow that has held up best for me: narrow sessions, explicit handoffs, strong artifacts, and a lot of respect for how easily context turns from asset into liability.</p>
+<hr />
+<p><strong>Sources:</strong></p>
+<p><span id="ref-1"></span>[1] OpenAI, <em>Conversation state</em>. <code>previous_response_id</code>, stored responses, and conversation objects. <a href="https://platform.openai.com/docs/guides/conversation-state">platform.openai.com/docs/guides/conversation-state</a></p>
+<p><span id="ref-2"></span>[2] Anthropic, <em>Messages API</em>. Documents stateless multi-turn conversations through repeated message replay. <a href="https://docs.anthropic.com/en/api/messages">docs.anthropic.com/en/api/messages</a></p>
+<p><span id="ref-3"></span>[3] Anthropic, <em>Compaction</em>. Recommends compaction for long-running conversations and agentic workflows. <a href="https://docs.anthropic.com/en/docs/build-with-claude/compaction">docs.anthropic.com/en/docs/build-with-claude/compaction</a></p>
+<p><span id="ref-4"></span>[4] Hugging Face Transformers, <em>Caching</em>. Explains KV caching as an inference optimization during generation. <a href="https://huggingface.co/docs/transformers/main/cache_explanation">huggingface.co/docs/transformers/main/cache_explanation</a></p>
+<p><span id="ref-5"></span>[5] Liu, N. F. et al., <em>Lost in the Middle: How Language Models Use Long Contexts</em>, TACL 2024. <a href="https://arxiv.org/abs/2307.03172">arxiv.org/abs/2307.03172</a></p>
+<p><span id="ref-6"></span>[6] Du, X. et al., <em>Context Length Alone Hurts LLM Performance Despite Perfect Retrieval</em>, Findings of EMNLP 2025. <a href="https://arxiv.org/abs/2510.05381">arxiv.org/abs/2510.05381</a></p>
+<p><span id="ref-7"></span>[7] Tan, H. et al., <em>Blinded by Generated Contexts: How Language Models Merge Generated and Retrieved Contexts When Knowledge Conflicts?</em>, ACL 2024. <a href="https://aclanthology.org/2024.acl-long.337/">aclanthology.org/2024.acl-long.337</a></p>
+<p><span id="ref-8"></span>[8] Vaswani, A. et al., <em>Attention Is All You Need</em>, NeurIPS 2017. Introduces the Transformer architecture underlying modern autoregressive LLM inference. <a href="https://arxiv.org/abs/1706.03762">arxiv.org/abs/1706.03762</a></p>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer" style="view-transition-name: site-footer;">
+        <div class="footer-container">
+            <div class="social-links">
+                <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/danielcavalli" target="_blank" rel="noopener" aria-label="GitHub">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/cavallidaniel/" target="_blank" rel="noopener" aria-label="LinkedIn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                </a>
+            </div>
+            <p class="copyright">&copy; 2026 All Rights Reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
