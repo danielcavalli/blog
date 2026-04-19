@@ -385,6 +385,10 @@ def generate_post_html(post, post_number, lang="en"):
         other_url=other_url,
         extra_meta=extra_meta,
         stylesheets=[f"{BASE_PATH}/static/css/styles.css", f"{BASE_PATH}/static/css/post.css"],
+        scripts_defer=[
+            f"{BASE_PATH}/static/js/transitions.js",
+            f"{BASE_PATH}/static/js/annotations.js",
+        ],
     )
 
     nav = render_nav(lang, "blog", lang_toggle_html)
@@ -394,7 +398,11 @@ def generate_post_html(post, post_number, lang="en"):
     return f"""<!DOCTYPE html>
 <html lang="{lang}">
 {head}
-<body>
+<body
+    data-copy-section-link="{_html.escape(ui['copy_section_link'])}"
+    data-copy-passage-link="{_html.escape(ui['copy_passage_link'])}"
+    data-link-copied="{_html.escape(ui['link_copied'])}"
+>
     {skip_link}
     {nav}
 

@@ -66,7 +66,48 @@
 
 (function() {
     'use strict';
-    
+
+    function currentDeepLinkState(urlLike = location.href) {
+        const resolved = new URL(urlLike, location.href);
+        return {
+            hash: resolved.hash || '',
+            targetId: resolved.hash ? decodeURIComponent(resolved.hash.slice(1)) : '',
+        };
+    }
+
+    function restoreDeepLinkTarget(urlLike = location.href) {
+        const { targetId } = currentDeepLinkState(urlLike);
+        if (!targetId) return;
+
+        const target = document.getElementById(targetId);
+        if (!target) return;
+
+        requestAnimationFrame(() => {
+            target.scrollIntoView({ block: 'start', behavior: 'instant' });
+        });
+    }
+
+    function preserveCurrentDeepLinkOnLanguageSwitch(urlLike) {
+        const target = new URL(urlLike, location.href);
+        if (target.hash) return target.toString();
+
+        const { hash } = currentDeepLinkState(location.href);
+        if (hash) {
+            target.hash = hash;
+        }
+        return target.toString();
+    }
+
+    window.addEventListener('hashchange', () => {
+        restoreDeepLinkTarget(location.href);
+    });
+
+    if (location.hash) {
+        requestAnimationFrame(() => {
+            restoreDeepLinkTarget(location.href);
+        });
+    }
+
     // Graceful degradation - if API not supported, use normal navigation
     if (!document.startViewTransition) return;
 
@@ -260,8 +301,13 @@
             return;
         }
 
+        let nextUrl = link.href;
+        if (targetUrl && isLanguageSwitchNavigation(location.pathname, targetUrl.pathname)) {
+            nextUrl = preserveCurrentDeepLinkOnLanguageSwitch(link.href);
+        }
+
         e.preventDefault();
-        navigateTo(link.href);
+        navigateTo(nextUrl);
     });
 
     /**
@@ -346,6 +392,7 @@
             const currentPath = location.pathname;
             const newPath = targetPath;
             const isLanguageSwitch = isLanguageSwitchNavigation(currentPath, newPath);
+            const deepLinkState = currentDeepLinkState(url);
             
             // Capture state for continuity
             const scrollPosition = isLanguageSwitch ? window.scrollY : 0;
@@ -526,7 +573,9 @@
                 // - language switch: maintain reader position (continuity design)
                 // - back/forward (isPop): restore scroll saved in history.state
                 // - regular forward navigation: reset to top
-                if (isLanguageSwitch) {
+                if (deepLinkState.targetId) {
+                    // Fragment targets are restored after the DOM swap finishes.
+                } else if (isLanguageSwitch) {
                     window.scrollTo({ top: scrollPosition, behavior: 'instant' });
                 } else if (isPop) {
                     window.scrollTo({ top: restoredScrollY, behavior: 'instant' });
@@ -537,6 +586,10 @@
             });
 
             await transition.finished;
+
+            if (deepLinkState.targetId) {
+                restoreDeepLinkTarget(url);
+            }
             
             // Restore filter state for language switches
             if (isLanguageSwitch && filterState) {

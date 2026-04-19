@@ -136,7 +136,7 @@ def parse_markdown_post(filepath, _metadata_store: Optional[dict] = None):
             pass
 
     # Convert markdown content to HTML
-    html_content = render_markdown_with_internal_refs(post.content)
+    html_content = render_markdown_with_internal_refs(post.content, source_markdown=post.content)
 
     # Keep raw markdown for translation
     raw_markdown = post.content

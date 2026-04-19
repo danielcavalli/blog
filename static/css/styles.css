@@ -213,6 +213,10 @@
     --color-surface-elevated: #f8f8f8;
     --accent-color: #2a9d8f; /* Teal - bridging Moana's organic warmth */
     --accent-color-bright: #3eb8a9; /* Lighter variant for hover states */
+    --ocean-color-deep: #0d3b4c;
+    --ocean-color-mid: #1a5a5e;
+    --ocean-color-teal: #2d8a8a;
+    --ocean-color-bright: #4ecdc4;
     
     /* Aliases for consistency */
     --text-color: var(--color-text);
@@ -263,6 +267,10 @@
     --color-surface-elevated: #0a0a0a;
     --accent-color: #4ecdc4; /* Teal from Moana illustration - organic warmth */
     --accent-color-bright: #5fd9d0; /* Lighter variant for hover states */
+    --ocean-color-deep: #0d3b4c;
+    --ocean-color-mid: #1a5a5e;
+    --ocean-color-teal: #2d8a8a;
+    --ocean-color-bright: #4ecdc4;
     
     /* Aliases for consistency */
     --text-color: var(--color-text);
@@ -283,6 +291,10 @@
         --color-surface-elevated: #0a0a0a;
         --accent-color: #4ecdc4; /* Teal from Moana illustration */
         --accent-color-bright: #5fd9d0;
+        --ocean-color-deep: #0d3b4c;
+        --ocean-color-mid: #1a5a5e;
+        --ocean-color-teal: #2d8a8a;
+        --ocean-color-bright: #4ecdc4;
         
         /* Aliases for consistency */
         --text-color: var(--color-text);
@@ -387,12 +399,12 @@ body {
     /* The ocean gradient visible through text */
     background: linear-gradient(
         135deg,
-        #0d3b4c 0%,      /* Deep ocean */
-        #1a5a5e 20%,     /* Dark teal */
-        #4ecdc4 40%,     /* Moana teal */
-        #2d8a8a 60%,     /* Mid teal */
-        #1a5a5e 80%,     /* Dark teal */
-        #0d3b4c 100%     /* Deep ocean */
+        var(--ocean-color-deep) 0%,
+        var(--ocean-color-mid) 20%,
+        var(--ocean-color-bright) 40%,
+        var(--ocean-color-teal) 60%,
+        var(--ocean-color-mid) 80%,
+        var(--ocean-color-deep) 100%
     );
     background-size: 300% 300%;
     background-clip: text;
