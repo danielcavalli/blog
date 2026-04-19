@@ -36,13 +36,18 @@
     <link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/css-animations-guide.html">
     <link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/css-animations-guide.html">
     
-    <link rel="stylesheet" href="/static/css/styles.css?v=c89a74a1">
-    <link rel="stylesheet" href="/static/css/post.css?v=69615460">
+    <link rel="stylesheet" href="/static/css/styles.css?v=fbec51c9">
+    <link rel="stylesheet" href="/static/css/post.css?v=c932c06c">
     <link rel="preload" href="/static/js/theme.js?v=30ebbd0e" as="script">
     <script src="/static/js/theme.js?v=30ebbd0e"></script>
-    <script src="/static/js/transitions.js?v=bc364081" defer></script>
+    <script src="/static/js/transitions.js?v=f220eca7" defer></script>
+    <script src="/static/js/annotations.js?v=31123876" defer></script>
 </head>
-<body>
+<body
+    data-copy-section-link="Copiar link da seção"
+    data-copy-passage-link="Copiar link do trecho"
+    data-link-copied="Link copiado"
+>
     <a href="#main-content" class="skip-link">Pular para o conteúdo</a>
     <nav class="nav" style="view-transition-name: site-nav;">
         <div class="nav-container">
@@ -102,21 +107,21 @@
                 <p class="lead" style="view-transition-name: post-excerpt-4;">
                     Criando animações suaves e eficientes usando apenas CSS. Um mergulho profundo na construção de sistemas de movimento coerentes para a web moderna.
                 </p>
-                <h2>Por que animações em CSS?</h2>
-<p>Animações em CSS trazem várias vantagens em relação às animações baseadas em JavaScript. Elas são aceleradas por hardware, têm melhor desempenho e mantêm 60fps com suavidade até em dispositivos mais modestos. Mais importante, porém, é que permitem uma <strong>abordagem declarativa para o movimento</strong>: você define o que deve acontecer, e o navegador cuida de como.</p>
-<p>Este blog foi construído inteiramente com uma abordagem CSS-first para animações. JavaScript entra apenas para disparar mudanças de estado; o comportamento visual vive nas folhas de estilo.</p>
-<h2>A filosofia do movimento</h2>
-<p>Antes de escolher técnicas de animação, vale pensar no que esse movimento <em>significa</em>. Toda transição deveria responder a três perguntas: <strong>De onde? Para onde? Como isso se relaciona com o que veio antes?</strong></p>
-<p>Neste site, as animações servem a três princípios centrais:<br />
+                <h2 class="section-heading" id="why-css-animations">Por que animações em CSS?<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#why-css-animations"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-001" id="block-001">Animações em CSS trazem várias vantagens em relação às animações baseadas em JavaScript. Elas são aceleradas por hardware, têm melhor desempenho e mantêm 60fps com suavidade até em dispositivos mais modestos. Mais importante, porém, é que permitem uma <strong>abordagem declarativa para o movimento</strong>: você define o que deve acontecer, e o navegador cuida de como.</p>
+<p class="linkable-block" data-block-id="block-002" id="block-002">Este blog foi construído inteiramente com uma abordagem CSS-first para animações. JavaScript entra apenas para disparar mudanças de estado; o comportamento visual vive nas folhas de estilo.</p>
+<h2 class="section-heading" id="the-philosophy-of-motion">A filosofia do movimento<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#the-philosophy-of-motion"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-003" id="block-003">Antes de escolher técnicas de animação, vale pensar no que esse movimento <em>significa</em>. Toda transição deveria responder a três perguntas: <strong>De onde? Para onde? Como isso se relaciona com o que veio antes?</strong></p>
+<p class="linkable-block" data-block-id="block-004" id="block-004">Neste site, as animações servem a três princípios centrais:<br />
 1. <strong>Continuidade</strong>: tudo existe sobre uma única superfície ininterrupta<br />
 2. <strong>Plausibilidade física</strong>: o movimento ecoa dinâmicas do mundo real sem tentar imitá-las<br />
 3. <strong>Energia contida</strong>: movimento intencional, sem agitação</p>
-<p>Movimento nunca é decoração. Ele estabelece relações espaciais e reconhece mudanças de estado. A interface respira.</p>
-<h2>Os blocos fundamentais</h2>
-<p>O CSS oferece três formas principais de criar animações:</p>
-<h3>Transições</h3>
-<p>Interpolações suaves entre estados. São usadas em efeitos de hover, mudanças de tema e expansões de dropdown. O segredo está em usar constantes de movimento compartilhadas. Todas as transições deste site usam a mesma curva de easing: <code>cubic-bezier(0.4, 0, 0.2, 1)</code>.</p>
-<pre><code class="language-css">:root {
+<p class="linkable-block" data-block-id="block-005" id="block-005">Movimento nunca é decoração. Ele estabelece relações espaciais e reconhece mudanças de estado. A interface respira.</p>
+<h2 class="section-heading" id="the-building-blocks">Os blocos fundamentais<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#the-building-blocks"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-006" id="block-006">O CSS oferece três formas principais de criar animações:</p>
+<h3 class="section-heading" id="transitions">Transições<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#transitions"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h3>
+<p class="linkable-block" data-block-id="block-007" id="block-007">Interpolações suaves entre estados. São usadas em efeitos de hover, mudanças de tema e expansões de dropdown. O segredo está em usar constantes de movimento compartilhadas. Todas as transições deste site usam a mesma curva de easing: <code>cubic-bezier(0.4, 0, 0.2, 1)</code>.</p>
+<pre class="linkable-block" data-block-id="block-008" id="block-008"><code class="language-css">:root {
     --motion-duration-core: 500ms;
     --motion-duration-quick: 300ms;
     --motion-duration-ripple: 600ms;
@@ -127,10 +132,10 @@
     transition: all var(--motion-duration-core) var(--motion-easing);
 }
 </code></pre>
-<p>Isso cria um ritmo temporal compartilhado. Cada interação parece fazer parte da mesma coreografia.</p>
-<h3>Animações com keyframes</h3>
-<p>Coreografia em múltiplas etapas para movimentos mais complexos. Este blog usa keyframes com parcimônia: só nas animações de carregamento inicial da página, quando os elementos entram em fade e sobem um pouco.</p>
-<pre><code class="language-css">@keyframes fadeInUp {
+<p class="linkable-block" data-block-id="block-009" id="block-009">Isso cria um ritmo temporal compartilhado. Cada interação parece fazer parte da mesma coreografia.</p>
+<h3 class="section-heading" id="keyframe-animations">Animações com keyframes<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#keyframe-animations"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h3>
+<p class="linkable-block" data-block-id="block-010" id="block-010">Coreografia em múltiplas etapas para movimentos mais complexos. Este blog usa keyframes com parcimônia: só nas animações de carregamento inicial da página, quando os elementos entram em fade e sobem um pouco.</p>
+<pre class="linkable-block" data-block-id="block-011" id="block-011"><code class="language-css">@keyframes fadeInUp {
     from {
         opacity: 0;
         transform: translateY(20px);
@@ -141,18 +146,18 @@
     }
 }
 </code></pre>
-<h3>Propriedades <code>transform</code></h3>
-<p>A espinha dorsal do desempenho. <code>translateY</code>, <code>scale</code> e <code>rotate</code> são acelerados por hardware e não disparam reflows custosos. Quando o cabeçalho desliza por trás da barra de navegação, ele usa <code>translateY(-120%)</code> com duração de 500ms, alinhada ao tempo central do sistema de movimento.</p>
-<h2>View Transitions API</h2>
-<p>Navegadores modernos oferecem a <strong>View Transitions API</strong>, que permite um morphing contínuo entre navegações de página. Este blog a usa para transformar cards de posts em artigos completos:</p>
-<pre><code class="language-css">::view-transition-old(post-container-1),
+<h3 class="section-heading" id="transform-properties">Propriedades <code>transform</code><a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#transform-properties"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h3>
+<p class="linkable-block" data-block-id="block-012" id="block-012">A espinha dorsal do desempenho. <code>translateY</code>, <code>scale</code> e <code>rotate</code> são acelerados por hardware e não disparam reflows custosos. Quando o cabeçalho desliza por trás da barra de navegação, ele usa <code>translateY(-120%)</code> com duração de 500ms, alinhada ao tempo central do sistema de movimento.</p>
+<h2 class="section-heading" id="view-transitions-api">View Transitions API<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#view-transitions-api"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-013" id="block-013">Navegadores modernos oferecem a <strong>View Transitions API</strong>, que permite um morphing contínuo entre navegações de página. Este blog a usa para transformar cards de posts em artigos completos:</p>
+<pre class="linkable-block" data-block-id="block-014" id="block-014"><code class="language-css">::view-transition-old(post-container-1),
 ::view-transition-new(post-container-1) {
     animation-duration: var(--motion-duration-core);
     animation-timing-function: var(--motion-easing);
 }
 </code></pre>
-<p>A sacada crítica é esta: <strong>carregue o conteúdo ANTES de chamar <code>startViewTransition()</code></strong>. Troque o DOM de forma síncrona dentro do callback. Isso garante que o navegador capture corretamente o estado antigo e o novo, evitando piscadas de conteúdo.</p>
-<pre><code class="language-javascript">async function navigateTo(url) {
+<p class="linkable-block" data-block-id="block-015" id="block-015">A sacada crítica é esta: <strong>carregue o conteúdo ANTES de chamar <code>startViewTransition()</code></strong>. Troque o DOM de forma síncrona dentro do callback. Isso garante que o navegador capture corretamente o estado antigo e o novo, evitando piscadas de conteúdo.</p>
+<pre class="linkable-block" data-block-id="block-016" id="block-016"><code class="language-javascript">async function navigateTo(url) {
     const response = await fetch(url);
     const html = await response.text();
 
@@ -162,18 +167,18 @@
     });
 }
 </code></pre>
-<h2>Desempenho importa</h2>
-<p>Nem todas as propriedades de CSS se equivalem quando o assunto é desempenho em animações.</p>
-<p><strong>Aceleradas por hardware (GPU):</strong><br />
+<h2 class="section-heading" id="performance-matters">Desempenho importa<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#performance-matters"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-017" id="block-017">Nem todas as propriedades de CSS se equivalem quando o assunto é desempenho em animações.</p>
+<p class="linkable-block" data-block-id="block-018" id="block-018"><strong>Aceleradas por hardware (GPU):</strong><br />
 - <code>transform</code> (translate, scale, rotate)<br />
 - <code>opacity</code><br />
 - <code>filter</code> (com cautela: pode sair caro)</p>
-<p><strong>Evite animar:</strong><br />
+<p class="linkable-block" data-block-id="block-019" id="block-019"><strong>Evite animar:</strong><br />
 - <code>width</code>, <code>height</code>, <code>margin</code>, <code>padding</code> (disparam layout)<br />
 - <code>color</code>, <code>background-color</code> isoladamente (disparam paint)<br />
 - <code>box-shadow</code> (é custoso, mas aceitável em estados sutis de hover)</p>
-<p>Use <code>will-change</code> com parcimônia e apenas durante animações ativas:</p>
-<pre><code class="language-css">.post-card.filtering-out {
+<p class="linkable-block" data-block-id="block-020" id="block-020">Use <code>will-change</code> com parcimônia e apenas durante animações ativas:</p>
+<pre class="linkable-block" data-block-id="block-021" id="block-021"><code class="language-css">.post-card.filtering-out {
     opacity: 0;
     will-change: opacity;
 }
@@ -182,17 +187,17 @@
     will-change: auto; /* Reset after animation */
 }
 </code></pre>
-<p>Isso sinaliza ao navegador para otimizar a composição na GPU, mas só quando necessário. Deixar <code>will-change</code> ativo o tempo todo desperdiça memória.</p>
-<h2>O ritmo da interação</h2>
-<p>Todas as animações deste site seguem um ritmo temporal consistente, definido por propriedades personalizadas do CSS:<br />
+<p class="linkable-block" data-block-id="block-022" id="block-022">Isso sinaliza ao navegador para otimizar a composição na GPU, mas só quando necessário. Deixar <code>will-change</code> ativo o tempo todo desperdiça memória.</p>
+<h2 class="section-heading" id="the-rhythm-of-interaction">O ritmo da interação<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#the-rhythm-of-interaction"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-023" id="block-023">Todas as animações deste site seguem um ritmo temporal consistente, definido por propriedades personalizadas do CSS:<br />
 - <strong>500ms (core)</strong> para a maioria das transições (morphing, deslizamento, expansão)<br />
 - <strong>300ms (quick)</strong> para microinterações (feedback de hover)<br />
 - <strong>600ms (ripple)</strong> para mudanças atmosféricas (transições de tema)<br />
 - <strong>A mesma curva de easing em toda parte</strong>: <code>cubic-bezier(0.4, 0, 0.2, 1)</code></p>
-<p>Essa consistência dá à interface uma sensação contínua de respiração. Quando os filtros se expandem, os dropdowns se abrem e os cards se dissolvem, tudo se move no mesmo pulso.</p>
-<h2>Revelações escalonadas</h2>
-<p>Ao exibir vários elementos, escalone sua entrada com atrasos de transição em CSS:</p>
-<pre><code class="language-css">.filter-row {
+<p class="linkable-block" data-block-id="block-024" id="block-024">Essa consistência dá à interface uma sensação contínua de respiração. Quando os filtros se expandem, os dropdowns se abrem e os cards se dissolvem, tudo se move no mesmo pulso.</p>
+<h2 class="section-heading" id="staggered-reveals">Revelações escalonadas<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#staggered-reveals"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-025" id="block-025">Ao exibir vários elementos, escalone sua entrada com atrasos de transição em CSS:</p>
+<pre class="linkable-block" data-block-id="block-026" id="block-026"><code class="language-css">.filter-row {
     transition: all var(--motion-duration-core) var(--motion-easing) 0.1s;
 }
 
@@ -200,17 +205,17 @@
     transition: all var(--motion-duration-core) var(--motion-easing) 0.2s;
 }
 </code></pre>
-<p>Os controles de filtro aparecem 100ms antes das pílulas de tag, criando uma cascata que conduz o olhar naturalmente para baixo. Essa expansão cadenciada faz a interface parecer se desdobrar a partir de uma única superfície.</p>
-<h2>Limites orgânicos</h2>
-<p>Um padrão particular deste blog é a <strong>acomodação por overflow</strong>. Quando uma lista de dropdown ultrapassa o limite do painel de filtros, o bloco inteiro se expande a partir da borda inferior, abrindo espaço de forma orgânica:</p>
-<pre><code class="language-css">.filters.expanded.dropdown-active {
+<p class="linkable-block" data-block-id="block-027" id="block-027">Os controles de filtro aparecem 100ms antes das pílulas de tag, criando uma cascata que conduz o olhar naturalmente para baixo. Essa expansão cadenciada faz a interface parecer se desdobrar a partir de uma única superfície.</p>
+<h2 class="section-heading" id="organic-boundaries">Limites orgânicos<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#organic-boundaries"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-028" id="block-028">Um padrão particular deste blog é a <strong>acomodação por overflow</strong>. Quando uma lista de dropdown ultrapassa o limite do painel de filtros, o bloco inteiro se expande a partir da borda inferior, abrindo espaço de forma orgânica:</p>
+<pre class="linkable-block" data-block-id="block-029" id="block-029"><code class="language-css">.filters.expanded.dropdown-active {
     padding-bottom: 5rem;
 }
 </code></pre>
-<p>O JavaScript mede o overflow real do DOM com <code>getBoundingClientRect()</code> e aplica a classe quando necessário. O CSS cuida da expansão suave. O resultado é uma página que parece perceber a própria geometria e reagir de forma física.</p>
-<h2>Transições de tema</h2>
-<p>Alternar entre modo claro e modo escuro não é só trocar cores. É uma <strong>mudança atmosférica de luz</strong>. A chave está em trocar o tema PRIMEIRO e só então habilitar as transições:</p>
-<pre><code class="language-javascript">function applyTheme(theme, animated) {
+<p class="linkable-block" data-block-id="block-030" id="block-030">O JavaScript mede o overflow real do DOM com <code>getBoundingClientRect()</code> e aplica a classe quando necessário. O CSS cuida da expansão suave. O resultado é uma página que parece perceber a própria geometria e reagir de forma física.</p>
+<h2 class="section-heading" id="theme-transitions">Transições de tema<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#theme-transitions"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-031" id="block-031">Alternar entre modo claro e modo escuro não é só trocar cores. É uma <strong>mudança atmosférica de luz</strong>. A chave está em trocar o tema PRIMEIRO e só então habilitar as transições:</p>
+<pre class="linkable-block" data-block-id="block-032" id="block-032"><code class="language-javascript">function applyTheme(theme, animated) {
     if (animated) {
         // Change theme immediately
         document.documentElement.setAttribute('data-theme', theme);
@@ -227,19 +232,19 @@
     }
 }
 </code></pre>
-<pre><code class="language-css">body.theme-transitioning * {
+<pre class="linkable-block" data-block-id="block-033" id="block-033"><code class="language-css">body.theme-transitioning * {
     transition: background-color var(--motion-duration-ripple) var(--motion-easing),
                 color var(--motion-duration-ripple) var(--motion-easing),
                 border-color var(--motion-duration-ripple) var(--motion-easing);
 }
 </code></pre>
-<p>O efeito é este: a página inteira ondula para um novo estado de luz em 600ms, mantendo a ilusão de uma única superfície contínua. Sem flash, sem trancos bruscos.</p>
-<h2>FLIP: animando mudanças de layout</h2>
-<p>Ao filtrar os posts do blog, os cards precisam se reorganizar sem trancos. A <strong>técnica FLIP</strong> (First, Last, Invert, Play) faz mudanças de layout parecerem animadas:</p>
-<p><strong>Coreografia em duas fases:</strong><br />
+<p class="linkable-block" data-block-id="block-034" id="block-034">O efeito é este: a página inteira ondula para um novo estado de luz em 600ms, mantendo a ilusão de uma única superfície contínua. Sem flash, sem trancos bruscos.</p>
+<h2 class="section-heading" id="flip-animating-layout-changes">FLIP: animando mudanças de layout<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#flip-animating-layout-changes"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-035" id="block-035">Ao filtrar os posts do blog, os cards precisam se reorganizar sem trancos. A <strong>técnica FLIP</strong> (First, Last, Invert, Play) faz mudanças de layout parecerem animadas:</p>
+<p class="linkable-block" data-block-id="block-036" id="block-036"><strong>Coreografia em duas fases:</strong><br />
 1. <strong>Dissolução</strong>: os cards que perdem relevância desaparecem em 500ms<br />
 2. <strong>Reorganização</strong>: os cards restantes deslizam para suas novas posições usando FLIP</p>
-<pre><code class="language-javascript">// Phase 1: Capture initial positions
+<pre class="linkable-block" data-block-id="block-037" id="block-037"><code class="language-javascript">// Phase 1: Capture initial positions
 const initialPositions = new Map();
 cards.forEach(card =&gt; {
     const rect = card.getBoundingClientRect();
@@ -269,43 +274,43 @@ grid.addEventListener('transitionend', () =&gt; {
     });
 });
 </code></pre>
-<pre><code class="language-css">.post-card.flip-animating {
+<pre class="linkable-block" data-block-id="block-038" id="block-038"><code class="language-css">.post-card.flip-animating {
     transition: transform var(--motion-duration-core) var(--motion-easing);
     transform: translate(var(--flip-x, 0), var(--flip-y, 0));
     will-change: transform;
 }
 </code></pre>
-<p>O resultado é este: os cards se dissolvem, depois o grid se contrai com suavidade. Sem saltos bruscos. JavaScript controla o estado; CSS controla o visual.</p>
-<h2>Exemplos práticos</h2>
-<p>Toda interação neste blog demonstra esses princípios:</p>
+<p class="linkable-block" data-block-id="block-039" id="block-039">O resultado é este: os cards se dissolvem, depois o grid se contrai com suavidade. Sem saltos bruscos. JavaScript controla o estado; CSS controla o visual.</p>
+<h2 class="section-heading" id="practical-examples">Exemplos práticos<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#practical-examples"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-040" id="block-040">Toda interação neste blog demonstra esses princípios:</p>
 <ul>
-<li><strong>Card hover</strong>: elevação com <code>translateY(-2px)</code> e abertura da sombra (300ms quick)</li>
-<li><strong>Pílulas de tag</strong>: fundos em gradiente com elevação de 3px e sombras em expansão (500ms core)</li>
-<li><strong>Abertura do dropdown</strong>: <code>max-height: 0 a 300px</code> com fade de opacidade (500ms)</li>
-<li><strong>Expansão do filtro</strong>: revelações escalonadas (atrasos de 100ms e 200ms) com crescimento a partir da borda inferior</li>
-<li><strong>Morphing do post</strong>: View Transitions API para a transformação de card em artigo (500ms)</li>
-<li><strong>Ripple do tema</strong>: todas as propriedades de cor transitam juntas (mudança atmosférica de 600ms)</li>
-<li><strong>Filtragem de cards</strong>: dissolução em duas fases (500ms) e depois reorganização com FLIP (500ms)</li>
+<li class="linkable-block" data-block-id="block-041" id="block-041"><strong>Card hover</strong>: elevação com <code>translateY(-2px)</code> e abertura da sombra (300ms quick)</li>
+<li class="linkable-block" data-block-id="block-042" id="block-042"><strong>Pílulas de tag</strong>: fundos em gradiente com elevação de 3px e sombras em expansão (500ms core)</li>
+<li class="linkable-block" data-block-id="block-043" id="block-043"><strong>Abertura do dropdown</strong>: <code>max-height: 0 a 300px</code> com fade de opacidade (500ms)</li>
+<li class="linkable-block" data-block-id="block-044" id="block-044"><strong>Expansão do filtro</strong>: revelações escalonadas (atrasos de 100ms e 200ms) com crescimento a partir da borda inferior</li>
+<li class="linkable-block" data-block-id="block-045" id="block-045"><strong>Morphing do post</strong>: View Transitions API para a transformação de card em artigo (500ms)</li>
+<li class="linkable-block" data-block-id="block-046" id="block-046"><strong>Ripple do tema</strong>: todas as propriedades de cor transitam juntas (mudança atmosférica de 600ms)</li>
+<li class="linkable-block" data-block-id="block-047" id="block-047"><strong>Filtragem de cards</strong>: dissolução em duas fases (500ms) e depois reorganização com FLIP (500ms)</li>
 </ul>
-<p>Cada animação responde: De onde? Para onde? Como isso se relaciona com o que veio antes? Nada aparece ou desaparece sem contexto espacial.</p>
-<h2>Acessibilidade em primeiro lugar</h2>
-<p>Sempre respeite as preferências do usuário com a media query <code>prefers-reduced-motion</code>. Para algumas pessoas, animações distraem ou desorientam:</p>
-<pre><code class="language-css">@media (prefers-reduced-motion: reduce) {
+<p class="linkable-block" data-block-id="block-048" id="block-048">Cada animação responde: De onde? Para onde? Como isso se relaciona com o que veio antes? Nada aparece ou desaparece sem contexto espacial.</p>
+<h2 class="section-heading" id="accessibility-first">Acessibilidade em primeiro lugar<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#accessibility-first"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-049" id="block-049">Sempre respeite as preferências do usuário com a media query <code>prefers-reduced-motion</code>. Para algumas pessoas, animações distraem ou desorientam:</p>
+<pre class="linkable-block" data-block-id="block-050" id="block-050"><code class="language-css">@media (prefers-reduced-motion: reduce) {
     * {
         animation-duration: 0.01ms !important;
         transition-duration: 0.01ms !important;
     }
 }
 </code></pre>
-<p>O movimento deve ajudar, nunca atrapalhar. Quando o usuário sinaliza que precisa de movimento reduzido, isso deve ser respeitado imediatamente.</p>
-<h2>Conclusão</h2>
-<p>Animações em CSS, quando tratadas de forma sistemática, produzem interfaces que parecem <strong>vivas, mas calmas</strong>. O objetivo não é impressionar com transições espalhafatosas, e sim construir confiança por meio da coerência espacial. O ponto nunca foi só desempenho, embora a interface também deva passar sensação de desempenho justamente pela ideia por trás dessas transições: fluidez. Uma transição truncada enfraquece a interface. Seria possível implementar tudo isso em JavaScript puro, mas eu não sou um bom programador de JS, nem quero ser. Apoiar-se pesadamente nos recursos de CSS para abstrair a lógica de implementação acelera o desenvolvimento e ainda transfere para o próprio navegador parte da responsabilidade pela otimização de desempenho.</p>
-<p>Toda animação neste blog serve à mesma filosofia:<br />
+<p class="linkable-block" data-block-id="block-051" id="block-051">O movimento deve ajudar, nunca atrapalhar. Quando o usuário sinaliza que precisa de movimento reduzido, isso deve ser respeitado imediatamente.</p>
+<h2 class="section-heading" id="the-conclusion">Conclusão<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#the-conclusion"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-052" id="block-052">Animações em CSS, quando tratadas de forma sistemática, produzem interfaces que parecem <strong>vivas, mas calmas</strong>. O objetivo não é impressionar com transições espalhafatosas, e sim construir confiança por meio da coerência espacial. O ponto nunca foi só desempenho, embora a interface também deva passar sensação de desempenho justamente pela ideia por trás dessas transições: fluidez. Uma transição truncada enfraquece a interface. Seria possível implementar tudo isso em JavaScript puro, mas eu não sou um bom programador de JS, nem quero ser. Apoiar-se pesadamente nos recursos de CSS para abstrair a lógica de implementação acelera o desenvolvimento e ainda transfere para o próprio navegador parte da responsabilidade pela otimização de desempenho.</p>
+<p class="linkable-block" data-block-id="block-053" id="block-053">Toda animação neste blog serve à mesma filosofia:<br />
 - <strong>Continuidade</strong>: uma única superfície ininterrupta<br />
 - <strong>Plausibilidade física</strong>: movimento que ecoa dinâmicas reais<br />
 - <strong>Energia contida</strong>: intencional, nunca agitada</p>
-<p>Use propriedades personalizadas do CSS para compartilhar timings. Deixe o navegador cuidar do sequenciamento via eventos <code>transitionend</code>. Aplique <code>will-change</code> apenas durante animações ativas. Sempre pergunte: De onde? Para onde? Como isso se relaciona com o que veio antes?</p>
-<p>A interface não se exibe. Ela responde.</p>
+<p class="linkable-block" data-block-id="block-054" id="block-054">Use propriedades personalizadas do CSS para compartilhar timings. Deixe o navegador cuidar do sequenciamento via eventos <code>transitionend</code>. Aplique <code>will-change</code> apenas durante animações ativas. Sempre pergunte: De onde? Para onde? Como isso se relaciona com o que veio antes?</p>
+<p class="linkable-block" data-block-id="block-055" id="block-055">A interface não se exibe. Ela responde.</p>
             </div>
         </article>
     </main>

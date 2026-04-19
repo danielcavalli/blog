@@ -96,3 +96,32 @@ class TestParseMarkdownPost:
             assert result["lang"] == "es-es"
         finally:
             os.remove(filepath)
+
+    def test_render_markdown_receives_source_markdown_for_anchor_canonicalization(self):
+        with tempfile.NamedTemporaryFile(suffix=".md", delete=False, mode="w") as f:
+            f.write("---\ntitle: Test\n---\n## Topic\n\nContent")
+            f.flush()
+            filepath = f.name
+
+        try:
+            store = {}
+            with mock.patch("content_loader.frontmatter.load") as mock_load:
+                post = frontmatter.Post("## Topic\n\nContent", title="Test")
+                mock_load.return_value = post
+
+                with mock.patch("content_loader.calculate_content_hash", return_value="hash"):
+                    with mock.patch(
+                        "content_loader.render_markdown_with_internal_refs",
+                        return_value="<h2 id='topic'>Topic</h2><p>Content</p>",
+                    ) as mock_render:
+                        import pathlib
+
+                        p = pathlib.Path(filepath)
+                        content_loader.parse_markdown_post(p, _metadata_store=store)
+
+            mock_render.assert_called_once_with(
+                "## Topic\n\nContent",
+                source_markdown="## Topic\n\nContent",
+            )
+        finally:
+            os.remove(filepath)

@@ -1864,7 +1864,10 @@ SUMMARY:
 
         # Convert translated markdown to HTML, then sanitize
         translated_markdown = translated.get("content", post.get("raw_content", ""))
-        translated_html = render_markdown_with_internal_refs(translated_markdown)
+        translated_html = render_markdown_with_internal_refs(
+            translated_markdown,
+            source_markdown=content_to_translate,
+        )
         translated_post["raw_content"] = translated_markdown
         translated_post["content"] = sanitize_translation_html(translated_html)
 
