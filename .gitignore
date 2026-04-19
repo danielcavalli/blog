@@ -47,5 +47,6 @@ Thumbs.db
 docs/*
 !docs/adr/
 !docs/adr/**
+!docs/translation_v2_opencode_runbook.md
 
 # Note: Generated HTML files (index.html, en/, pt/) are tracked for GitHub Pages

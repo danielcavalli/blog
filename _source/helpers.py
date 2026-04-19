@@ -9,7 +9,7 @@ import hashlib
 from datetime import datetime
 from pathlib import Path
 
-from config import BASE_PATH, LANGUAGES, DEFAULT_LANGUAGE, get_alternate_language
+from config import BASE_PATH, LANGUAGES, get_alternate_language
 from paths import PROJECT_ROOT
 
 
@@ -37,14 +37,14 @@ def _asset_hash(logical_path: str) -> str:
         return _asset_hash_cache[logical_path]
     # Strip leading BASE_PATH (which may be '/blog' or '') to get a path
     # relative to PROJECT_ROOT.
-    rel = logical_path.lstrip('/')
-    if rel.startswith(BASE_PATH.lstrip('/') + '/'):
-        rel = rel[len(BASE_PATH.lstrip('/')) + 1:]
+    rel = logical_path.lstrip("/")
+    if rel.startswith(BASE_PATH.lstrip("/") + "/"):
+        rel = rel[len(BASE_PATH.lstrip("/")) + 1 :]
     abs_path = PROJECT_ROOT / rel
     try:
         digest = hashlib.sha256(abs_path.read_bytes()).hexdigest()[:8]
     except OSError:
-        digest = 'dev'
+        digest = "dev"
     _asset_hash_cache[logical_path] = digest
     return digest
 
@@ -65,7 +65,7 @@ def calculate_content_hash(content):
     Returns:
         str: SHA-256 hexadecimal digest string.
     """
-    return hashlib.sha256(content.encode('utf-8')).hexdigest()
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
 
 def tag_to_slug(tag: str) -> str:
@@ -88,8 +88,8 @@ def tag_to_slug(tag: str) -> str:
         str: URL-safe slug.
     """
     slug = tag.lower()
-    slug = re.sub(r'[^a-z0-9]+', '-', slug)
-    slug = slug.strip('-')
+    slug = re.sub(r"[^a-z0-9]+", "-", slug)
+    slug = slug.strip("-")
     return slug
 
 
@@ -109,7 +109,7 @@ def calculate_reading_time(content):
     return max(1, round(words / 200))
 
 
-def format_reading_time(minutes, lang='en'):
+def format_reading_time(minutes, lang="en"):
     """Format reading time integer as a locale-aware label.
 
     Args:
@@ -119,11 +119,11 @@ def format_reading_time(minutes, lang='en'):
     Returns:
         str: Formatted reading time (e.g., "5 min read" / "5 min de leitura").
     """
-    label = LANGUAGES[lang]['ui']['min_read']
+    label = LANGUAGES[lang]["ui"]["min_read"]
     return f"{minutes} {label}"
 
 
-def format_date(date_str, lang='en'):
+def format_date(date_str, lang="en"):
     """Format date string to readable format with locale-aware month name and pattern.
 
     Converts YYYY-MM-DD format to a locale-specific date format.
@@ -140,9 +140,9 @@ def format_date(date_str, lang='en'):
     try:
         date = datetime.strptime(str(date_str), "%Y-%m-%d")
         en_month = date.strftime("%B")
-        months_dict = LANGUAGES[lang].get('months', {})
+        months_dict = LANGUAGES[lang].get("months", {})
         localized_month = months_dict.get(en_month, en_month)
-        date_fmt = LANGUAGES[lang]['ui'].get('date_format', '{month} {day}, {year}')
+        date_fmt = LANGUAGES[lang]["ui"].get("date_format", "{month} {day}, {year}")
         return date_fmt.format(month=localized_month, day=f"{date.day:02d}", year=date.year)
     except (ValueError, TypeError):
         return str(date_str)
@@ -167,9 +167,9 @@ def format_iso_date(iso_str):
         return str(iso_str)
 
 
-def get_lang_path(lang: str, path: str = '') -> str:
+def get_lang_path(lang: str, path: str = "") -> str:
     """Generate language-specific path using the directory from LANGUAGES config."""
-    lang_dir = LANGUAGES[lang]['dir']
+    lang_dir = LANGUAGES[lang]["dir"]
     return f"{BASE_PATH}/{lang_dir}/{path}" if path else f"{BASE_PATH}/{lang_dir}"
 
 
@@ -178,7 +178,7 @@ def get_alternate_lang(current_lang: str) -> str:
     return get_alternate_language(current_lang)
 
 
-def _out(rel_path: Path, staging_dir: 'Path | None') -> Path:
+def _out(rel_path: Path, staging_dir: "Path | None") -> Path:
     """Resolve an output path, redirecting to staging_dir when set.
 
     All generated HTML/XML outputs are written through this helper so that

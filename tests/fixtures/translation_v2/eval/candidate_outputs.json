@@ -1,0 +1,26 @@
+{
+  "terminology-entities": {
+    "title": "Tradutor stateful vs stateless",
+    "excerpt": "Compatibilidade de cache protege a seguranca do rollout.",
+    "tags": ["translation", "engineering"],
+    "content": "Este texto preserva os termos cache adapter e orquestrador para manter precisao tecnica."
+  },
+  "placeholder-integrity": {
+    "title": "Seguranca de template",
+    "excerpt": "Mantenha placeholders inalterados.",
+    "tags": ["translation", "qa"],
+    "content": "A saida preserva {{APP_NAME}} e {{RUN_ID}} exatamente como no template original."
+  },
+  "locale-formatting": {
+    "title": "Formatacao brasileira",
+    "excerpt": "Datas e moeda no padrao local.",
+    "tags": ["translation", "locale"],
+    "content": "Relatorio em 31/12/2026 com custo de R$ 1.234,56."
+  },
+  "tone-constraints": {
+    "title": "Tom profissional",
+    "excerpt": "Texto para producao.",
+    "tags": ["translation", "style"],
+    "content": "Este material apresenta resultados de forma objetiva e profissional para o deploy."
+  }
+}

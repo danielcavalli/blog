@@ -3,8 +3,8 @@
 This module contains all configuration constants for the bilingual blog system.
 It defines site metadata, language-specific UI strings, paths, and social links.
 
-The Portuguese 'about' section is automatically translated during the build process
-using the Gemini translation system; see translator.py for implementation details.
+The Portuguese post pipeline is translated during build using the translation_v2
+OpenCode runtime.
 
 CV data source of truth:
     The canonical English CV source is cv_data.yaml (project root).
@@ -30,6 +30,8 @@ Constants:
     AUTHOR_BIO (str): Short author biography
     SOCIAL_LINKS (dict): Social media profile URLs
 """
+
+import os
 
 # Base path for GitHub Pages deployment
 # Use "" for local development, "/blog" for GitHub Pages at username.github.io/blog/
@@ -93,9 +95,9 @@ LANGUAGES = {
             "landing_blog": "Blog",
             "landing_about": "About Me",
             "landing_cv": "CV",
-            "meta_index": f"Daniel Cavalli – Machine Learning Engineer. Blog on MLOps, distributed systems, CUDA optimization, and AI infrastructure.",
-            "meta_about": f"Daniel Cavalli – Machine Learning Engineer at Nubank. Background in MLOps, distributed systems, and AI infrastructure.",
-            "meta_cv": f"Daniel Cavalli – Machine Learning Engineer at Nubank. Experience in MLOps, distributed systems, and AI infrastructure powering hundreds of Data Scientists.",
+            "meta_index": "Daniel Cavalli – Machine Learning Engineer. Blog on MLOps, distributed systems, CUDA optimization, and AI infrastructure.",
+            "meta_about": "Daniel Cavalli – Machine Learning Engineer at Nubank. Background in MLOps, distributed systems, and AI infrastructure.",
+            "meta_cv": "Daniel Cavalli – Machine Learning Engineer at Nubank. Experience in MLOps, distributed systems, and AI infrastructure powering hundreds of Data Scientists.",
             "author_bio": "Machine Learning Engineer at Nubank, focused on distributed training and CUDA optimization.",
             "date_format": "{month} {day}, {year}",
         },
@@ -158,9 +160,9 @@ LANGUAGES = {
             "landing_blog": "Blog",
             "landing_about": "Sobre Mim",
             "landing_cv": "CV",
-            "meta_index": f"Daniel Cavalli – Engenheiro de Machine Learning. Blog sobre MLOps, sistemas distribuídos, otimização CUDA e infraestrutura de IA.",
-            "meta_about": f"Daniel Cavalli – Engenheiro de Machine Learning no Nubank. Experiência em MLOps, sistemas distribuídos e infraestrutura de IA.",
-            "meta_cv": f"Daniel Cavalli – Engenheiro de Machine Learning no Nubank. Experiência em MLOps, sistemas distribuídos e infraestrutura de IA para centenas de Cientistas de Dados.",
+            "meta_index": "Daniel Cavalli – Engenheiro de Machine Learning. Blog sobre MLOps, sistemas distribuídos, otimização CUDA e infraestrutura de IA.",
+            "meta_about": "Daniel Cavalli – Engenheiro de Machine Learning no Nubank. Experiência em MLOps, sistemas distribuídos e infraestrutura de IA.",
+            "meta_cv": "Daniel Cavalli – Engenheiro de Machine Learning no Nubank. Experiência em MLOps, sistemas distribuídos e infraestrutura de IA para centenas de Cientistas de Dados.",
             "author_bio": "Engenheiro de Machine Learning no Nubank, focado em treinamento distribuído e otimização CUDA.",
             "date_format": "{day} de {month} de {year}",
         },
@@ -222,7 +224,9 @@ SITE_URL = "https://dan.rio"
 SITE_NAME = "dan.rio"
 SITE_DESCRIPTION = "Daniel Cavalli's blog on machine learning, AI, CUDA optimization, distributed training, and software engineering."
 AUTHOR = "Daniel Cavalli"
-AUTHOR_BIO = "Machine Learning Engineer at Nubank, focused on distributed training and CUDA optimization."
+AUTHOR_BIO = (
+    "Machine Learning Engineer at Nubank, focused on distributed training and CUDA optimization."
+)
 
 # Social links
 SOCIAL_LINKS = {
@@ -230,3 +234,51 @@ SOCIAL_LINKS = {
     "github": "https://github.com/danielcavalli",
     "linkedin": "https://www.linkedin.com/in/cavallidaniel/",
 }
+
+
+# Translation provider defaults for build/runtime routing.
+DEFAULT_TRANSLATION_PROVIDER = "opencode"
+DEFAULT_TRANSLATION_V2_PROVIDER = "opencode"
+DEFAULT_TRANSLATION_V2_ENABLED = True
+DEFAULT_TRANSLATION_V2_FAILURE_POLICY = "strict"
+
+
+def get_translation_provider(default: str = DEFAULT_TRANSLATION_PROVIDER) -> str:
+    """Return normalized translation provider from environment.
+
+    Environment variable: TRANSLATION_PROVIDER
+    """
+    provider = (os.getenv("TRANSLATION_PROVIDER") or default or "").strip().lower()
+    return provider or DEFAULT_TRANSLATION_PROVIDER
+
+
+def get_translation_v2_enabled(
+    default: bool = DEFAULT_TRANSLATION_V2_ENABLED,
+) -> bool:
+    """Return whether translation_v2 build routing is enabled."""
+
+    value = os.getenv("TRANSLATION_V2_ENABLED")
+    if value is None:
+        return bool(default)
+    normalized = value.strip().lower()
+    return normalized in {"1", "true", "yes", "on"}
+
+
+def get_translation_v2_provider(
+    default: str = DEFAULT_TRANSLATION_V2_PROVIDER,
+) -> str:
+    """Return normalized translation_v2 provider from environment."""
+
+    provider = (os.getenv("TRANSLATION_V2_PROVIDER") or default or "").strip().lower()
+    return provider or DEFAULT_TRANSLATION_V2_PROVIDER
+
+
+def get_translation_v2_failure_policy(
+    default: str = DEFAULT_TRANSLATION_V2_FAILURE_POLICY,
+) -> str:
+    """Return translation_v2 build failure policy from environment."""
+
+    policy = (os.getenv("TRANSLATION_V2_FAILURE_POLICY") or default or "").strip().lower()
+    if policy not in {"partial", "strict"}:
+        return DEFAULT_TRANSLATION_V2_FAILURE_POLICY
+    return policy

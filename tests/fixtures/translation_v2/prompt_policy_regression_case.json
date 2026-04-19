@@ -1,0 +1,14 @@
+{
+  "source_locale": "en-us",
+  "target_locale": "pt-br",
+  "do_not_translate_entities": [
+    "OpenAI",
+    "WebSocket",
+    "RFC 6455",
+    "JSON",
+    "/api/v1/sessions"
+  ],
+  "source_markdown": "# Streaming with OpenAI\n\nUse `opencode run --model gpt-5` with [runbook](https://example.com/runbook).\n\nDo not alter placeholder {{USER_ID}} or %BUILD_SHA% and keep citation [@smith2024] intact.\n\n```bash\ncurl https://example.com/api/v1/sessions\n```",
+  "translated_json": "{\"title\":\"Streaming com OpenAI\",\"excerpt\":\"Guia curto\",\"tags\":[\"ai\"],\"content\":\"...\"}",
+  "critique_json": "{\"score\":88,\"feedback\":\"Fix one glossary term\",\"needs_refinement\":true,\"findings\":[\"Changed citation token\"]}"
+}

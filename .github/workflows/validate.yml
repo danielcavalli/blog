@@ -23,12 +23,56 @@ jobs:
           uv run python -m py_compile _source/build.py
           uv run python -m py_compile _source/config.py
           uv run python -m py_compile _source/helpers.py
+          uv run python -m py_compile _source/link_checker.py
           uv run python -m py_compile _source/paths.py
           uv run python -m py_compile _source/renderer.py
           uv run python -m py_compile _source/seo.py
           uv run python -m py_compile _source/content_loader.py
           uv run python -m py_compile _source/cv_parser.py
           uv run python -m py_compile _source/translator.py
+          uv run python -m py_compile _source/html_validator.py
+
+      - name: Ruff lint
+        run: uv run --extra dev ruff check .
+
+      - name: Pyright type check
+        run: uv run --extra dev pyright
 
       - name: Run unit tests
         run: uv run pytest tests/ -v
+
+      - name: Check internal links
+        run: uv run python _source/link_checker.py
+
+      - name: Validate generated HTML
+        run: uv run --extra dev python _source/html_validator.py
+
+  translation-v2-onefile-lane:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run translation_v2 one-file lane
+        env:
+          TRANSLATION_V2_ONEFILE_MAX_SECONDS: "45"
+        run: uv run --extra dev pytest tests/test_translation_v2_onefile_lane.py -q
+
+      - name: Run translation_v2 eval harness one-file lane
+        run: uv run --extra dev pytest tests/test_translation_eval_harness.py -q
+
+      - name: Upload translation_v2 run artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: translation-v2-onefile-runs-${{ github.run_id }}-${{ github.run_attempt }}
+          path: _cache/translation-runs/**
+          if-no-files-found: warn
+          retention-days: 7

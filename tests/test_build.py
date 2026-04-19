@@ -8,6 +8,7 @@ import json
 import sys
 import os
 import types
+from pathlib import Path
 from unittest import mock
 
 # Make _source importable without installing the package
@@ -29,9 +30,11 @@ sys.modules["dotenv"].load_dotenv = lambda *a, **kw: None  # type: ignore[attr-d
 _translator_stub = types.ModuleType("translator")
 _translator_stub.MultiAgentTranslator = mock.MagicMock()  # type: ignore[attr-defined]
 _translator_stub.validate_translation = mock.MagicMock(return_value=(True, []))  # type: ignore[attr-defined]
+_translator_stub.sanitize_translation_html = lambda html: html  # type: ignore[attr-defined]
+_translator_stub.sanitize_translation_text = lambda text: text  # type: ignore[attr-defined]
 sys.modules["translator"] = _translator_stub
 
-import build
+import build  # noqa: E402  # imported after dependency stubs by design
 
 
 # ---------------------------------------------------------------------------
@@ -195,14 +198,10 @@ class TestCalculateContentHash:
         assert len(result) == 64  # SHA-256 produces 64 hex chars
 
     def test_deterministic(self):
-        assert build.calculate_content_hash("abc") == build.calculate_content_hash(
-            "abc"
-        )
+        assert build.calculate_content_hash("abc") == build.calculate_content_hash("abc")
 
     def test_different_content_different_hash(self):
-        assert build.calculate_content_hash("abc") != build.calculate_content_hash(
-            "xyz"
-        )
+        assert build.calculate_content_hash("abc") != build.calculate_content_hash("xyz")
 
     def test_empty_string(self):
         result = build.calculate_content_hash("")
@@ -269,6 +268,33 @@ class TestLocaleRoutingHelpers:
         target_lang = build.locale_to_lang_key(target_locale)
         assert target_lang == "en"
         assert build.LANG_DIRS[target_lang].name == "en"
+
+
+# ---------------------------------------------------------------------------
+# translation provider and one-file helpers
+# ---------------------------------------------------------------------------
+
+
+class TestBuildFlagHelpers:
+    def test_resolve_translation_provider_defaults_to_opencode(self):
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("TRANSLATION_PROVIDER", None)
+            assert build.resolve_translation_provider() == "opencode"
+
+    def test_resolve_translation_provider_ignores_env_override(self):
+        with mock.patch.dict(os.environ, {"TRANSLATION_PROVIDER": "unknown"}):
+            assert build.resolve_translation_provider() == "opencode"
+
+    def test_select_markdown_files_matches_slug_or_filename(self):
+        files = [
+            Path("/tmp/first-post.md"),
+            Path("/tmp/second-post.md"),
+        ]
+        by_slug = build.select_markdown_files(files, "second-post")
+        by_file = build.select_markdown_files(files, "first-post.md")
+
+        assert by_slug == [Path("/tmp/second-post.md")]
+        assert by_file == [Path("/tmp/first-post.md")]
 
 
 # ---------------------------------------------------------------------------

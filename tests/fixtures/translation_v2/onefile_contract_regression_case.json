@@ -1,0 +1,18 @@
+{
+  "translated_output": {
+    "title": "Contrato de traducao com entidades protegidas",
+    "excerpt": "Garante que placeholders, citacoes e blocos de codigo permanecem estaveis.",
+    "tags": ["contrato", "regressao"],
+    "content": "## Qualidade\n\nMantenha [@smith2024] e a URL https://example.com/runbook sem alteracoes.\n\nUse {{USER_ID}} e %BUILD_SHA% como placeholders protegidos.\n\n```bash\nexport BUILD_SHA=%BUILD_SHA%\n```"
+  },
+  "expected_title": "Contrato de traducao com entidades protegidas",
+  "expected_excerpt": "Garante que placeholders, citacoes e blocos de codigo permanecem estaveis.",
+  "expected_tags": ["contrato", "regressao"],
+  "must_preserve_tokens": [
+    "[@smith2024]",
+    "https://example.com/runbook",
+    "{{USER_ID}}",
+    "%BUILD_SHA%",
+    "```bash"
+  ]
+}

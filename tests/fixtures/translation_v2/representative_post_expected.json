@@ -1,0 +1,32 @@
+{
+  "posts": {
+    "deterministic-mock-post": {
+      "metadata": {
+        "source_locale": "en-us",
+        "target_locale": "pt-br",
+        "title": "Why deterministic translation fixtures matter",
+        "excerpt": "A practical note on reproducible translation tests.",
+        "tags": ["testing", "localization"]
+      },
+      "translated": {
+        "title": "Por que fixtures deterministicas de traducao importam",
+        "excerpt": "Uma nota pratica sobre testes de traducao reproduziveis.",
+        "tags": ["testes", "localizacao"],
+        "content": "## Contexto\n\nTimes entregam mais rapido quando os testes de traducao sao deterministicos.\n\n### O que validar\n\n1. Campos do frontmatter continuam coerentes.\n2. Estrutura de markdown e preservada.\n3. Saidas de etapas podem ser validadas sem chamadas de rede."
+      },
+      "critique": {
+        "score": 96,
+        "feedback": "Terminology and markdown structure are preserved.",
+        "needs_refinement": false,
+        "findings": []
+      },
+      "refined": {
+        "title": "Por que fixtures deterministicas de traducao importam",
+        "excerpt": "Uma nota pratica sobre testes de traducao reproduziveis.",
+        "tags": ["testes", "localizacao"],
+        "content": "## Contexto\n\nTimes entregam mais rapido quando os testes de traducao sao deterministicos.\n\n### O que validar\n\n1. Campos do frontmatter continuam coerentes.\n2. Estrutura de markdown e preservada.\n3. Saidas de etapas podem ser validadas sem chamadas de rede.",
+        "applied_feedback": []
+      }
+    }
+  }
+}
