@@ -22,24 +22,24 @@
 /* Header - Calm, centered presence */
 .cv-header {
     text-align: center;
-    margin-bottom: 3rem;
-    padding-bottom: 2rem;
+    margin-bottom: 2.7rem;
+    padding-bottom: 1.8rem;
     border-bottom: 1px solid var(--color-border);
 }
 
 .cv-header .post-title-large {
     font-size: 2rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
+    font-weight: 650;
+    letter-spacing: 0.03em;
     margin-bottom: 0.5rem;
     text-transform: uppercase;
 }
 
 .cv-tagline {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     color: var(--color-text);
     opacity: 0.85; /* Subtle de-emphasis without grey mudiness */
-    line-height: 1.6;
+    line-height: 1.65;
     margin-top: 0.75rem;
 }
 
@@ -61,15 +61,15 @@
 
 /* Section - Breathing spacing */
 .cv-section {
-    margin-bottom: 3rem;
+    margin-bottom: 2.5rem;
 }
 
 .cv-section-title {
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
+    font-size: 1.18rem;
+    font-weight: 620;
+    margin-bottom: 1.25rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     color: var(--color-text);
 }
 
@@ -82,8 +82,8 @@
     display: grid;
     grid-template-columns: 100px 1fr;
     gap: 1.5rem;
-    margin-bottom: 2rem;
-    padding-bottom: 2rem;
+    margin-bottom: 1.7rem;
+    padding-bottom: 1.7rem;
     border-bottom: 1px solid var(--color-border);
     transition: transform 300ms ease;
 }
@@ -94,7 +94,7 @@
 }
 
 .cv-experience-item:hover {
-    transform: translateX(4px);
+    transform: translateX(1px);
 }
 
 /* Period - Left column */
@@ -158,11 +158,11 @@
 
 /* Highlight section (Contact at top) */
 .cv-section-highlight {
-    background: var(--color-hover);
-    padding: 1.5rem;
-    border-radius: 8px;
+    background: color-mix(in srgb, var(--color-hover) 92%, var(--ocean-color-bright) 8%);
+    padding: 1.3rem 1.4rem;
+    border-radius: 10px;
     border: 1px solid var(--color-border);
-    margin-bottom: 2.5rem;
+    margin-bottom: 2.2rem;
 }
 
 .cv-section-highlight .cv-section-title {

@@ -7,7 +7,7 @@ import sys
 _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 sys.path.insert(0, _SOURCE)
 
-from renderer import generate_post_html  # noqa: E402
+from renderer import generate_about_html, generate_index_html, generate_post_html  # noqa: E402
 
 
 def test_generate_post_html_includes_annotations_runtime_and_ui_labels() -> None:
@@ -47,3 +47,33 @@ def test_generate_post_html_localizes_annotation_labels_for_portuguese() -> None
     assert 'data-copy-section-link="Copiar link da seção"' in html
     assert 'data-copy-passage-link="Copiar link do trecho"' in html
     assert 'data-link-copied="Link copiado"' in html
+
+
+def test_generate_index_html_includes_filter_and_annotation_runtime_for_spa_navigation() -> None:
+    posts = [
+        {
+            "title": "Deep links",
+            "slug": "deep-links",
+            "excerpt": "Section and passage links.",
+            "date": "2026-04-19",
+            "published_date": "2026-04-19",
+            "year": 2026,
+            "month": "April",
+            "reading_time": 4,
+            "tags": ["systems"],
+            "lang": "en-us",
+        }
+    ]
+
+    html = generate_index_html(posts, lang="en")
+
+    assert "/static/js/filter.js" in html
+    assert "/static/js/annotations.js" in html
+
+
+def test_generate_about_html_includes_sitewide_runtime_for_first_navigation() -> None:
+    html = generate_about_html(lang="en")
+
+    assert "/static/js/transitions.js" in html
+    assert "/static/js/filter.js" in html
+    assert "/static/js/annotations.js" in html

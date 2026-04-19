@@ -346,7 +346,7 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    background-color: rgba(var(--color-bg-rgb), 0.85);
+    background-color: rgba(var(--color-bg-rgb), 0.88);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-border);
@@ -447,9 +447,9 @@ body {
 .nav-links a {
     color: var(--color-text-secondary);
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     transition: color var(--motion-duration-ripple) var(--motion-easing);
     position: relative;
 }
@@ -460,8 +460,8 @@ body {
     bottom: -4px;
     left: 0;
     width: 0;
-    height: 2px;
-    background-color: var(--color-text);
+    height: 1px;
+    background: color-mix(in srgb, var(--ocean-color-mid) 55%, var(--color-text));
     transition: width var(--transition-speed) var(--transition-easing),
                 background-color var(--motion-duration-ripple) var(--motion-easing);
 }
@@ -498,19 +498,19 @@ body {
 }
 
 .lang-toggle:hover {
-    opacity: 0.85;
+    opacity: 0.9;
 }
 
 /* Globe icon */
 .lang-icon {
     flex-shrink: 0;
-    opacity: 0.65;
+    opacity: 0.58;
     transition: all var(--motion-duration-quick) var(--motion-easing);
 }
 
 .lang-toggle:hover .lang-icon {
-    opacity: 0.9;
-    transform: scale(1.05);
+    opacity: 0.78;
+    transform: none;
 }
 
 /* Language text container */
@@ -544,70 +544,7 @@ body {
 .lang-pt.active {
     opacity: 1;
     font-weight: 600;
-    color: var(--color-text);
-}
-
-/* Ambient glow - soft teal radiance matching accent */
-.lang-en.active::before,
-.lang-pt.active::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 160%;
-    height: 160%;
-    background: radial-gradient(
-        circle at center,
-        rgba(78, 205, 196, 0.12) 0%,
-        rgba(78, 205, 196, 0.06) 40%,
-        transparent 70%
-    );
-    border-radius: 50%;
-    opacity: 1;
-    transition: all var(--motion-duration-core) var(--motion-easing);
-    pointer-events: none;
-    z-index: -1;
-    filter: blur(8px);
-}
-
-/* Dark mode glow - brighter teal for OLED contrast */
-[data-theme="dark"] .lang-en.active::before,
-[data-theme="dark"] .lang-pt.active::before {
-    background: radial-gradient(
-        circle at center,
-        rgba(78, 205, 196, 0.22) 0%,
-        rgba(78, 205, 196, 0.1) 40%,
-        transparent 70%
-    );
-    filter: blur(10px);
-}
-
-/* Enhanced glow on hover - intensifies the teal radiance */
-.lang-toggle:hover .lang-en.active::before,
-.lang-toggle:hover .lang-pt.active::before {
-    background: radial-gradient(
-        circle at center,
-        rgba(78, 205, 196, 0.22) 0%,
-        rgba(78, 205, 196, 0.1) 40%,
-        transparent 70%
-    );
-    width: 180%;
-    height: 180%;
-    filter: blur(10px);
-}
-
-[data-theme="dark"] .lang-toggle:hover .lang-en.active::before,
-[data-theme="dark"] .lang-toggle:hover .lang-pt.active::before {
-    background: radial-gradient(
-        circle at center,
-        rgba(78, 205, 196, 0.32) 0%,
-        rgba(78, 205, 196, 0.16) 40%,
-        transparent 70%
-    );
-    width: 180%;
-    height: 180%;
-    filter: blur(12px);
+    color: color-mix(in srgb, var(--color-text) 84%, var(--ocean-color-mid));
 }
 
 /* Separator slightly brightens when hovering over toggle */
@@ -652,7 +589,7 @@ body {
 .theme-toggle:hover {
     background: var(--color-hover);
     border-color: var(--color-text);
-    transform: rotate(20deg);
+    transform: none;
 }
 
 .theme-toggle svg {
@@ -737,9 +674,9 @@ body {
 
 .page-title {
     font-size: clamp(2.5rem, 5vw, 4rem);
-    font-weight: 700;
+    font-weight: 680;
     letter-spacing: -0.03em;
-    line-height: 1.1;
+    line-height: 1.05;
     text-rendering: optimizeLegibility;
     margin: 0;
 }
@@ -791,8 +728,8 @@ body {
 .order-toggle:hover {
     background: var(--color-border);
     color: var(--color-text);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
 }
 
 .order-toggle-text {
@@ -827,8 +764,8 @@ body {
 .filter-toggle:hover {
     background: var(--color-border);
     color: var(--color-text);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
 }
 
 .filter-toggle-icon {
@@ -869,7 +806,7 @@ body {
 .posts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 2rem;
+    gap: 1.85rem;
     animation: fadeIn 0.8s var(--transition-easing);
 }
 
@@ -934,7 +871,7 @@ body {
 .post-content {
     padding: var(--space-xl);
     border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
+    border-radius: 10px;
     height: 100%;
     background-color: var(--color-bg);
     /* Permanent transitions - no conditional gating to prevent flicker */
@@ -951,10 +888,10 @@ body {
 
 /* Hover effect - elegant shadow and subtle highlight */
 .post-card:hover .post-content {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     box-shadow: 
-        0 4px 12px rgba(0, 0, 0, 0.08),
-        0 12px 32px rgba(0, 0, 0, 0.12);
+        0 3px 10px rgba(0, 0, 0, 0.06),
+        0 10px 24px rgba(0, 0, 0, 0.08);
     background-color: var(--color-hover);
 }
 
@@ -973,7 +910,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.015) 0%, rgba(0, 0, 0, 0) 100%);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.008) 0%, rgba(0, 0, 0, 0) 100%);
     opacity: 0;
     transition: opacity var(--transition-speed) var(--transition-easing);
     pointer-events: none;
@@ -998,7 +935,7 @@ body {
 }
 
 .post-card:hover .post-title {
-    transform: translateX(4px);
+    transform: translateX(1px);
 }
 
 .post-date {
@@ -1031,7 +968,7 @@ body {
 
 .footer {
     margin-top: 8rem;
-    padding: 3rem 2rem;
+    padding: 2.7rem 2rem;
     border-top: 1px solid var(--color-border);
     animation: fadeIn 1s var(--transition-easing);
 }
@@ -1060,7 +997,7 @@ body {
 
 .social-links a:hover {
     color: var(--color-text);
-    transform: translateY(-3px) scale(1.1);
+    transform: translateY(-1px);
 }
 
 .copyright {
@@ -1205,11 +1142,12 @@ button:focus-visible {
 .filters.expanded {
     max-height: 500px;
     opacity: 1;
-    padding: 1.5rem;
+    padding: 1.35rem;
     margin: 1.5rem 0 3rem;
     background: var(--card-bg);
-    border-radius: 12px;
+    border-radius: 14px;
     border: 1px solid var(--border-color);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
     will-change: max-height, opacity;  /* Optimize expansion animation */
 }
 
@@ -1264,7 +1202,7 @@ button:focus-visible {
 }
 
 .select-trigger {
-    padding: 0.65rem 0.5rem;
+    padding: 0.6rem 0.5rem;
     padding-right: 2rem;
     background: transparent;
     color: var(--text-color);
@@ -1367,7 +1305,7 @@ button:focus-visible {
 }
 
 .select-option:hover {
-    background-color: rgba(128, 128, 128, 0.08);
+    background-color: rgba(128, 128, 128, 0.05);
 }
 
 [data-theme="dark"] .select-option:hover {
@@ -1408,11 +1346,11 @@ button:focus-visible {
 }
 
 .filter-clear {
-    padding: 0.75rem 1.5rem;
+    padding: 0.64rem 0.95rem;
     background: transparent;
     color: var(--accent-color);
     border: 1px solid var(--accent-color);
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 0.9rem;
     font-family: var(--font-mono);
     cursor: pointer;
@@ -1423,8 +1361,9 @@ button:focus-visible {
 }
 
 .filter-clear:hover {
-    background: var(--accent-color);
-    color: var(--color-bg);
+    background: color-mix(in srgb, var(--color-hover) 88%, var(--ocean-color-bright) 12%);
+    color: var(--color-text);
+    transform: translateY(-1px);
 }
 
 .filter-tags {
@@ -1434,8 +1373,8 @@ button:focus-visible {
 }
 
 .filter-tag {
-    padding: 0.65rem 1.2rem;
-    background: linear-gradient(135deg, var(--color-hover) 0%, var(--color-bg) 100%);
+    padding: 0.56rem 0.92rem;
+    background: color-mix(in srgb, var(--color-hover) 92%, var(--ocean-color-bright) 8%);
     color: var(--color-text-secondary);
     border: 1px solid var(--color-border);
     border-radius: 24px;
@@ -1445,28 +1384,28 @@ button:focus-visible {
     transition: all var(--motion-duration-core) var(--motion-easing);
     text-transform: lowercase;
     position: relative;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .filter-tag:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-    border-color: var(--accent-color);
-    color: var(--accent-color);
-    background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-hover) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    border-color: color-mix(in srgb, var(--ocean-color-mid) 24%, var(--color-border));
+    color: color-mix(in srgb, var(--color-text) 84%, var(--ocean-color-mid));
+    background: color-mix(in srgb, var(--color-border) 92%, var(--ocean-color-bright) 8%);
 }
 
 .filter-tag.active {
-    background: linear-gradient(135deg, var(--accent-color) 0%, #1a7a6e 100%);
-    color: #ffffff; /* Ensure white text on teal background */
-    border-color: var(--accent-color);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(78, 205, 196, 0.3);
+    background: color-mix(in srgb, var(--ocean-color-mid) 22%, var(--color-bg));
+    color: color-mix(in srgb, var(--color-text) 88%, var(--ocean-color-teal));
+    border-color: color-mix(in srgb, var(--ocean-color-mid) 24%, var(--color-border));
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
 }
 
 .filter-tag.active:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 24px rgba(78, 205, 196, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
 }
 
 /* Tag pills on posts */
@@ -1479,7 +1418,7 @@ button:focus-visible {
 
 .tag-pill {
     display: inline-block;
-    padding: 0.35rem 0.75rem;
+    padding: 0.3rem 0.64rem;
     background: var(--color-hover);
     color: var(--color-text-secondary);
     border: 1px solid var(--color-border);
@@ -1492,8 +1431,8 @@ button:focus-visible {
 
 .tag-pill:hover {
     transform: translateY(-1px);
-    border-color: var(--accent-color);
-    color: var(--accent-color);
+    border-color: color-mix(in srgb, var(--ocean-color-mid) 24%, var(--color-border));
+    color: color-mix(in srgb, var(--color-text-secondary) 88%, var(--ocean-color-mid));
 }
 
 /* Post cards - filtering with native CSS transitions
