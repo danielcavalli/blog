@@ -22,7 +22,6 @@ from .cache_adapter import TranslationV2CacheAdapter
 from .console import (
     fail_artifact_status,
     finish_artifact_status,
-    log_block,
     record_translation_event,
     start_artifact_status,
 )
@@ -34,7 +33,6 @@ from .contracts import (
     CritiqueOutput,
     FinalReviewOutput,
     RevisionOutput,
-    StageResult,
     TranslationOutput,
     TranslationRequest,
     TerminologyPolicyPacket,

@@ -66,8 +66,8 @@ def _cache_source(
         + f"target_locale={target_locale.lower()}\n"
         + f"artifact_type={artifact_type}\n"
         + f"prompt_fingerprint=fake:{artifact_type}:v2\n"
-        + f"author_voice_fingerprint=none\n"
-        + f"writing_style_fingerprint=none\n"
+        + "author_voice_fingerprint=none\n"
+        + "writing_style_fingerprint=none\n"
         + f"frontmatter={stable_frontmatter}"
     )
 
