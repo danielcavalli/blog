@@ -7,22 +7,14 @@ import subprocess
 from dataclasses import asdict, dataclass
 from enum import Enum
 from time import sleep
-from typing import Any, Callable, Literal, Protocol, overload
+from typing import Any, Callable, Protocol
 
 from .artifacts import TranslationRunArtifacts
 from .console import finish_runner_status, start_runner_status
 from .contracts import (
-    CVRevisionOutput,
-    CVTranslationOutput,
-    CritiqueOutput,
-    FinalReviewOutput,
     ProviderPayload,
-    RevisionOutput,
     StageResult,
-    TerminologyPolicyPacket,
-    TranslationOutput,
     TranslationRequest,
-    VoiceIntentPacket,
     validate_final_review_output,
     validate_cv_revision_output,
     validate_cv_translation_output,
@@ -132,19 +124,6 @@ class OpenCodeHeadlessRunner:
     @property
     def model_id(self) -> str:
         return self._model_id
-
-    @overload
-    def run_stage(
-        self,
-        *,
-        request: TranslationRequest,
-        post_slug: str,
-        stage: str,
-        prompt_text: str,
-        attach_path: str,
-        artifacts: TranslationRunArtifacts,
-        pass_name: str | None = None,
-    ) -> StageResult[ProviderPayload]: ...
 
     def run_stage(
         self,
@@ -317,7 +296,7 @@ def parse_opencode_stdout(
 
     try:
         parsed = json.loads(stdout_text)
-    except json.JSONDecodeError as exc:
+    except json.JSONDecodeError:
         event_payload, event_failure = _parse_event_stream_stdout(stdout_text)
         if event_failure is not None:
             return None, event_failure
@@ -377,11 +356,6 @@ def _parse_event_stream_stdout(
             text = part.get("text")
             if isinstance(text, str) and text.strip():
                 text_fragments.append(text)
-                phase = (
-                    event.get("metadata", {})
-                    if isinstance(event.get("metadata"), dict)
-                    else {}
-                )
                 openai_meta = (
                     part.get("metadata", {}).get("openai", {})
                     if isinstance(part.get("metadata"), dict)

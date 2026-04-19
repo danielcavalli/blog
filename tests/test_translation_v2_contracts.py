@@ -21,7 +21,6 @@ from translation_v2.contracts import (  # noqa: E402
     RevisionOutput,
     TerminologyPolicyPacket,
     TranslationOutput,
-    TranslationRequest,
     VoiceIntentPacket,
     validate_cv_translation_output,
     validate_critique_output,

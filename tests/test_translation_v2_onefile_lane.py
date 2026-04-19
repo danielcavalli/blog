@@ -10,7 +10,6 @@ import json
 import os
 import re
 import time
-from pathlib import Path
 
 from translation_v2.contracts import validate_translation_output
 
