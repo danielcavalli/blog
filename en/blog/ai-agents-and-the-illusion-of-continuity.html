@@ -85,13 +85,13 @@
     </nav>
 
     <main id="main-content" class="container">
-        <article class="post" style="view-transition-name: post-container-2;">
+        <article class="post" style="view-transition-name: post-container-3;">
             <header class="post-header">
                 <a href="/en/index.html" class="back-link">← Back to Blog</a>
                 
-                <h1 class="post-title-large" style="view-transition-name: post-title-2;">AI AGENTS AND THE ILLUSION OF CONTINUITY</h1>
+                <h1 class="post-title-large" style="view-transition-name: post-title-3;">AI AGENTS AND THE ILLUSION OF CONTINUITY</h1>
                 <div class="post-meta">
-                    <time class="post-date" style="view-transition-name: post-date-2;">April 13, 2026</time>
+                    <time class="post-date" style="view-transition-name: post-date-3;">April 13, 2026</time>
                     <span class="post-separator">•</span>
                     <span class="post-reading-time">6 min read</span>
                 </div>
@@ -99,7 +99,7 @@
             </header>
 
             <div class="post-body">
-                <p class="lead" style="view-transition-name: post-excerpt-2;">
+                <p class="lead" style="view-transition-name: post-excerpt-3;">
                     AI agents feel like they remember. They don&#x27;t. The software around them is just good at faking it. Once you see that, the interesting question stops being about the model and starts being about how you manage information.
                 </p>
                 <p>Resume an agent session after a few hours and it picks up exactly where you left off. It remembers an earlier decision, continues a line of work, uses the same tools. As if no time had passed.</p>
@@ -111,16 +111,16 @@
 <p>What matters more than how much context you can fit is which context you choose to keep active, and what you collapse into an artifact or let go entirely <a href="#ref-1">[1]</a><a href="#ref-2">[2]</a><a href="#ref-3">[3]</a>. Provider features help with cost and latency, but that selection problem still lands on you.</p>
 <h2>What I Think Matters More Than Skills</h2>
 <p>There is a lot of conversation right now about agent skills, custom prompts, reusable templates, carefully tuned instructions. They can help, but I think most of the leverage is in proper context management, planning, and system design. Less about what the skill does and more about how well the information feeding the model has been curated.</p>
-<p>Having made the mistake of overcomplicating things, I can confidently advise against it. Besides the periodic urge to overdo things, my setup is fairly simple now. Essentially I have a knowledge base, similar to Karpathy's <a href="#ref-7">[7]</a>, and a custom multi-agent orchestrator that I built earlier this year and decided to keep around out of laziness (and custom). What I want to say, in the end, is that the setup specifics barely matter. The value is in deciding how work gets broken down, what each session sees, and what artifact it has to leave behind.</p>
+<p>Having made the mistake of overcomplicating things, I can confidently advise against it. Besides the periodic urge to overdo things, my setup is fairly simple now. Essentially I have a knowledge base, similar to Karpathy's <a href="#ref-7">[7]</a>, and a custom multi-agent orchestrator that I built earlier this year and decided to keep around out of laziness (and habit). What I want to say, in the end, is that the setup specifics barely matter. The value is in deciding how work gets broken down, what each session sees, and what artifact it has to leave behind.</p>
 <p>Right now, and probably for the next 6-12 months, models are very good at execution against a clear target. Not so much when the plan is blurry and lacking definition. Closing open loops and designing a plan cleanly enough that each piece can be executed in isolation is hard, but it pays off a lot in the long run. So I would rather spend my energy on problem framing, tradeoffs, and artifact quality than on building elaborate agent setups that will mostly amount to marginal improvements over baseline performance.</p>
 <h2>One Session, One Task</h2>
 <p>If I had to turn the above into a single rule, it would be one session, one task. Not because longer sessions never work, but because they accumulate residue. Dead ends, mixed goals, stale constraints, abandoned branches that still look locally plausible. The longer a session runs, the more of that residue builds up, and the harder it becomes to tell what is still relevant from what should have been left behind.</p>
 <p>The session that researches a problem should not write the final spec. The session that writes the spec should not implement it. Research is divergent, it is supposed to explore options, reject ideas, surface unknowns. A spec is convergent, it is supposed to decide. Implementation is narrower even: it does not need to know of potential decisions that were never made, just execute against a target goal.</p>
 <p>When one session does all three, the implementation context ends up carrying rejected approaches, half-decided constraints, and exploratory reasoning that was useful earlier but is harmful now. That is exactly the kind of context that gets revived by accident.</p>
 <p>So the handoff artifact matters more than the session itself. A research session leaves a research note: options considered, chosen direction, rejection reasons, open questions. A spec session tries to close those questions and remaining decisions and turns that into an implementation packet: scope, acceptance criteria, constraints, non-goals. The implementation session starts fresh from that packet. If something important changes, stop and spin a new session instead of dragging the old context forward.</p>
-<p>To me, this is the most practical form of continuity where a chain of clean artifacts is laid until a final conclusion in place of a stretched out immortal session.</p>
+<p>To me, this is the most practical form of continuity, where a chain of clean artifacts is laid until a final conclusion, in place of a stretched out immortal session.</p>
 <h2>Personal Workflow, Not Doctrine</h2>
-<p>And following the advice of my lawyers, I should say that all of this is a personal opinion. An informed one, perhaps. I use these tools daily and spend a fair amount of time researching how the models behind them work. An opinion nonetheless. I can (and probably am) wrong on a lot of this. Nobody really knows the best way to work with AI yet, and a lot will change in the coming years. That said, I do not expect the center of gravity to move that much in the next few months. For now, I still think the leverage is in context management, planning, and system design more than in ever-fancier session persistence.</p>
+<p>And following the advice of my lawyers, I should say that all of this is a personal opinion. An informed one, perhaps. I use these tools daily and spend a fair amount of time researching how the models behind them work. An opinion nonetheless. I can (and probably am) wrong on a lot of this, nobody really knows the best way to work with AI yet. A lot will change in the coming years but, that said, I do not expect the center of gravity to move that much in the next few months. For now, I still think the leverage is in context management, planning, and system design more than in ever-fancier session persistence.</p>
 <p>That is also why I am skeptical of copying someone else's setup wholesale. Most people still treat AI workflows like traditional software: find something that works, copy it, use it as-is. Someone finds a useful skill and copies the markdown file as if they had found a packaged solution that cannot really be changed. To me, that is a sign they have not yet noticed what makes working with AI different. Everything can be made custom. Every single aspect of a workflow can have your taste in it, your own silly little changes and quirks. So instead of looking for the right template, take the idea and rebuild it until it fits the way you think.</p>
 <p>The tools will get better, the models will get better. But I think the people who learn to work well with what we have right now will have a much better time than those waiting for the next leap. Understanding that you are the continuity layer, not whatever the tool you are using tries to make you believe, will help a lot with that.</p>
 <hr />

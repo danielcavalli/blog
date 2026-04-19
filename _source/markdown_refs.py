@@ -13,6 +13,7 @@ import markdown
 
 _REFERENCE_LINE_RE = re.compile(r"^\[(\d+)\]\s+")
 _NUMERIC_CITATION_RE = re.compile(r"\[([^\]\n]+?)\]\[(\d+)\]")
+_BARE_NUMERIC_CITATION_RE = re.compile(r"(?<!\[)\[(\d+)\](?![\]\(:])")
 _FENCE_RE = re.compile(r"^\s*```")
 
 
@@ -72,7 +73,15 @@ def preprocess_numeric_internal_references(markdown_text: str) -> str:
                 return f"{label}[[{ref_number}]](#ref-{ref_number})"
             return match.group(0)
 
-        processed_lines.append(_NUMERIC_CITATION_RE.sub(_replace_citation, line))
+        line = _NUMERIC_CITATION_RE.sub(_replace_citation, line)
+
+        def _replace_bare_citation(match: re.Match[str]) -> str:
+            ref_number = match.group(1)
+            if ref_number in reference_numbers:
+                return f"[[{ref_number}]](#ref-{ref_number})"
+            return match.group(0)
+
+        processed_lines.append(_BARE_NUMERIC_CITATION_RE.sub(_replace_bare_citation, line))
 
     return "\n".join(processed_lines)
 

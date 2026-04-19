@@ -1,0 +1,74 @@
+[
+  {
+    "name": "accept_high_score_core_clean",
+    "input": {
+      "overall_score": 94.0,
+      "dimension_scores": {
+        "accuracy_completeness": 93.0,
+        "terminology_entities": 90.0,
+        "markdown_code_link_fidelity": 98.0
+      },
+      "critical_errors": 0,
+      "major_core_errors": 0,
+      "confidence": 0.92,
+      "loops_completed": 1,
+      "score_delta": 4.5,
+      "stagnant_loops": 0
+    },
+    "expected_action": "accept"
+  },
+  {
+    "name": "auto_refine_when_core_below_minimum",
+    "input": {
+      "overall_score": 90.0,
+      "dimension_scores": {
+        "accuracy_completeness": 82.0,
+        "terminology_entities": 88.0,
+        "markdown_code_link_fidelity": 97.0
+      },
+      "critical_errors": 0,
+      "major_core_errors": 0,
+      "confidence": 0.88,
+      "loops_completed": 0,
+      "score_delta": null,
+      "stagnant_loops": 0
+    },
+    "expected_action": "auto_refine"
+  },
+  {
+    "name": "escalate_on_low_confidence",
+    "input": {
+      "overall_score": 89.0,
+      "dimension_scores": {
+        "accuracy_completeness": 89.0,
+        "terminology_entities": 88.0,
+        "markdown_code_link_fidelity": 96.0
+      },
+      "critical_errors": 0,
+      "major_core_errors": 0,
+      "confidence": 0.4,
+      "loops_completed": 1,
+      "score_delta": 3.2,
+      "stagnant_loops": 0
+    },
+    "expected_action": "escalate"
+  },
+  {
+    "name": "fail_on_critical_errors",
+    "input": {
+      "overall_score": 95.0,
+      "dimension_scores": {
+        "accuracy_completeness": 95.0,
+        "terminology_entities": 94.0,
+        "markdown_code_link_fidelity": 97.0
+      },
+      "critical_errors": 1,
+      "major_core_errors": 0,
+      "confidence": 0.99,
+      "loops_completed": 0,
+      "score_delta": null,
+      "stagnant_loops": 0
+    },
+    "expected_action": "fail"
+  }
+]

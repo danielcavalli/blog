@@ -10,7 +10,13 @@ Between the pure functions and the full build sits a middle layer of rendering f
 
 The project uses uv as its package manager with pytest declared as a dev dependency in pyproject.toml. There is no linter, formatter, type checker, or pre-commit hook configured. The project philosophy explicitly avoids heavy tooling, and the JavaScript and CSS assets are hand-written vanilla code with no build step of their own.
 
-## Decision
+## Status
+
+Superseded by:
+
+- [ADR 15](015-current-testing-and-validation-strategy.md)
+
+## Historical Decision
 
 We will use pytest as the sole test framework, with unit tests in tests/test_build.py covering pure helper functions and HTML rendering functions. The test file stubs out heavy external dependencies at the module level before importing the build module. It creates synthetic module objects for google, google.genai, and dotenv using types.ModuleType and injects them into sys.modules, then stubs translator.MultiAgentTranslator and translator.validate_translation with unittest.mock.MagicMock instances. This allows the entire build module to be imported and its pure functions exercised without a Gemini API key, without the google-genai package functioning, and without any network access.
 
@@ -19,10 +25,6 @@ We will test pure helper functions thoroughly with edge cases. The test suite co
 We will test HTML rendering functions by asserting on string contents rather than DOM structure. Tests for render_nav verify that the active page receives the correct CSS class and that Portuguese labels appear in the Portuguese variant. Tests for render_footer check for the presence of copyright text in both languages and ARIA-labeled social links. Tests for generate_post_card verify title uppercasing, view transition name generation, tag pill rendering, data attributes, locale-specific date formatting, link path construction, and HTML entity escaping. Tests for render_jsonld_script verify JSON roundtrip integrity, script tag escaping, and non-ASCII character preservation. Tests for generate_lang_toggle_html verify bidirectional linking, active class assignment, ARIA labels, and data attributes.
 
 We will run a GitHub Actions CI pipeline defined in .github/workflows/validate.yml on every push to main and on every pull request. The pipeline installs dependencies with uv sync, runs py_compile syntax checks against all nine Python source files in the _source directory, and then runs the pytest suite. The pipeline does not attempt a full site build, does not require any secrets, and does not generate or deploy any HTML output.
-
-## Status
-
-Accepted.
 
 ## Consequences
 

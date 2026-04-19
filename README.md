@@ -1,131 +1,205 @@
 # dan.rio
 
-Minimal bilingual blog (EN / PT-BR) with smooth View Transitions. Static site generator built with Python.
+Minimal bilingual blog built with a custom Python static site generator.
+
+The site is published as generated static HTML under `en/`, `pt/`, `index.html`, and `sitemap.xml`. Source content lives under `_source/`. Translation is handled by the `translation_v2` runtime during the build.
 
 ## Structure
 
-```
+```text
 blog/
-├── _source/              # Build system and content
-│   ├── posts/            # Markdown blog posts (source of truth)
-│   ├── build.py          # Build orchestrator (entry point)
-│   ├── config.py         # Site configuration (paths, languages, metadata)
-│   ├── helpers.py        # Pure utilities (hashing, formatting, dates, paths)
-│   ├── renderer.py       # All HTML page generation (posts, index, about, CV, landing)
-│   ├── seo.py            # JSON-LD structured data and sitemap generation
-│   ├── content_loader.py # Markdown parsing and sidecar metadata manifest
-│   ├── cv_parser.py      # CV YAML loading and schema validation
-│   ├── paths.py          # Filesystem constants and directory creation
-│   └── translator.py     # Multi-agent translation pipeline
-├── _cache/               # Build artifacts (git-ignored)
-│   ├── translation-cache.json
-│   └── post-metadata.json
-├── static/               # Shared assets
-│   ├── css/              # Stylesheets
-│   ├── js/               # JavaScript
-│   └── images/           # Images
-├── en/                   # Generated English site
-├── pt/                   # Generated Portuguese site
-├── cv_data.yaml          # CV source of truth (structured YAML, parsed at build time)
-├── index.html            # Landing page (served at dan.rio/)
-├── sitemap.xml           # Generated sitemap with hreflang
-├── build.sh              # Unix build wrapper
-└── build.bat             # Windows build wrapper
+├── _source/
+│   ├── posts/                    # Markdown source posts
+│   ├── build.py                  # Build orchestrator / CLI entrypoint
+│   ├── content_loader.py         # Markdown parsing + post metadata sidecar
+│   ├── renderer.py               # HTML rendering for all page types
+│   ├── seo.py                    # Sitemap + structured data
+│   ├── translation_common.py     # Build-side translation validation helpers
+│   ├── translation_revision.yaml # Revision requests for specific artifacts
+│   └── translation_v2/           # OpenCode translation runtime
+│       ├── prompts/v2/           # Active prompt pack
+│       ├── references/           # Locale briefs and localization references
+│       └── ...                   # Orchestrator, contracts, cache adapter, etc.
+├── _cache/                       # Build-time state (git-ignored)
+│   ├── post-metadata.json        # Source change detection manifest
+│   ├── translation-cache.json    # Accepted translation cache
+│   └── translation-runs/         # Per-run artifacts and debug traces
+├── docs/
+│   ├── adr/                      # Architecture decision records
+│   └── translation_v2_opencode_runbook.md
+├── static/                       # Shared CSS, JS, images
+├── en/                           # Generated English site
+├── pt/                           # Generated Portuguese site
+├── cv_data.yaml                  # Structured CV source of truth
+├── index.html                    # Generated landing page
+└── sitemap.xml                   # Generated sitemap
 ```
 
 ## Quick Start
 
 ```bash
-# Install uv (if not already installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Install dependencies
 uv sync --all-extras
-
-# Build site (from project root)
 uv run python _source/build.py
-
-# Or use wrapper scripts:
-./build.sh          # Unix/Linux/Mac
-build.bat           # Windows
-
-# Serve locally
 uv run python -m http.server 8000
 ```
 
-## Writing Posts
+## Build Model
 
-Create Markdown files in `_source/posts/`:
+The current build is source-first.
 
-```markdown
----
-title: Post Title
-date: 2025-10-23
-excerpt: Brief description
-tags: [web, python]
-order: 1
----
+1. Parse all source posts.
+2. Render source-language outputs first.
+3. Render source indexes and sitemap.
+4. Initialize the translation runtime.
+5. Translate static artifacts (`about`, `cv`) and commit accepted outputs immediately.
+6. Translate posts and commit accepted outputs immediately.
 
-Your content here.
+“Commit” means:
+- persist accepted translation state to `_cache/translation-cache.json`
+- persist per-run artifacts under `_cache/translation-runs/<run_id>/`
+- render and write the corresponding HTML output immediately
+
+This means accepted work is durable even if a later artifact fails.
+
+## Build Modes
+
+### Default mode
+
+```bash
+uv run python _source/build.py
 ```
 
-Posts are written in English. The build system automatically translates them to Brazilian Portuguese using the Gemini API.
+- Builds source outputs
+- Runs `translation_v2`
+- Logs quality issues but continues on build-side validation errors
 
-## Translation
+### Strict mode
 
-The build uses a multi-agent translation pipeline (`_source/translator.py`) powered by Gemini 2.5 Flash:
+```bash
+uv run python _source/build.py --strict
+```
 
-- **Default mode**: Translation Agent only (fast, one API call per post)
-- **Strict mode** (`--strict` flag or `STRICT_BUILD=1`): Full 3-stage pipeline (Translation → Critique → Refinement)
+- Same runtime, but build-side error-level translation validation fails the build
+- Uses staged/atomic output promotion
 
-Translations are cached in `_cache/translation-cache.json` using SHA-256 content hashes. Unchanged posts skip the API entirely.
+### One-file mode
 
-Requires `GEMINI_API_KEY` environment variable (see `.env.example`).
+```bash
+uv run python _source/build.py --post _source/posts/<post-file>.md
+```
 
-See [TRANSLATION_PIPELINE.md](TRANSLATION_PIPELINE.md) for full details.
+### One-file mode without About/CV translation
 
-## Configuration
+```bash
+uv run python _source/build.py --post _source/posts/<post-file>.md --skip-about-cv-translation
+```
 
-Edit `_source/config.py`:
+## Translation Runtime
 
-```python
-BASE_PATH = ""       # Local development / root domain
-# or
-BASE_PATH = "/blog"  # GitHub Pages subdirectory
+Build-time translation is OpenCode-only and lives under `_source/translation_v2/`.
+
+The active stage graph is:
+
+1. `source_analysis`
+2. `terminology_policy`
+3. `translate`
+4. `critique`
+5. `revise`
+6. `final_review`
+
+Current model split:
+- translation: `GPT-5.4` with high reasoning
+- revision: `GPT-5.4` with high reasoning
+- critique: `GPT-5.2`
+- final review: `GPT-5.2`
+
+The runtime also loads:
+- [WRITING_STYLE.md](WRITING_STYLE.md)
+- locale briefs under [`_source/translation_v2/references/`](./_source/translation_v2/references/)
+
+### Translation state
+
+There are three distinct persistence layers:
+
+- `_cache/post-metadata.json`
+  - source-side content hash and timestamp tracking
+- `_cache/translation-cache.json`
+  - accepted translation cache
+- `_cache/translation-runs/<run_id>/`
+  - per-run prompts, structured responses, stage events, runner logs
+
+### Revision requests
+
+Use `_source/translation_revision.yaml` to force reassessment of a specific artifact/locale pair:
+
+```yaml
+posts:
+  some-post-slug:
+    pt-br:
+      reason: revisit locale naturalness
+      notes: preserve connective tissue and dry humor
+```
+
+Operational triage details live in [docs/translation_v2_opencode_runbook.md](docs/translation_v2_opencode_runbook.md).
+
+## Validation
+
+The build runs two different quality layers:
+
+1. Translation-stage review inside `translation_v2`
+   - critique
+   - revision
+   - final review
+
+2. Build-side deterministic validation in `_source/translation_common.py`
+   - untranslated overlap checks
+   - repeated identical sentence detection
+   - malformed code fence / HTML tag checks
+   - suspicious length warnings
+
+Default mode logs these issues and continues.
+Strict mode fails on error-level build-side validation issues.
+
+Additional validation commands:
+
+```bash
+uv run python _source/link_checker.py
+uv run --extra dev python _source/html_validator.py
+```
+
+## Testing
+
+Focused translation/runtime suites:
+
+```bash
+UV_CACHE_DIR=/tmp/uv-cache uv run --extra dev pytest \
+  tests/test_build_translation_v2_integration.py \
+  tests/test_build_translation_routing_integration.py \
+  tests/test_translation_v2_boundaries.py \
+  tests/test_translation_prompt_versions.py \
+  tests/test_translation_locale_rules.py -q
+```
+
+One-file lane regression:
+
+```bash
+UV_CACHE_DIR=/tmp/uv-cache uv run --extra dev pytest \
+  tests/test_translation_v2_onefile_lane.py -q
 ```
 
 ## Deployment
 
-1. Set `BASE_PATH` in `_source/config.py`
-2. Run `python _source/build.py`
-3. Commit generated files (`en/`, `pt/`, `index.html`, `sitemap.xml`)
-4. Push to GitHub
-5. Ensure `.nojekyll` exists
+Generated HTML is committed to git and served directly by GitHub Pages.
 
-## Pages
+Recommended release flow:
 
-- **Blog** — Post index with filtering (year/month/tag) and sorting
-- **About** — Author bio (auto-translated to PT-BR at build time)
-- **CV** — Parsed from `cv_data.yaml`, translated at build time
+```bash
+uv run python _source/build.py --strict
+git add en pt index.html sitemap.xml
+git commit -m "publish: update generated site"
+git push
+```
 
-## Features
+## ADRs
 
-- **Bilingual**: Automatic EN ↔ PT-BR translation via Gemini API
-- **View Transitions API**: Smooth page morphing between routes
-- **FLIP Animations**: Card sorting and reordering
-- **Theme Toggle**: Dark/light mode
-- **Language Continuity**: Preserves scroll position and filters across language switches
-- **SEO**: JSON-LD structured data, Open Graph, hreflang sitemap
-
-## Browser Support
-
-Full experience: Chrome/Edge 111+
-Graceful degradation for other browsers.
-
-## Stack
-
-- Python (markdown, frontmatter, google-genai, pyyaml, python-dotenv)
-- Gemini 2.5 Flash (translation)
-- View Transitions API (Chromium)
-- Vanilla JS + CSS animations
-- No build tools or frameworks
+The repo’s major architecture and translation-policy decisions are tracked under [docs/adr/](docs/adr/).

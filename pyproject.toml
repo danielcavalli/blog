@@ -9,10 +9,16 @@ dependencies = [
     "google-genai>=1.0.0",
     "python-dotenv>=1.0.0",
     "pyyaml>=6.0",
+    "rich>=13.7.0",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0.0"]
+dev = [
+    "html5lib>=1.1",
+    "pytest>=8.0.0",
+    "ruff>=0.11.0",
+    "pyright>=1.1.0",
+]
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -25,3 +31,19 @@ include = []
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["_source"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["_source", "tests"]
+extend-exclude = ["_cache", "_staging", "en", "pt"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
+[tool.pyright]
+include = ["_source", "tests"]
+exclude = ["_cache", "_staging", "en", "pt"]
+pythonVersion = "3.10"
+typeCheckingMode = "basic"
+reportMissingTypeStubs = "none"

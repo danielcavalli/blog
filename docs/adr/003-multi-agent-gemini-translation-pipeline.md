@@ -6,11 +6,19 @@ The dan.rio blog is a bilingual site serving English and Brazilian Portuguese au
 
 Because the build system is a custom Python static site generator with no framework dependencies, the translation solution must integrate directly into the build pipeline defined in `_source/build.py`. The translated output is rendered to HTML and committed to the repository for GitHub Pages, which means LLM-generated content is inserted into the site's markup. This creates a security surface: a model could hallucinate script tags, event handlers, or javascript URIs into what should be prose. The build already converts Markdown to HTML via the `markdown` library, so any injected HTML would survive into the final pages unless explicitly stripped.
 
-Google Gemini was selected as the translation provider because of its generous free tier, long context window, and strong multilingual performance. However, free-tier Gemini imposes aggressive rate limits, and model availability can be unpredictable. A single model failure during a build that translates six posts would leave the site half-translated. The system needs to tolerate quota exhaustion and temporary outages without operator intervention.
+This ADR reflects the original translation architecture that preceded the current OpenCode-based `translation_v2` runtime.
 
 Finally, translation is the most expensive step in the build, both in wall-clock time and API cost. Retranslating unchanged content on every build is wasteful. The system needs a caching mechanism that can determine, cheaply and reliably, whether a post's source material has changed since its last successful translation.
 
-## Decision
+## Status
+
+Superseded by:
+
+- [ADR 11](011-opencode-translation-v2-architecture.md)
+- [ADR 13](013-locale-aware-localization-policy.md)
+- [ADR 14](014-translation-quality-gates-and-validation-split.md)
+
+## Historical Decision
 
 We will implement a three-stage LLM translation pipeline in `_source/translator.py`, organized as translate, critique, and refine agents. The translation agent receives the English frontmatter and Markdown body and produces a structured response with translated title, excerpt, tags, and content. The critique agent compares the translation against the original for semantic alignment, tone, and naturalness, returning either an approval or specific feedback. The refinement agent applies the critique feedback to produce an improved translation. Each stage is a separate Gemini API call with a purpose-built prompt.
 
@@ -25,10 +33,6 @@ We will cache translations in `_cache/translation-cache.json`, keyed by post slu
 We will validate every translation, whether freshly generated or loaded from cache, using the `validate_translation` function. This performs four offline checks: paragraph-level word overlap detection (flagging paragraphs with more than 70% word overlap after removing a curated technical glossary), consecutive identical sentence detection (three or more in a row signals an untranslated block), malformed output checks for unclosed code fences and HTML tags, and a length ratio warning for suspiciously short translations. In strict mode, validation errors are fatal and reject the translation. In default mode, they are logged as warnings.
 
 We will apply defense-in-depth HTML sanitization to all LLM output before it reaches the final HTML. The `sanitize_translation_html` function strips script tags (both complete and unclosed), inline event handlers, and javascript URIs from translated body content. The `sanitize_translation_text` function strips all HTML tags from fields that should be plain text, such as titles, excerpts, and tags. These functions are applied in both `translate_if_needed` and `translate_about`, ensuring that no translation path bypasses sanitization.
-
-## Status
-
-Accepted.
 
 ## Consequences
 

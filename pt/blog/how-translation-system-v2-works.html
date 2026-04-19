@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Como funciona o sistema de tradução v2 – Daniel Cavalli | dan.rio</title>
+    <meta name="description" content="O sistema de tradução v2 é a segunda tentativa séria de tornar este blog bilíngue sem fazer o português soar como inglês importado. Foi preciso mais do que um m">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://dan.rio/pt/blog/how-translation-system-v2-works.html">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://dan.rio/pt/blog/how-translation-system-v2-works.html">
+    <meta property="og:title" content="Como funciona o sistema de tradução v2">
+    <meta property="og:description" content="O sistema de tradução v2 é a segunda tentativa séria de tornar este blog bilíngue sem fazer o português soar como inglês importado. Foi preciso mais do que um m">
+    <meta property="og:site_name" content="dan.rio">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="article:published_time" content="2026-04-19">
+    <meta property="article:modified_time" content="2026-04-19">
+    <meta property="article:author" content="Daniel Cavalli">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Como funciona o sistema de tradução v2">
+    <meta name="twitter:description" content="O sistema de tradução v2 é a segunda tentativa séria de tornar este blog bilíngue sem fazer o português soar como inglês importado. Foi preciso mais do que um m">
+    
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Como funciona o sistema de tradução v2", "description": "O sistema de tradução v2 é a segunda tentativa séria de tornar este blog bilíngue sem fazer o português soar como inglês importado. Foi preciso mais do que um m", "url": "https://dan.rio/pt/blog/how-translation-system-v2-works.html", "inLanguage": "pt", "datePublished": "2026-04-19", "dateModified": "2026-04-19", "author": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "publisher": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://dan.rio/pt/blog/how-translation-system-v2-works.html"}, "keywords": "translation, localization, llms, software architecture, pt-br"}</script>
+    
+    <!-- Additional SEO -->
+    <meta name="author" content="Daniel Cavalli">
+    <meta name="robots" content="index, follow">
+    
+    <link rel="alternate" hreflang="x-default" href="https://dan.rio/">
+    <link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/how-translation-system-v2-works.html">
+    <link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/how-translation-system-v2-works.html">
+    
+    <link rel="stylesheet" href="/static/css/styles.css?v=c89a74a1">
+    <link rel="stylesheet" href="/static/css/post.css?v=69615460">
+    <link rel="preload" href="/static/js/theme.js?v=30ebbd0e" as="script">
+    <script src="/static/js/theme.js?v=30ebbd0e"></script>
+    <script src="/static/js/transitions.js?v=bc364081" defer></script>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Pular para o conteúdo</a>
+    <nav class="nav" style="view-transition-name: site-nav;">
+        <div class="nav-container">
+            <a href="/pt/index.html" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="/pt/index.html" class="active" style="view-transition-name: nav-blog;">BLOG</a></li>
+                    <li><a href="/pt/about.html" style="view-transition-name: nav-about;">SOBRE</a></li>
+                    <li><a href="/pt/cv.html" style="view-transition-name: nav-cv;">CV</a></li>
+                </ul>
+                <div style="view-transition-name: lang-toggle;"><a href="/en/blog/how-translation-system-v2-works.html" class="lang-toggle" aria-label="Mudar para English (atualmente Português)" data-current-lang="pt">
+        <svg class="lang-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span class="lang-text">
+            <span class="lang-en">EN</span>
+            <span class="lang-sep">/</span>
+            <span class="lang-pt active">PT</span>
+        </span>
+    </a></div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Alternar tema" style="view-transition-name: theme-toggle;">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main-content" class="container">
+        <article class="post" style="view-transition-name: post-container-1;">
+            <header class="post-header">
+                <a href="/pt/index.html" class="back-link">← Voltar ao Blog</a>
+                
+                <h1 class="post-title-large" style="view-transition-name: post-title-1;">COMO FUNCIONA O SISTEMA DE TRADUÇÃO V2</h1>
+                <div class="post-meta">
+                    <time class="post-date" style="view-transition-name: post-date-1;">19 de Abril de 2026</time>
+                    <span class="post-separator">•</span>
+                    <span class="post-reading-time">16 min de leitura</span>
+                </div>
+                <div class="post-tags"><span class="tag-pill">translation</span><span class="tag-pill">localization</span><span class="tag-pill">llms</span><span class="tag-pill">software architecture</span><span class="tag-pill">pt-br</span></div>
+            </header>
+
+            <div class="post-body">
+                <p class="lead" style="view-transition-name: post-excerpt-1;">
+                    O sistema de tradução v2 é a segunda tentativa séria de tornar este blog bilíngue sem fazer o português soar como inglês importado. Foi preciso mais do que um modelo melhor.
+                </p>
+                <p>A versão original deste sistema foi construída em 2024, embora ele só tenha realmente assumido o blog em 2025. Isso importa porque 2024 era um contexto muito diferente para projetar esse sistema. Os modelos eram mais fracos, workflows agentivos longos inspiravam menos confiança, e o instinto sensato era manter o sistema enxuto. Traduzir o post, preservar o Markdown, guardar o resultado em cache e seguir a vida.</p>
+<p>Esse sistema fez exatamente aquilo para que foi desenhado. Infelizmente, fui eu que o desenhei.</p>
+<p>Ele conseguia produzir traduções estruturalmente corretas e semanticamente compreensíveis. Se tudo o que eu quisesse fosse transporte semântico, isso teria bastado. O problema é que nunca foi isso que eu quis. Eu queria que a versão em português do blog soasse como escrita, não como evidência de que um modelo identificou corretamente os substantivos.</p>
+<p>É nessa diferença que o redesenho começa, e é também aí que a versão anterior fica sem desculpas.</p>
+<p>O sistema antigo frequentemente preservava a informação e estragava o texto. O sentido sobrevivia. A voz, não. O tecido conjuntivo entre as ideias afinava. O tratamento dos empréstimos do inglês no português do Brasil era feito como se cada ocorrência abrisse uma nova questão filosófica. Uma frase que, no original, ao mesmo tempo estabelecia credibilidade, suavizava uma discordância e fazia uma piada voltava em português fazendo uma dessas coisas com modesta convicção. Na maioria das vezes, não a certa.</p>
+<p>Em algum momento, parei de tratar isso como um problema de tradução. Claramente era um problema de sistema. O v2 não foi construído como um prompt mais simpático. Foi construído como um sistema diferente, com pressupostos diferentes sobre o que esse trabalho realmente é.</p>
+<h2>O pecado original não era a qualidade do modelo</h2>
+<p>Seria conveniente culpar tudo nos modelos disponíveis à época. Isso absolveria a arquitetura anterior com uma facilidade suspeita. Infelizmente, o próprio desenho também fazia parte do problema.</p>
+<p>O pipeline antigo se comportava como se a qualidade fosse emergir de cuidado suficiente com a estrutura. Manter o Markdown intacto. Proteger blocos de código. Reaproveitar um cache. Pedir ao modelo que soe natural. Talvez fazer uma passada de revisão. Tudo isso é defensável se a sua principal preocupação é não quebrar o artefato. Fica bem menos defensável se a sua principal preocupação é saber se um leitor brasileiro acreditaria que a versão em português foi escrita pela mesma pessoa.</p>
+<p>A distinção importa porque "compreensível" é uma barra perigosamente baixa. Muito texto traduzido é compreensível. Um email de atendimento ao cliente gerado por máquina também é. Isso diz quase nada sobre se a escrita sobreviveu à viagem.</p>
+<p>Em outras palavras, o problema não era o sistema antigo falhar de maneira espetacular. Ele falhava com educação. E esses são os perigosos. Um sistema que explode geralmente lhe presta o favor do constrangimento. Um sistema que produz uma saída plausível pode desperdiçar muito mais tempo.</p>
+<h2>Começa pela build, não pela prosa</h2>
+<p>A primeira mudança séria do v2 não é linguística. É operacional.</p>
+<p>A build agora parte do conteúdo de origem. Ela monta as páginas no idioma de origem antes de a tradução começar e grava o trabalho de tradução aceito na fronteira de cada artefato, em vez de deixar isso para aquele fim vago da build inteira. Isso soa como trabalho de infraestrutura sem glamour, e é mesmo, mas também corrige um dos modos de falha mais irritantes do sistema anterior.</p>
+<p>O contrato da build agora se parece mais com isto:</p>
+<pre><code class="language-text">parse -&gt; build source output -&gt; translate -&gt; accept -&gt; cache -&gt; artifacts -&gt; rendered output
+</code></pre>
+<p>É um contrato melhor do que "fazer um monte de trabalho, deixar parte dele na memória e torcer para que nada importante falhe depois".</p>
+<p>A consequência prática é simples. Se uma página de origem pode ser construída, ela deve ser construída. Se um artefato traduzido foi aceito, ele deve ser persistido imediatamente. Uma falha posterior em alguma parte não relacionada da execução não deveria apagar um trabalho que já deu certo. Isso acontecia com frequência suficiente para ser ao mesmo tempo caro e ofensivo.</p>
+<p>Isso também dá uma forma mais limpa à build. O conteúdo de origem agora é uma saída de primeira ordem, em vez de algo que por acaso existe antes de a lógica de tradução se animar. Depois que a correção está pronta, isso parece óbvio. Quase toda correção boa parece.</p>
+<h2>Seis etapas, principalmente porque o sistema antigo mentia sobre uma delas</h2>
+<p>O próprio caminho da tradução também ficou mais explícito do que era antes. Em vez de uma instrução genérica para traduzir e talvez se comportar, o v2 divide o trabalho em seis etapas:</p>
+<pre><code class="language-text">source_analysis
+terminology_policy
+translate
+critique
+revise
+final_review
+</code></pre>
+<p>Isso não é inflação de etapas. É admitir que o pipeline anterior tentava fazer vários trabalhos diferentes com uma única instrução vaga e depois agia surpreso quando alguns deles saíam mal.</p>
+<p>Se isso parece overengineering, eu entendo o instinto. Eu também tive esse instinto. A versão mais limpa da história é sempre a mesma: um modelo forte deveria ser capaz de ler um post, traduzi-lo, perceber onde errou e se corrigir. É um instinto razoável. E foi mais ou menos aí que o sistema antigo aterrissou. O problema é que esses são trabalhos diferentes. Mais importante: eles falham de maneiras diferentes. Depois que você aceita isso, separá-los passa a parecer menos cerimônia e mais honestidade básica.</p>
+<h3>Análise do texto-fonte</h3>
+<p>A primeira etapa tenta entender o original como escrita, e não como conteúdo transportável. Ela extrai tom, registro, ritmo de frase, hábitos de conexão, movimentos retóricos, sinais de humor e as partes do texto que absolutamente precisam sobreviver à localização.</p>
+<p>Isso pode soar literário demais para um pipeline de build. Também é verdade. Se o sistema não consegue distinguir entre uma frase que apenas afirma um fato e outra que, discretamente, está fazendo trabalho argumentativo, gerenciamento de tom e construção de credibilidade ao mesmo tempo, então as etapas seguintes operam meio cegas e cheias de confiança, o que não chega a ser uma melhora.</p>
+<p>O sistema antigo tratava isso mais como gosto de prompt. O atual trata como memória de trabalho.</p>
+<h3>Política terminológica</h3>
+<p>A segunda etapa fecha a terminologia e a política de empréstimos antes de qualquer rascunho existir.</p>
+<p>Essa é uma daquelas coisas que soam burocráticas até você ver o que acontece sem elas. A escrita técnica do inglês para o português do Brasil está cheia de termos que devem permanecer em inglês, termos que obviamente devem ser localizados e termos que dependem de contexto, público e registro. Se o modelo toma essas decisões ocorrência por ocorrência, a saída começa a soar socialmente errada mesmo quando o sentido continua intacto.</p>
+<p>Esse é um modo de falha muito comum em localização. E também é o tipo de coisa que falantes de inglês costumam subestimar, porque o texto continua legível para eles. Os brasileiros, infelizmente para o sistema, também sabem ler, e alguns de nós são rancorosos o bastante para perceber quando "português natural" está fazendo uma imitação muito convincente de inglês traduzido.</p>
+<p>A etapa decide o que deve ficar em inglês, o que deve ser localizado, o que continua sensível ao contexto e o que não deve ser traduzido de jeito nenhum. Mais importante, ela resolve os casos ambíguos no nível do artefato, em vez de espalhar dicas no prompt e torcer para que o modelo desenvolva caráter.</p>
+<h3>Tradução</h3>
+<p>Só então o sistema produz um rascunho.</p>
+<p>A etapa de tradução atualmente usa <code>GPT-5.4</code> com alto esforço de raciocínio. Não porque eu goste de números caros. É porque esta é a parte do workflow que realmente precisa reescrever. Um modelo mais barato pode falhar aqui de maneiras muito criativas e ainda assim parecer prestativo.</p>
+<p>A mudança principal, porém, não é só a escolha do modelo. É o fato de que o tradutor não recebe mais a tarefa de preservar a forma superficial. Ele recebe a tarefa de preservar o efeito. Se uma frase precisa ser refeita para soar como português escrito por alguém, e não como inglês atravessado na fronteira com a papelada em ordem, ela é refeita. A ideia é preservar a escrita, não a cena do crime.</p>
+<p>É nesse ponto que tradução começa a virar localização, em vez de mera cópia bilíngue.</p>
+<h3>Crítica</h3>
+<p>A crítica agora existe como uma etapa diagnóstica de verdade, não como um carimbo protocolar educado.</p>
+<p>Ela avalia o rascunho em várias dimensões: fidelidade factual, consistência terminológica, integridade de Markdown e de spans protegidos, naturalidade de locale, consistência dos empréstimos e estrutura retórica.</p>
+<p>Essa etapa roda em <code>GPT-5.2</code>. Eu prefiro essa divisão. Tradução e revisão são trabalhos generativos. Crítica é um trabalho diagnóstico. Eles se beneficiam de hábitos diferentes, e não há motivo particular para fazer o mesmo modelo executar tudo só porque ele consegue.</p>
+<p>E, se um pipeline vai mentir, prefiro que minta em menos vozes.</p>
+<h3>Revisão</h3>
+<p>A revisão existe porque uma boa crítica não é a mesma coisa que uma boa reescrita.</p>
+<p>Um problema de pipelines de tradução mais fracos é que eles assumem em silêncio que o primeiro rascunho precisa vir quase certo para o workflow funcionar. Isso deixa o sistema inteiro frágil. O v2 trata a revisão como uma etapa central de reescrita. Se a crítica diz que o texto ainda soa traduzido, a resposta não é trocar alguns termos e se parabenizar por ter respeitado a estrutura. A resposta é reescrever a frase ou o parágrafo como se deve.</p>
+<p>Tradução e revisão usam <code>GPT-5.4</code> high exatamente por isso. É aqui que o sistema faz o trabalho estilístico mais difícil.</p>
+<h3>Revisão final</h3>
+<p>A revisão final é o crivo de verdade.</p>
+<p>Essa etapa verifica se o artefato revisado é fiel, nativo no idioma de destino, internamente consistente, estruturalmente íntegro e ainda reconhecivelmente autoral. Ela também checa se os problemas apontados na crítica foram de fato resolvidos, e não apenas reconhecidos em tom confiante.</p>
+<p>Isso deixa a arquitetura mais entediante do que a expressão "workflow de tradução multiagente" talvez sugira. Eu tomo isso como elogio. Sistemas melhoram quando a parte impressionante sai do nome e vai para o comportamento.</p>
+<h2>PT-BR precisava de uma camada de política, não de um discurso motivacional</h2>
+<p>A maior melhoria recente do sistema é a camada de localização para PT-BR.</p>
+<p>Ela demorou demais para aparecer.</p>
+<p>Versões anteriores dos prompts já continham variações de "sound natural in Brazilian Portuguese", que é uma daquelas instruções que conseguem ser verdadeiras e inúteis ao mesmo tempo. O sistema precisava de algo muito mais específico. Por isso, agora ele carrega um briefing de localização PT-BR como parte central do sistema, além de convenções explícitas para empréstimos, pontuação, movimento discursivo, registro e verificações de revisão.</p>
+<p>A política de empréstimos é a parte mais óbvia disso. Português técnico brasileiro não é simplesmente português com alguns substantivos em inglês largados no meio. Ele tem convenções, hábitos e expectativas comunitárias. Alguns termos continuam emprestados porque é assim que leitores técnicos brasileiros realmente os usam. Alguns são naturalmente localizados. Alguns dependem de contexto. Nomes de produto e termos de marca são outra categoria inteiramente. Tratar tudo isso como uma sequência de escolhas lexicais locais é a maneira mais eficiente de produzir um texto gramatical e levemente constrangedor, que é uma das combinações menos úteis possíveis em software.</p>
+<p>Pontuação e discurso importam tanto quanto. O português não se limita a traduzir orações do inglês. Muitas vezes ele as reorganiza. Lida com pausas de outro jeito. Usa o travessão de outra forma. Tolera outro movimento de conectivos. Se um sistema preserva a ordem inglesa das orações e apenas troca o vocabulário, o resultado pode ser perfeitamente compreensível e ainda assim soar importado.</p>
+<p>É por isso que o briefing de locale agora codifica coisas que versões anteriores deixavam no instinto do modelo. E é também por isso que crítica e revisão final pontuam explicitamente naturalidade de locale, consistência de empréstimos e estrutura retórica, em vez de fingir que tudo isso cabe dentro de um número simpático chamado fluência.</p>
+<h2>O cache continua lá, mas agora se comporta como parte de um sistema</h2>
+<p>O cache de tradução continua em <code>_cache/translation-cache.json</code>. Eu não o substituí por algo mais da moda porque não havia motivo real para isso. Trocar uma ideia quebrada por um substantivo fashionável é um dos hábitos menos produtivos do software, e este sistema já tinha sofrido o bastante com ideias fingindo ser soluções.</p>
+<p>O que mudou, em vez disso, foi a relação do cache com o resto do pipeline.</p>
+<p>Agora existem, na prática, três camadas de persistência: o cache de tradução, os artefatos por execução em <code>_cache/translation-runs/...</code> e a saída renderizada do site. Essas camadas fazem trabalhos diferentes. O cache existe para reaproveitamento. Os artefatos da execução existem para inspeção. A saída renderizada existe porque, em algum momento, um leitor precisa de uma página. Versões anteriores do sistema borravam essas fronteiras o suficiente para que trabalho bem-sucedido ainda pudesse parecer pouco durável na prática. O v2 é mais rígido quanto a esses limites.</p>
+<p>Agora também existe uma distinção mais sensata entre <code>cache hit</code> e "estado em que confio". Se uma tradução em cache existe, mas o HTML traduzido renderizado está ausente, o sistema não repinta a página silenciosamente a partir do cache e dá o assunto por encerrado. Ele marca o artefato para revisão e o devolve ao workflow normal.</p>
+<p>Esse é o comportamento certo. Saída ausente não é apenas um inconveniente de renderização. É evidência de que o estado do artefato está inconsistente. Maquiar isso faria o sistema parecer mais calmo, ao mesmo tempo que o tornaria menos confiável. Sistemas calmos são maravilhosos. Sistemas fingindo calma geralmente não são.</p>
+<h2>A divisão entre modelos é prática, não mística</h2>
+<p>As atribuições atuais de modelos são:</p>
+<ul>
+<li><code>GPT-5.4</code> high para tradução</li>
+<li><code>GPT-5.2</code> para crítica</li>
+<li><code>GPT-5.4</code> high para revisão</li>
+<li><code>GPT-5.2</code> para revisão final</li>
+</ul>
+<p>Isso não é uma afirmação metafísica sobre qual modelo entende prosa mais profundamente. É apenas uma afirmação sobre como eu quero dividir o trabalho.</p>
+<p>Tradução e revisão exigem capacidade sustentada de reescrita. Crítica e revisão final exigem julgamento estruturado, consistência e distância suficiente do rascunho para rejeitá-lo quando necessário. Não há motivo para que esses caminhos precisem ser o mesmo. Na prática, separá-los também torna o pipeline inteiro mais fácil de entender quando algo dá errado, o que não é uma propriedade glamourosa, mas costuma ser a que importa.</p>
+<h2>O trabalho futuro começa onde sistemas no nível da frase ficam sem desculpas</h2>
+<p>O v2 é muito melhor do que o sistema que substituiu. Também não é o ponto final.</p>
+<p>Há pelo menos quatro direções que o levariam significativamente mais longe, e nenhuma delas equivale a escrever um prompt ainda mais rígido.</p>
+<h3>Coerência em nível de documento</h3>
+<p>A maioria dos sistemas práticos de tradução ainda se comporta demais como tradutores de frases com papelada extra. Há anos a pesquisa em tradução automática em nível de documento aponta para a mesma coisa: contexto mais amplo ajuda com coerência, consistência e interpretação discursiva, ainda que usar esse contexto direito seja mais difícil do que simplesmente concatenar frases vizinhas.</p>
+<p>O sistema atual já trabalha no nível do artefato em termos de prompt, o que é melhor do que isolar frases. Ainda assim, ele ainda não carrega um modelo interno forte de coerência em nível de documento como tal. Uma versão futura deveria se importar mais explicitamente com continuidade entre parágrafos, estruturas argumentativas recorrentes, resolução pronominal e com a forma como a força retórica se acumula ao longo de um post inteiro, em vez de ficar confinada a um único trecho local.</p>
+<h3>Avaliação no estilo MQM</h3>
+<p>Qualidade de tradução tem o péssimo hábito de degenerar em discussões de achismo. O MQM é útil justamente porque recusa essa válvula de escape. Ele oferece uma tipologia estruturada de erros e força a conversa a entrar em categorias que podem ser comparadas, rastreadas e discutidas como se deve.</p>
+<p>Este sistema eventualmente deveria adotar algo parecido com MQM em sua camada interna de avaliação. Não o framework inteiro por obrigação religiosa, mas a disciplina básica de falhas de qualidade tipadas. Hoje o pipeline já pontua fidelidade, terminologia e naturalidade de locale. O próximo passo é classificar modos de falha com mais rigor:</p>
+<ul>
+<li>decalque</li>
+<li>inconsistência de empréstimos</li>
+<li>falta de naturalidade de locale</li>
+<li>achatamento retórico</li>
+<li>desvio estrutural</li>
+<li>falha de proteção</li>
+</ul>
+<p>Isso deixaria o sistema muito mais fácil de melhorar, porque me diria não apenas que uma tradução falhou, mas que tipo de falha foi e se a mesma falha continua reaparecendo nos mesmos lugares.</p>
+<h3>Metadados de localização mais ricos na origem</h3>
+<p>O trabalho de internacionalização e localização do W3C é útil aqui por um motivo simples. Ele trata anotação de conteúdo como parte do sistema, em vez de fingir que todo localizador deveria reconstruir a intenção a partir da prosa e torcer pelo melhor.</p>
+<p>Este blog não precisa de markup industrial de localização amanhã cedo, mas eu consigo imaginar sem dificuldade uma versão futura carregando metadados mais ricos do lado da origem para termos protegidos, candidatos a glossário, notas de locale e pistas autorais sobre registro e empréstimos. Isso seria mais limpo do que forçar cada decisão a jusante a ser inferida de novo a partir do mesmo texto.</p>
+<h3>Memória de tradução confiável</h3>
+<p>Memória de tradução só é tão boa quanto aquilo que você permite que entre nela. Plataformas de localização entendem isso muito bem, e é por isso que saídas revisadas costumam receber tratamento privilegiado em comparação com rascunhos gerados por máquina.</p>
+<p>O cache atual já se comporta muito melhor do que o antigo, mas ainda há uma distinção útil entre "aceito em uma execução" e "bom o bastante para virar memória de tradução durável". Uma política futura mais forte poderia separar cache efêmero de workflow de memória de tradução aprovada. A segunda provavelmente deveria ser alimentada apenas por saídas que atravessam toda a cadeia de revisão com confiança suficiente para merecer reaproveitamento, e não mera sobrevivência.</p>
+<p>Isso tornaria a camada de memória menos permissiva e, por consequência, mais confiável.</p>
+<h2>O que mudou foi o que o sistema acha que está fazendo</h2>
+<p>Essa, no fim, é a diferença real.</p>
+<p>O pipeline original tratava tradução como um problema de transformação textual com restrições. O v2 trata isso como trabalho de localização dentro de um sistema de build que precisa preservar escrita autoral, sobreviver a falhas e continuar inspecionável quando algo dá errado. Não são o mesmo problema, então não produzem a mesma arquitetura.</p>
+<p>A reconstrução não aconteceu porque eu de repente me interessei em transformar um tradutor de blog numa pequena burocracia. Ela aconteceu porque o sistema mais simples continuava falhando do mesmo jeito. Ele me entregava um texto bom o bastante para um benchmark moldado à própria imagem e ruim o bastante para um leitor em formato de pessoa real. Depois de um tempo, isso deixa de parecer um problema de modelo e começa a parecer cumplicidade.</p>
+<p>Esse não é um tipo muito útil de sucesso.</p>
+<p>O v2 é melhor porque é mais explícito. Ele tem etapas mais claras, semântica de durabilidade mais clara, política de PT-BR mais clara, critérios de rejeição mais claros e noções mais claras do que continua sem solução. Essa última parte importa mais do que parece. Sistemas de tradução se tornam perigosos precisamente quando ficam bons o bastante para soar prontos, porque é nesse ponto que as pessoas param de verificá-los com cuidado e começam a perdoá-los profissionalmente.</p>
+<p>Este aqui não está pronto. Mas, finalmente, é honesto sobre o que esse trabalho é. Por enquanto, isso basta. Não para as traduções, infelizmente. Para o sistema.</p>
+<h2>Fontes e leituras complementares</h2>
+<ul>
+<li><a href="https://developers.google.com/style/translation">Google Developer Documentation Style Guide, "Write for a global audience"</a></li>
+<li><a href="https://learn.microsoft.com/pt-br/style-guide/global-communications/writing-tips">Microsoft Style Guide, "Writing tips"</a></li>
+<li><a href="https://www.w3.org/TR/itsreq/">W3C, Internationalization and Localization Markup Requirements</a></li>
+<li><a href="https://themqm.org/">MQM, Multidimensional Quality Metrics</a></li>
+<li><a href="https://www.ijcai.org/Proceedings/2020/551">Zheng et al., "Towards Making the Most of Context in Neural Machine Translation"</a></li>
+<li><a href="https://www.mdpi.com/2078-2489/13/5/249">Nayak et al., "Investigating Contextual Influence in Document-Level Translation"</a></li>
+<li><a href="https://jcst.ict.ac.cn/article/cstr/32374.14.s11390-021-0286-3">Tan, Zhang, Zhou, "Document-Level Neural Machine Translation with Hierarchical Modeling of Global Context"</a></li>
+<li><a href="https://help.transifex.com/en/articles/6224636-introduction-to-translation-memory">Transifex, "Introduction to Translation Memory"</a></li>
+</ul>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer" style="view-transition-name: site-footer;">
+        <div class="footer-container">
+            <div class="social-links">
+                <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/danielcavalli" target="_blank" rel="noopener" aria-label="GitHub">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/cavallidaniel/" target="_blank" rel="noopener" aria-label="LinkedIn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                </a>
+            </div>
+            <p class="copyright">&copy; 2026 Todos os Direitos Reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>

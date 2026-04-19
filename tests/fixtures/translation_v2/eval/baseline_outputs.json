@@ -1,0 +1,32 @@
+{
+  "terminology-entities": {
+    "title": "Tradutor stateful vs stateless",
+    "excerpt": "Compatibilidade de cache protege o rollout.",
+    "tags": ["translation", "engineering"],
+    "content": "Este texto cita cache adapter, mas ignora o componente principal de coordenação."
+  },
+  "placeholder-integrity": {
+    "title": "Seguranca de template",
+    "excerpt": "Mantenha placeholders.",
+    "tags": ["translation", "ops"],
+    "content": "A saida preserva APP_NAME, mas remove RUN_ID."
+  },
+  "locale-formatting": {
+    "title": "Formatacao brasileira",
+    "excerpt": "Datas e moeda no padrao local.",
+    "tags": ["translation", "locale"],
+    "content": "Relatorio em 2026-12-31 com custo de R$ 1,234.56."
+  },
+  "tone-constraints": {
+    "title": "Tom profissional",
+    "excerpt": "Texto para producao.",
+    "tags": ["translation", "style"],
+    "content": "Cara, mano, isso aqui funciona bem para deploy."
+  },
+  "voice-terminology-packets": {
+    "title": "Pacotes de voz e terminologia",
+    "excerpt": "Traducao inconsistente.",
+    "tags": ["translation", "style"],
+    "content": "Este texto fala de GPT 5.4 e adaptador de cache com um tom show de bola para deploy."
+  }
+}

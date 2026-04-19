@@ -1,0 +1,76 @@
+{
+  "posts": {
+    "deterministic-mock-post": {
+      "metadata": {
+        "source_locale": "en-us",
+        "target_locale": "pt-br",
+        "title": "Why deterministic translation fixtures matter",
+        "excerpt": "A practical note on reproducible translation tests.",
+        "tags": ["testing", "localization"]
+      },
+      "source_analysis": {
+        "author_voice_summary": "Dry, practical, structurally aware engineering prose.",
+        "tone": "technical",
+        "register": "professional",
+        "sentence_rhythm": ["medium cadence", "occasional long sentence"],
+        "connective_tissue": ["contrastive pivots", "qualifying clauses"],
+        "rhetorical_moves": ["problem statement", "practical validation checklist"],
+        "humor_signals": ["understated irony"],
+        "stance_markers": ["first-person ownership"],
+        "must_preserve": ["[@smith2024]", "{{USER_ID}}", "%BUILD_SHA%"]
+      },
+      "terminology_policy": {
+        "keep_english": ["cache adapter", "OpenCode"],
+        "localize": ["latency => latência"],
+        "context_sensitive": ["rollout"],
+        "do_not_translate": ["OpenCode", "CUDA"],
+        "consistency_rules": [
+          "Use the same borrowing decision in title, excerpt, and body."
+        ],
+        "rationale_notes": [
+          "Borrow infrastructure terms that serious PT-BR engineering prose already leaves in English."
+        ]
+      },
+      "translated": {
+        "title": "Por que fixtures deterministicas de traducao importam",
+        "excerpt": "Uma nota pratica sobre testes de traducao reproduziveis.",
+        "tags": ["testes", "localizacao"],
+        "content": "## Contexto\n\nTimes entregam mais rapido quando os testes de traducao sao deterministicos.\n\n### O que validar\n\n1. Campos do frontmatter continuam coerentes.\n2. Estrutura de markdown e preservada.\n3. Saidas de etapas podem ser validadas sem chamadas de rede."
+      },
+      "critique": {
+        "score": 96,
+        "feedback": "Terminology and markdown structure are preserved.",
+        "needs_refinement": false,
+        "findings": [
+          {
+            "id": "finding-1",
+            "severity": "minor",
+            "dimension": "terminology",
+            "source_span": "translation fixtures",
+            "target_span": "fixtures de traducao",
+            "description": "Maintain the approved borrowing decision consistently.",
+            "fix_hint": "Keep borrowed testing terms aligned with the terminology packet."
+          }
+        ]
+      },
+      "revised": {
+        "title": "Por que fixtures deterministicas de traducao importam",
+        "excerpt": "Uma nota pratica sobre testes de traducao reproduziveis.",
+        "tags": ["testes", "localizacao"],
+        "content": "## Contexto\n\nTimes entregam mais rapido quando os testes de traducao sao deterministicos.\n\n### O que validar\n\n1. Campos do frontmatter continuam coerentes.\n2. Estrutura de markdown e preservada.\n3. Saidas de etapas podem ser validadas sem chamadas de rede.",
+        "applied_feedback": [],
+        "rewrite_summary": ["No linguistic rewrite required beyond policy confirmation."],
+        "unresolved_risks": []
+      },
+      "final_review": {
+        "accept": true,
+        "publish_ready": true,
+        "confidence": 0.94,
+        "residual_issues": [],
+        "voice_score": 96,
+        "terminology_score": 97,
+        "locale_naturalness_score": 95
+      }
+    }
+  }
+}

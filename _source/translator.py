@@ -137,19 +137,26 @@ _RE_INLINE_CODE = re.compile(r"`[^`]+`")
 # Regex for markdown / HTML tags we want to ignore during overlap analysis
 _RE_MD_TAGS = re.compile(r"<[^>]+>|!\[.*?\]\(.*?\)|\[.*?\]\(.*?\)")
 
+# Heading patterns that are expected to remain invariant across languages.
+# These are ignored by untranslated-content checks.
+_INVARIANT_HEADING_PATTERNS = (
+    re.compile(r"^(?:#+\s*)?(?:\*\*)?\s*(?:fontes|sources)\s*:?(?:\*\*)?$", re.IGNORECASE),
+    re.compile(r"^(?:#+\s*)?(?:\*\*)?\s*tl;dr\s*(?:\*\*)?$", re.IGNORECASE),
+    re.compile(
+        r"^(?:#+\s*)?(?:\*\*)?\s*view\s+transitions\s+api\s*:?(?:\*\*)?$",
+        re.IGNORECASE,
+    ),
+)
+
 # ---------------------------------------------------------------------------
 # Defense-in-depth: sanitize LLM-produced HTML
 # ---------------------------------------------------------------------------
 # Patterns that should NEVER appear in translated output.  These are matched
 # case-insensitively against rendered HTML to guard against malformed model
 # responses that could inject scripts or event handlers.
-_RE_SCRIPT_TAG = re.compile(
-    r"<\s*script[\s>].*?<\s*/\s*script\s*>", re.IGNORECASE | re.DOTALL
-)
+_RE_SCRIPT_TAG = re.compile(r"<\s*script[\s>].*?<\s*/\s*script\s*>", re.IGNORECASE | re.DOTALL)
 _RE_SCRIPT_OPEN = re.compile(r"<\s*script[\s>]", re.IGNORECASE)
-_RE_EVENT_HANDLER = re.compile(
-    r"""\bon[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|\S+)""", re.IGNORECASE
-)
+_RE_EVENT_HANDLER = re.compile(r"""\bon[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|\S+)""", re.IGNORECASE)
 _RE_JAVASCRIPT_URI = re.compile(
     r"""(?:href|src|action)\s*=\s*"""
     r"""(?:"\s*javascript:[^"]*"|'\s*javascript:[^']*'|\s*javascript:\S*)""",
@@ -235,6 +242,23 @@ def _remove_glossary_terms(text: str) -> str:
     return text
 
 
+def _normalize_heading_candidate(text: str) -> str:
+    """Normalize markdown heading-like text for invariant checks."""
+    normalized = text.strip().lower()
+    normalized = re.sub(r"^#+\s*", "", normalized)
+    normalized = re.sub(r"^\*\*\s*|\s*\*\*$", "", normalized)
+    normalized = re.sub(r"\s+", " ", normalized)
+    return normalized
+
+
+def _is_allowed_invariant_heading(text: str) -> bool:
+    """Return True when *text* matches an allowed invariant heading pattern."""
+    candidate = _normalize_heading_candidate(text)
+    if not candidate:
+        return False
+    return any(pattern.match(candidate) for pattern in _INVARIANT_HEADING_PATTERNS)
+
+
 def _word_set(text: str) -> set:
     """Return the set of non-trivial words in *text*.
 
@@ -253,11 +277,19 @@ def _split_sentences(text: str) -> List[str]:
     return [s.strip() for s in parts if s.strip()]
 
 
+def normalize_locale(locale: str) -> str:
+    """Normalize locale identifiers to lowercase hyphenated form."""
+    return str(locale or "").strip().lower().replace("_", "-")
+
+
 def validate_translation(
     original_en: str,
     translated_pt: str,
+    *,
+    source_locale: str = "en-us",
+    target_locale: str = "pt-br",
 ) -> Tuple[bool, List[str]]:
-    """Validate a PT translation against the EN original.
+    """Validate a translation for supported EN<->PT directions.
 
     Performs fast, offline checks designed to catch common translation
     failures (e.g. the model returning English instead of Portuguese)
@@ -277,8 +309,10 @@ def validate_translation(
            original character count (warning, not failure).
 
     Args:
-        original_en:  English source text (markdown/HTML).
-        translated_pt: Portuguese translated text (markdown/HTML).
+        original_en: Source text (markdown/HTML).
+        translated_pt: Translated text (markdown/HTML).
+        source_locale: Source locale (default: ``en-us``).
+        target_locale: Target locale (default: ``pt-br``).
 
     Returns:
         Tuple of ``(is_valid, issues)`` where *is_valid* is ``False`` when
@@ -288,52 +322,67 @@ def validate_translation(
     """
     issues: List[str] = []
 
+    source = normalize_locale(source_locale)
+    target = normalize_locale(target_locale)
+    run_untranslated_checks = (source.startswith("en") and target.startswith("pt")) or (
+        source.startswith("pt") and target.startswith("en")
+    )
+
     # -- 0. Trivial guard: empty translation is always invalid -----------
     if not translated_pt or not translated_pt.strip():
         return False, ["ERROR: translation is empty"]
 
     # -- 1. Strip code blocks/inline code for natural-language analysis --
-    en_clean = _strip_code_and_tags(original_en)
-    pt_clean = _strip_code_and_tags(translated_pt)
+    source_clean = _strip_code_and_tags(original_en)
+    target_clean = _strip_code_and_tags(translated_pt)
 
     # -- 2. Paragraph-level near-copy detection --------------------------
-    en_paragraphs = [p.strip() for p in en_clean.split("\n\n") if p.strip()]
-    pt_paragraphs = [p.strip() for p in pt_clean.split("\n\n") if p.strip()]
+    if run_untranslated_checks:
+        source_paragraphs = [p.strip() for p in source_clean.split("\n\n") if p.strip()]
+        target_paragraphs = [p.strip() for p in target_clean.split("\n\n") if p.strip()]
 
-    for idx, (en_para, pt_para) in enumerate(zip(en_paragraphs, pt_paragraphs)):
-        en_filtered = _remove_glossary_terms(en_para.lower())
-        pt_filtered = _remove_glossary_terms(pt_para.lower())
-        en_words = _word_set(en_filtered)
-        pt_words = _word_set(pt_filtered)
-        if not en_words:
-            continue
-        overlap = len(en_words & pt_words) / len(en_words)
-        if overlap > 0.70:
-            snippet = en_para[:80].replace("\n", " ")
-            issues.append(
-                f"ERROR: paragraph {idx + 1} appears untranslated "
-                f"({overlap:.0%} word overlap after removing glossary terms): "
-                f'"{snippet}…"'
-            )
-
-    # -- 3. Consecutive identical sentences (>3) -------------------------
-    en_sentences = _split_sentences(en_clean)
-    pt_sentences = _split_sentences(pt_clean)
-
-    consecutive = 0
-    for en_s, pt_s in zip(en_sentences, pt_sentences):
-        if en_s.strip() == pt_s.strip():
-            consecutive += 1
-            if consecutive > 3:
-                snippet = en_s.strip()[:80]
+        for idx, (source_para, target_para) in enumerate(zip(source_paragraphs, target_paragraphs)):
+            if source_para.strip() == target_para.strip() and _is_allowed_invariant_heading(
+                source_para
+            ):
+                continue
+            source_filtered = _remove_glossary_terms(source_para.lower())
+            target_filtered = _remove_glossary_terms(target_para.lower())
+            source_words = _word_set(source_filtered)
+            target_words = _word_set(target_filtered)
+            if not source_words:
+                continue
+            overlap = len(source_words & target_words) / len(source_words)
+            if overlap > 0.70:
+                snippet = source_para[:80].replace("\n", " ")
                 issues.append(
-                    f"ERROR: {consecutive} consecutive identical sentences "
-                    f"detected — section appears untranslated near: "
+                    f"ERROR: paragraph {idx + 1} appears untranslated "
+                    f"({overlap:.0%} word overlap after removing glossary terms): "
                     f'"{snippet}…"'
                 )
-                break
-        else:
-            consecutive = 0
+
+    # -- 3. Consecutive identical sentences (>3) -------------------------
+    if run_untranslated_checks:
+        source_sentences = _split_sentences(source_clean)
+        target_sentences = _split_sentences(target_clean)
+
+        consecutive = 0
+        for source_sentence, target_sentence in zip(source_sentences, target_sentences):
+            if source_sentence.strip() == target_sentence.strip():
+                if _is_allowed_invariant_heading(source_sentence):
+                    consecutive = 0
+                    continue
+                consecutive += 1
+                if consecutive > 3:
+                    snippet = source_sentence.strip()[:80]
+                    issues.append(
+                        f"ERROR: {consecutive} consecutive identical sentences "
+                        f"detected — section appears untranslated near: "
+                        f'"{snippet}…"'
+                    )
+                    break
+            else:
+                consecutive = 0
 
     # -- 4. Malformed output checks --------------------------------------
     # 4a. Unclosed fenced code blocks (odd number of ``` delimiters)
@@ -375,18 +424,16 @@ def validate_translation(
     for tag, count in open_counts.items():
         closed = close_counts.get(tag, 0)
         if count > closed:
-            issues.append(
-                f"ERROR: {count - closed} unclosed <{tag}> tag(s) in translation"
-            )
+            issues.append(f"ERROR: {count - closed} unclosed <{tag}> tag(s) in translation")
 
     # -- 5. Suspiciously short translation (warning only) ----------------
-    en_len = len(original_en.strip())
-    pt_len = len(translated_pt.strip())
-    if en_len > 0 and pt_len < en_len * 0.50:
+    source_len = len(original_en.strip())
+    target_len = len(translated_pt.strip())
+    if source_len > 0 and target_len < source_len * 0.50:
         issues.append(
             f"WARNING: translation is suspiciously short "
-            f"({pt_len} chars vs {en_len} original — "
-            f"{pt_len / en_len:.0%} of source length)"
+            f"({target_len} chars vs {source_len} original — "
+            f"{target_len / source_len:.0%} of source length)"
         )
 
     has_errors = any(issue.startswith("ERROR:") for issue in issues)
@@ -432,7 +479,7 @@ class TranslationCache:
             try:
                 with open(TRANSLATION_CACHE_FILE, "r", encoding="utf-8") as f:
                     return json.load(f)
-            except:
+            except (json.JSONDecodeError, OSError):
                 return {}
         return {}
 
@@ -532,9 +579,7 @@ class MultiAgentTranslator:
             api_key=self.api_key, http_options=types.HttpOptions(api_version="v1beta")
         )
         self.model_chain = GEMINI_MODEL_CHAIN
-        self.model_name = self.model_chain[
-            0
-        ]  # primary model (backward-compat reference)
+        self.model_name = self.model_chain[0]  # primary model (backward-compat reference)
         self.cache = TranslationCache()
         self.enable_critique = enable_critique
         self.strict_validation = strict_validation
@@ -638,9 +683,7 @@ class MultiAgentTranslator:
                         contents=prompt,
                     )
                     if is_fallback:
-                        print(
-                            f"      [model] Success with fallback model: {model_name}"
-                        )
+                        print(f"      [model] Success with fallback model: {model_name}")
                     return response.text
 
                 except Exception as e:
@@ -689,10 +732,7 @@ class MultiAgentTranslator:
                     else:
                         # Non-quota error: retry with short delay.
                         if attempt < retries_per_model - 1:
-                            print(
-                                f"      Retrying in 10s "
-                                f"({attempt + 2}/{retries_per_model})..."
-                            )
+                            print(f"      Retrying in 10s ({attempt + 2}/{retries_per_model})...")
                             time.sleep(10)
                         else:
                             print(
@@ -708,7 +748,13 @@ class MultiAgentTranslator:
         )
 
     def _validate_and_log(
-        self, slug: str, original_content: str, translation: Dict
+        self,
+        slug: str,
+        original_content: str,
+        translation: Dict,
+        *,
+        source_locale: str = "en-us",
+        target_locale: str = "pt-br",
     ) -> bool:
         """Run translation validation and log results.
 
@@ -727,7 +773,12 @@ class MultiAgentTranslator:
             be rejected (only in strict_validation mode).
         """
         translated_content = translation.get("content", "")
-        is_valid, issues = validate_translation(original_content, translated_content)
+        is_valid, issues = validate_translation(
+            original_content,
+            translated_content,
+            source_locale=source_locale,
+            target_locale=target_locale,
+        )
 
         if not issues:
             return True
@@ -736,9 +787,7 @@ class MultiAgentTranslator:
             print(f"      [validation] {slug}: {issue}")
 
         if not is_valid and self.strict_validation:
-            print(
-                f"      Validation FAILED for {slug} (strict mode) — translation rejected"
-            )
+            print(f"      Validation FAILED for {slug} (strict mode) — translation rejected")
             return False
 
         return True
@@ -794,9 +843,7 @@ class MultiAgentTranslator:
                 legacy_cached = self.cache.get_translation(slug, legacy_hash)
                 if legacy_cached:
                     if not legacy_cached.get("content", "").strip():
-                        print(
-                            f"   Cached translation has empty content, retranslating: {slug}"
-                        )
+                        print(f"   Cached translation has empty content, retranslating: {slug}")
                         force = True
                     else:
                         print(f"   Content unchanged (migrated cache): {slug}")
@@ -805,9 +852,7 @@ class MultiAgentTranslator:
             if cached:
                 # Check if cached translation has empty content - if so, retranslate
                 if not cached.get("content", "").strip():
-                    print(
-                        f"   Cached translation has empty content, retranslating: {slug}"
-                    )
+                    print(f"   Cached translation has empty content, retranslating: {slug}")
                     force = True
                 else:
                     print(f"   Content unchanged: {slug}")
@@ -825,13 +870,19 @@ class MultiAgentTranslator:
             return None
 
         if not self.enable_critique:
-            print(f"      Translation complete (critique disabled)")
-            if not self._validate_and_log(slug, content, translation):
+            print("      Translation complete (critique disabled)")
+            if not self._validate_and_log(
+                slug,
+                content,
+                translation,
+                source_locale=source_locale,
+                target_locale=target_locale,
+            ):
                 return None
             self.cache.store_translation(slug, content_hash, translation)
             return translation
 
-        print(f"      Reviewing translation...")
+        print("      Reviewing translation...")
 
         critique_result, feedback = self._critique(
             frontmatter,
@@ -842,13 +893,19 @@ class MultiAgentTranslator:
         )
 
         if critique_result == "OK":
-            print(f"      Translation approved")
-            if not self._validate_and_log(slug, content, translation):
+            print("      Translation approved")
+            if not self._validate_and_log(
+                slug,
+                content,
+                translation,
+                source_locale=source_locale,
+                target_locale=target_locale,
+            ):
                 return None
             self.cache.store_translation(slug, content_hash, translation)
             return translation
 
-        print(f"      Refining based on feedback...")
+        print("      Refining based on feedback...")
 
         refined = self._refine(
             frontmatter,
@@ -860,14 +917,26 @@ class MultiAgentTranslator:
         )
 
         if refined:
-            print(f"      Translation refined")
-            if not self._validate_and_log(slug, content, refined):
+            print("      Translation refined")
+            if not self._validate_and_log(
+                slug,
+                content,
+                refined,
+                source_locale=source_locale,
+                target_locale=target_locale,
+            ):
                 return None
             self.cache.store_translation(slug, content_hash, refined)
             return refined
 
-        print(f"      Using initial translation")
-        if not self._validate_and_log(slug, content, translation):
+        print("      Using initial translation")
+        if not self._validate_and_log(
+            slug,
+            content,
+            translation,
+            source_locale=source_locale,
+            target_locale=target_locale,
+        ):
             return None
         self.cache.store_translation(slug, content_hash, translation)
         return translation
@@ -1045,9 +1114,7 @@ class MultiAgentTranslator:
 
         if target.startswith("pt"):
             style_rule = "Write as a bilingual Brazilian engineer would naturally speak"
-            heading_rule = (
-                "TRANSLATE ALL section headings/titles to Portuguese (##, ###, etc.)"
-            )
+            heading_rule = "TRANSLATE ALL section headings/titles to Portuguese (##, ###, etc.)"
             lexical_rule = (
                 "TRANSLATE these common words to Portuguese: "
                 "port/ports -> porta/portas, setup -> configuracao, network -> rede, "
@@ -1061,9 +1128,7 @@ class MultiAgentTranslator:
             )
         elif target.startswith("en"):
             style_rule = "Write as a bilingual software engineer would naturally speak in English"
-            heading_rule = (
-                "TRANSLATE ALL section headings/titles to English (##, ###, etc.)"
-            )
+            heading_rule = "TRANSLATE ALL section headings/titles to English (##, ###, etc.)"
             lexical_rule = (
                 "TRANSLATE these common words to English when they appear in Portuguese: "
                 "porta/portas -> port/ports, configuracao -> setup, rede -> network, "
@@ -1079,10 +1144,10 @@ class MultiAgentTranslator:
                 f"Write naturally for target locale {target_locale}, preserving technical "
                 "precision and tone"
             )
-            heading_rule = f"TRANSLATE ALL section headings/titles to {target_locale} (##, ###, etc.)"
-            lexical_rule = (
-                "Translate non-technical terms naturally to the target locale."
+            heading_rule = (
+                f"TRANSLATE ALL section headings/titles to {target_locale} (##, ###, etc.)"
             )
+            lexical_rule = "Translate non-technical terms naturally to the target locale."
             critical_rule = (
                 "CRITICAL: Keep technical terms as plain text when needed - no backticks, "
                 "quotes, or extra formatting"
@@ -1273,9 +1338,7 @@ CONTENT:
                 elif current == "excerpt" and buffer:
                     result["excerpt"] = " ".join(buffer).strip()
                 elif current == "tags" and buffer:
-                    result["tags"] = [
-                        t.strip() for t in " ".join(buffer).split(",") if t.strip()
-                    ]
+                    result["tags"] = [t.strip() for t in " ".join(buffer).split(",") if t.strip()]
 
                 current = "title"
                 buffer = []
@@ -1312,9 +1375,7 @@ CONTENT:
 
             elif upper.startswith("CONTENT:"):
                 if current == "tags" and buffer:
-                    result["tags"] = [
-                        t.strip() for t in " ".join(buffer).split(",") if t.strip()
-                    ]
+                    result["tags"] = [t.strip() for t in " ".join(buffer).split(",") if t.strip()]
                 current = "content"
                 buffer = []
                 continue
@@ -1331,9 +1392,7 @@ CONTENT:
         elif current == "excerpt" and buffer:
             result["excerpt"] = " ".join(buffer).strip()
         elif current == "tags" and buffer:
-            result["tags"] = [
-                t.strip() for t in " ".join(buffer).split(",") if t.strip()
-            ]
+            result["tags"] = [t.strip() for t in " ".join(buffer).split(",") if t.strip()]
 
         return result
 
@@ -1359,17 +1418,15 @@ CONTENT:
             cached = self.cache.get_translation(slug, content_hash)
             if cached:
                 # Check if any paragraph is empty - if so, retranslate
-                has_empty = any(
-                    not cached.get(f"p{i}", "").strip() for i in range(1, 5)
-                )
+                has_empty = any(not cached.get(f"p{i}", "").strip() for i in range(1, 5))
                 if has_empty:
-                    print(f"   Cached About has empty content, retranslating")
+                    print("   Cached About has empty content, retranslating")
                     force = True
                 else:
-                    print(f"   Content unchanged: About")
+                    print("   Content unchanged: About")
                     return cached
 
-        print(f"   Translating: About")
+        print("   Translating: About")
 
         prompt = f"""Translate this About page content to natural Brazilian Portuguese.
 
@@ -1511,13 +1568,13 @@ P4:
             if cached:
                 # Validate cached data has the expected structure
                 if cached.get("summary") and cached.get("experience"):
-                    print(f"   Content unchanged: CV")
+                    print("   Content unchanged: CV")
                     return cached
                 else:
-                    print(f"   Cached CV has incomplete data, retranslating")
+                    print("   Cached CV has incomplete data, retranslating")
                     force = True
 
-        print(f"   Translating: CV")
+        print("   Translating: CV")
 
         # Build experience block for the prompt
         experience_block = ""
@@ -1627,7 +1684,8 @@ SUMMARY:
                 if edu.get(fld):
                     edu[fld] = sanitize_translation_text(edu[fld])
         translated["languages_spoken"] = [
-            sanitize_translation_text(l) for l in translated.get("languages_spoken", [])
+            sanitize_translation_text(language)
+            for language in translated.get("languages_spoken", [])
         ]
 
         self.cache.store_translation(slug, content_hash, translated)
@@ -1646,9 +1704,7 @@ SUMMARY:
         for i, exp in enumerate(cv_data.get("experience", []), 1):
             ach_lines = ""
             if exp.get("achievements"):
-                ach_lines = "\n".join(
-                    f"  - [translated achievement]" for _ in exp["achievements"]
-                )
+                ach_lines = "\n".join("  - [translated achievement]" for _ in exp["achievements"])
                 ach_lines = f"\n  Achievements:\n{ach_lines}"
             lines.append(f"""EXP_{i}:
   Description: [translated description]{ach_lines}
@@ -1694,17 +1750,13 @@ SUMMARY:
             "education": [dict(edu) for edu in original.get("education", [])],
         }
 
-        lines = response.strip().split("\n")
-
         # Extract TAGLINE
         tagline_match = re_mod.search(r"TAGLINE:\s*\n(.+)", response)
         if tagline_match:
             result["tagline"] = tagline_match.group(1).strip()
 
         # Extract SUMMARY (everything between SUMMARY: and next top-level section)
-        summary_match = re_mod.search(
-            r"SUMMARY:\s*\n(.*?)(?=\nEXP_1:|$)", response, re_mod.DOTALL
-        )
+        summary_match = re_mod.search(r"SUMMARY:\s*\n(.*?)(?=\nEXP_1:|$)", response, re_mod.DOTALL)
         if summary_match:
             result["summary"] = summary_match.group(1).strip()
 
@@ -1712,9 +1764,7 @@ SUMMARY:
         for i in range(len(result["experience"])):
             exp_num = i + 1
             next_section = (
-                f"EXP_{exp_num + 1}:"
-                if exp_num < len(result["experience"])
-                else f"EDU_1:"
+                f"EXP_{exp_num + 1}:" if exp_num < len(result["experience"]) else "EDU_1:"
             )
             pattern = rf"EXP_{exp_num}:\s*\n(.*?)(?=\n{re_mod.escape(next_section)}|$)"
             exp_match = re_mod.search(pattern, response, re_mod.DOTALL)
@@ -1732,9 +1782,7 @@ SUMMARY:
                     result["experience"][i]["description"] = desc_match.group(1).strip()
 
                 # Extract achievements
-                ach_match = re_mod.search(
-                    r"Achievements:\s*\n(.*)", exp_block, re_mod.DOTALL
-                )
+                ach_match = re_mod.search(r"Achievements:\s*\n(.*)", exp_block, re_mod.DOTALL)
                 if ach_match:
                     ach_text = ach_match.group(1)
                     achievements = []
@@ -1751,9 +1799,7 @@ SUMMARY:
         for i in range(len(result["education"])):
             edu_num = i + 1
             next_section = (
-                f"EDU_{edu_num + 1}:"
-                if edu_num < len(result["education"])
-                else "LANGUAGES_SPOKEN:"
+                f"EDU_{edu_num + 1}:" if edu_num < len(result["education"]) else "LANGUAGES_SPOKEN:"
             )
             pattern = rf"EDU_{edu_num}:\s*\n(.*?)(?=\n{re_mod.escape(next_section)}|$)"
             edu_match = re_mod.search(pattern, response, re_mod.DOTALL)
@@ -1765,21 +1811,19 @@ SUMMARY:
                     result["education"][i]["degree"] = degree_match.group(1).strip()
 
         # Extract translated languages spoken
-        lang_match = re_mod.search(
-            r"LANGUAGES_SPOKEN:\s*\n(.*)", response, re_mod.DOTALL
-        )
+        lang_match = re_mod.search(r"LANGUAGES_SPOKEN:\s*\n(.*)", response, re_mod.DOTALL)
         if lang_match:
             lang_lines = [
-                l.strip() for l in lang_match.group(1).strip().split("\n") if l.strip()
+                language.strip()
+                for language in lang_match.group(1).strip().split("\n")
+                if language.strip()
             ]
             if lang_lines:
                 result["languages_spoken"] = lang_lines
 
         return result
 
-    def translate_if_needed(
-        self, post: Dict, target_locale: str = "pt-br"
-    ) -> Optional[Dict]:
+    def translate_if_needed(self, post: Dict, target_locale: str = "pt-br") -> Optional[Dict]:
         """Translate complete post to the requested target locale."""
         source_locale = str(post.get("lang") or "en-us")
         if source_locale.lower() == target_locale.lower():
@@ -1810,9 +1854,7 @@ SUMMARY:
         # Build translated post from translation results (works for both new and cached)
         translated_post = post.copy()
         translated_post["lang"] = target_locale
-        translated_post["title"] = sanitize_translation_text(
-            translated.get("title", post["title"])
-        )
+        translated_post["title"] = sanitize_translation_text(translated.get("title", post["title"]))
         translated_post["excerpt"] = sanitize_translation_text(
             translated.get("excerpt", post["excerpt"])
         )

@@ -6,7 +6,6 @@ and managing the sidecar metadata manifest at _cache/post-metadata.json.
 
 import json
 from datetime import datetime
-from pathlib import Path
 from typing import Optional
 
 import frontmatter

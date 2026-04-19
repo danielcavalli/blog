@@ -58,3 +58,23 @@ def test_non_numeric_reference_label_is_not_rewritten():
 
     assert "[named citation][abc]" in processed
     assert "[named citation][abc]" in html
+
+
+def test_bare_numeric_citation_is_rewritten_to_internal_anchor_link():
+    md = "Context continuity is rebuilt [7].\n\n[7] Reference item"
+
+    processed = preprocess_numeric_internal_references(md)
+    html = render_markdown_with_internal_refs(md)
+
+    assert "[[7]](#ref-7)" in processed
+    assert '<a href="#ref-7">[7]</a>' in html
+
+
+def test_unknown_bare_numeric_citation_is_not_rewritten():
+    md = "Context continuity is rebuilt [7]."
+
+    processed = preprocess_numeric_internal_references(md)
+    html = render_markdown_with_internal_refs(md)
+
+    assert "[7]" in processed
+    assert '<a href="#ref-7">[7]</a>' not in html

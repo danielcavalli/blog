@@ -9,7 +9,7 @@ import frontmatter
 _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 sys.path.insert(0, _SOURCE)
 
-import content_loader
+import content_loader  # noqa: E402  # imported after sys.path adjustment
 
 
 class TestParseMarkdownPost:
@@ -28,9 +28,7 @@ class TestParseMarkdownPost:
                 mock_load.return_value = post
 
                 # We need to mock calculate_content_hash, which is from helpers
-                with mock.patch(
-                    "content_loader.calculate_content_hash", return_value="hash"
-                ):
+                with mock.patch("content_loader.calculate_content_hash", return_value="hash"):
                     # And mock markdown rendering
                     with mock.patch(
                         "content_loader.render_markdown_with_internal_refs",
@@ -39,9 +37,7 @@ class TestParseMarkdownPost:
                         import pathlib
 
                         p = pathlib.Path(filepath)
-                        result = content_loader.parse_markdown_post(
-                            p, _metadata_store=store
-                        )
+                        result = content_loader.parse_markdown_post(p, _metadata_store=store)
 
             assert result["lang"] == "en-us"
         finally:
@@ -60,9 +56,7 @@ class TestParseMarkdownPost:
                 post = frontmatter.Post("Content", title="Test", lang="pt-br")
                 mock_load.return_value = post
 
-                with mock.patch(
-                    "content_loader.calculate_content_hash", return_value="hash"
-                ):
+                with mock.patch("content_loader.calculate_content_hash", return_value="hash"):
                     with mock.patch(
                         "content_loader.render_markdown_with_internal_refs",
                         return_value="<p>Content</p>",
@@ -70,9 +64,7 @@ class TestParseMarkdownPost:
                         import pathlib
 
                         p = pathlib.Path(filepath)
-                        result = content_loader.parse_markdown_post(
-                            p, _metadata_store=store
-                        )
+                        result = content_loader.parse_markdown_post(p, _metadata_store=store)
 
             assert result["lang"] == "pt-br"
         finally:
@@ -88,14 +80,10 @@ class TestParseMarkdownPost:
         try:
             store = {}
             with mock.patch("content_loader.frontmatter.load") as mock_load:
-                post = frontmatter.Post(
-                    "Content", title="Test", source_language="es-es"
-                )
+                post = frontmatter.Post("Content", title="Test", source_language="es-es")
                 mock_load.return_value = post
 
-                with mock.patch(
-                    "content_loader.calculate_content_hash", return_value="hash"
-                ):
+                with mock.patch("content_loader.calculate_content_hash", return_value="hash"):
                     with mock.patch(
                         "content_loader.render_markdown_with_internal_refs",
                         return_value="<p>Content</p>",
@@ -103,9 +91,7 @@ class TestParseMarkdownPost:
                         import pathlib
 
                         p = pathlib.Path(filepath)
-                        result = content_loader.parse_markdown_post(
-                            p, _metadata_store=store
-                        )
+                        result = content_loader.parse_markdown_post(p, _metadata_store=store)
 
             assert result["lang"] == "es-es"
         finally:

@@ -1,0 +1,57 @@
+[
+  {
+    "case_id": "terminology-entities",
+    "source_title": "Stateful vs stateless translator",
+    "source_excerpt": "How cache compatibility protects rollout safety.",
+    "source_content": "Preserve the terms 'cache adapter' and 'orchestrator' in Portuguese context.",
+    "expected_tags": ["translation", "engineering"],
+    "required_placeholders": [],
+    "required_terminology": ["cache adapter", "orquestrador"],
+    "locale_required_patterns": [],
+    "tone_forbidden_phrases": []
+  },
+  {
+    "case_id": "placeholder-integrity",
+    "source_title": "Template safety",
+    "source_excerpt": "Keep placeholders unchanged.",
+    "source_content": "Output must keep {{APP_NAME}} and {{RUN_ID}} exactly as tokens.",
+    "expected_tags": ["translation", "qa"],
+    "required_placeholders": ["{{APP_NAME}}", "{{RUN_ID}}"],
+    "required_terminology": [],
+    "locale_required_patterns": [],
+    "tone_forbidden_phrases": []
+  },
+  {
+    "case_id": "locale-formatting",
+    "source_title": "Brazilian locale formatting",
+    "source_excerpt": "Numbers and dates must follow pt-BR format.",
+    "source_content": "Use date 31/12/2026 and currency R$ 1.234,56.",
+    "expected_tags": ["translation", "locale"],
+    "required_placeholders": [],
+    "required_terminology": [],
+    "locale_required_patterns": ["31/12/2026", "R\\$\\s*1\\.234,56"],
+    "tone_forbidden_phrases": []
+  },
+  {
+    "case_id": "tone-constraints",
+    "source_title": "Professional tone",
+    "source_excerpt": "Stay concise and professional.",
+    "source_content": "Avoid slang and keep a formal but clear tone.",
+    "expected_tags": ["translation", "style"],
+    "required_placeholders": [],
+    "required_terminology": [],
+    "locale_required_patterns": [],
+    "tone_forbidden_phrases": ["mano", "cara"]
+  },
+  {
+    "case_id": "voice-terminology-packets",
+    "source_title": "Packeted voice and terminology guidance",
+    "source_excerpt": "Honor the approved voice brief and technical terminology packet.",
+    "source_content": "Preserve GPT-5.4, cache adapter, and orchestration language while keeping an understated engineering voice.",
+    "expected_tags": ["translation", "style"],
+    "required_placeholders": [],
+    "required_terminology": ["GPT-5.4", "cache adapter", "orquestracao"],
+    "locale_required_patterns": [],
+    "tone_forbidden_phrases": ["mano", "show de bola"]
+  }
+]

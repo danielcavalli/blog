@@ -110,3 +110,33 @@ class TestTranslatorDirection:
         assert translated["title"] == "English Title"
         assert translated["raw_content"] == "Translated **content**"
         assert "<strong>content</strong>" in translated["content"]
+
+    def test_translate_if_needed_renders_bare_numeric_citations_as_clickable_links(self):
+        t = object.__new__(translator.MultiAgentTranslator)
+
+        def fake_translate_post(*args, **kwargs):
+            return {
+                "title": "Continuidade",
+                "excerpt": "Resumo",
+                "tags": ["contexto"],
+                "content": "Contexto e reconstruido [7].\n\n[7] Reference item",
+            }
+
+        t.translate_post = fake_translate_post  # type: ignore[attr-defined]
+
+        post = {
+            "slug": "continuity-is-rebuilt-not-remembered",
+            "title": "Continuity is rebuilt, not remembered",
+            "excerpt": "Excerpt",
+            "tags": ["context"],
+            "content": "<p>content</p>",
+            "raw_content": "content",
+            "lang": "en-us",
+        }
+
+        translated = t.translate_if_needed(post, target_locale="pt-br")
+
+        assert translated is not None
+        assert translated["raw_content"] == "Contexto e reconstruido [7].\n\n[7] Reference item"
+        assert '<a href="#ref-7">[7]</a>' in translated["content"]
+        assert 'id="ref-7"' in translated["content"]
