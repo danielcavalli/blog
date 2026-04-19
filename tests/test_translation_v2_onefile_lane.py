@@ -58,18 +58,19 @@ def test_onefile_lane_runs_end_to_end_with_debuggable_logs(
 
     assert ok is True
     assert elapsed <= _runtime_ceiling_seconds()
-    assert f"processing 1 selected file(s): {source_post['slug']}" in captured
-    assert "translation_v2 debug: run_id=" in captured
-    assert "artifact_dir=" in captured
+    assert "Markdown discovery" in captured
+    assert "Selected" in captured
+    assert source_post["slug"] in captured
+    assert "translation_v2 runtime" in captured
+    assert "Run ID" in captured
+    assert "Artifacts" in captured
     assert CANONICAL_ONEFILE_LANE_COMMAND.endswith("tests/test_translation_v2_onefile_lane.py -q")
 
-    run_match = re.search(r"run_id=([^\s]+)", captured)
-    artifact_match = re.search(r"artifact_dir=([^\s]+)", captured)
+    run_match = re.search(r"test-run|build-v2-[0-9]+", captured)
     assert run_match is not None
-    assert artifact_match is not None
 
-    run_id = run_match.group(1)
-    artifact_dir = Path(artifact_match.group(1))
+    run_id = run_match.group(0)
+    artifact_dir = tmp_path / "_cache" / "translation-runs" / run_id
     assert artifact_dir.exists()
     assert artifact_dir.name == run_id
     assert (tmp_path / "pt" / "blog" / "deterministic-mock-post.html").exists()

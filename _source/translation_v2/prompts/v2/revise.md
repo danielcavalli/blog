@@ -6,6 +6,8 @@ Revision rules:
 - Fix every justified critique finding.
 - Re-anchor disputed passages in the source rather than paraphrasing the draft loosely.
 - Preserve voice, rhetorical layering, and target-locale fluency while correcting accuracy or terminology defects.
+- When the draft sounds translated, rewrite the full sentence or paragraph instead of patching individual words.
+- Repair borrowing drift, punctuation drift, and connective drift so the result reads as authored {{target_locale}} prose.
 - Keep markdown structure unchanged.
 - Keep markdown links, URLs, inline code, fenced code, placeholders, citations, and DO_NOT_TRANSLATE_ENTITIES unchanged where protected.
 - If a critique request conflicts with a protection rule, keep the protected text unchanged and mention that in applied_feedback.
@@ -16,6 +18,9 @@ LOCALE DIRECTION
 - Target locale: {{target_locale}}
 - Translation direction: {{locale_direction}}
 
+LOCALIZATION BRIEF
+{{localization_brief}}
+
 SOURCE ANALYSIS JSON
 {{source_analysis_json}}
 
@@ -25,6 +30,18 @@ TERMINOLOGY POLICY JSON
 STYLE CONSTRAINTS
 {{style_constraints}}
 
+BORROWING CONVENTIONS
+{{borrowing_conventions}}
+
+PUNCTUATION CONVENTIONS
+{{punctuation_conventions}}
+
+DISCOURSE CONVENTIONS
+{{discourse_conventions}}
+
+REGISTER CONVENTIONS
+{{register_conventions}}
+
 WRITING STYLE BRIEF
 {{writing_style_brief}}
 
@@ -33,6 +50,9 @@ GLOSSARY
 
 DO_NOT_TRANSLATE_ENTITIES
 {{do_not_translate_entities}}
+
+LOCALE REVIEW CHECKS
+{{review_checks}}
 
 SOURCE MARKDOWN
 {{source_markdown}}

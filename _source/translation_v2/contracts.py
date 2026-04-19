@@ -46,6 +46,39 @@ class TerminologyPolicyPacket:
     do_not_translate: list[str] = field(default_factory=list)
     consistency_rules: list[str] = field(default_factory=list)
     rationale_notes: list[str] = field(default_factory=list)
+    resolved_decisions: list["TerminologyDecision"] = field(default_factory=list)
+    education_degree_localization_policy: "EducationDegreeLocalizationPolicy | None" = None
+
+
+@dataclass(slots=True)
+class TerminologyDecision:
+    """Resolved artifact-level decision for one ambiguous source term."""
+
+    source_term: str
+    preferred_rendering: str
+    decision_type: str
+    scope: str
+    rationale: str
+    applies_to: list[str] = field(default_factory=list)
+
+
+@dataclass(slots=True)
+class EducationDegreePolicyException:
+    """Allowed exception for degree-localization policy."""
+
+    source_degree: str
+    approved_rendering: str
+    reason: str
+
+
+@dataclass(slots=True)
+class EducationDegreeLocalizationPolicy:
+    """Explicit artifact-wide policy for education.degree localization."""
+
+    decision: str
+    apply_consistently: bool
+    rule: str
+    exceptions: list[EducationDegreePolicyException] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -126,8 +159,54 @@ class RevisionOutput:
     tags: list[str]
     content: str
     applied_feedback: list[str] = field(default_factory=list)
+    declined_feedback: list["RevisionDisposition"] = field(default_factory=list)
     rewrite_summary: list[str] = field(default_factory=list)
     unresolved_risks: list[str] = field(default_factory=list)
+
+
+@dataclass(slots=True)
+class CVRevisionOutput:
+    """Structured output for CV revision stage."""
+
+    revised_cv: CVTranslationOutput
+    revision_report: "CVRevisionReport"
+
+
+@dataclass(slots=True)
+class RevisionDisposition:
+    """Disposition for a critique finding during revision."""
+
+    finding_id: str
+    status: str
+    rationale: str
+
+
+@dataclass(slots=True)
+class RevisionAppliedFinding:
+    """Concrete applied fix entry for revision reports."""
+
+    finding_id: str
+    field_path: str
+    change_summary: str
+
+
+@dataclass(slots=True)
+class ProtectedFieldException:
+    """Explicit protected-field exception for declined critique items."""
+
+    finding_id: str
+    field_path: str
+    protected_value: str
+    reason: str
+
+
+@dataclass(slots=True)
+class CVRevisionReport:
+    """Structured report for CV revision outcomes."""
+
+    applied_findings: list[RevisionAppliedFinding] = field(default_factory=list)
+    declined_findings: list["RevisionDisposition"] = field(default_factory=list)
+    protected_field_exceptions: list[ProtectedFieldException] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -147,11 +226,13 @@ RefinementOutput = RevisionOutput
 
 ProviderPayload = (
     VoiceIntentPacket
+    | TerminologyDecision
     | TerminologyPolicyPacket
     | TranslationOutput
     | CVTranslationOutput
     | CritiqueOutput
     | RevisionOutput
+    | CVRevisionOutput
     | FinalReviewOutput
 )
 StagePayloadT = TypeVar("StagePayloadT", bound=ProviderPayload, covariant=True)
@@ -743,6 +824,13 @@ def validate_revision_output(
             actual_type=type(applied_feedback).__name__,
         )
 
+    declined_feedback = _normalize_revision_dispositions(
+        payload.get("declined_feedback", []),
+        run_id=run_id,
+        stage=stage,
+        field_name="declined_feedback",
+    )
+
     rewrite_summary = payload.get("rewrite_summary", [])
     if not isinstance(rewrite_summary, list) or not all(
         isinstance(item, str) for item in rewrite_summary
@@ -775,8 +863,62 @@ def validate_revision_output(
         tags=base.tags,
         content=base.content,
         applied_feedback=applied_feedback,
+        declined_feedback=declined_feedback,
         rewrite_summary=rewrite_summary,
         unresolved_risks=unresolved_risks,
+    )
+
+
+def validate_cv_revision_output(
+    payload: dict[str, Any], *, run_id: str, stage: str = "revise"
+) -> CVRevisionOutput:
+    """Validate and parse structured CV revision output."""
+
+    cv_payload = payload.get("revised_cv", payload.get("cv"))
+    if not isinstance(cv_payload, dict):
+        raise TypeMismatchError(
+            message="Field type mismatch",
+            run_id=run_id,
+            stage=stage,
+            field="revised_cv",
+            expected_type="dict",
+            actual_type=type(cv_payload).__name__,
+        )
+
+    cv = validate_cv_translation_output(cv_payload, run_id=run_id, stage=stage)
+    raw_report = payload.get("revision_report")
+    if not isinstance(raw_report, dict):
+        raise TypeMismatchError(
+            message="Field type mismatch",
+            run_id=run_id,
+            stage=stage,
+            field="revision_report",
+            expected_type="dict",
+            actual_type=type(raw_report).__name__,
+        )
+
+    return CVRevisionOutput(
+        revised_cv=cv,
+        revision_report=CVRevisionReport(
+            applied_findings=_normalize_applied_findings(
+                raw_report.get("applied_findings", []),
+                run_id=run_id,
+                stage=stage,
+                field_name="revision_report.applied_findings",
+            ),
+            declined_findings=_normalize_declined_findings(
+                raw_report.get("declined_findings", []),
+                run_id=run_id,
+                stage=stage,
+                field_name="revision_report.declined_findings",
+            ),
+            protected_field_exceptions=_normalize_protected_field_exceptions(
+                raw_report.get("protected_field_exceptions", []),
+                run_id=run_id,
+                stage=stage,
+                field_name="revision_report.protected_field_exceptions",
+            ),
+        ),
     )
 
 
@@ -786,6 +928,21 @@ def validate_refinement_output(
     """Backward-compatible alias for revision-stage parsing."""
 
     return validate_revision_output(payload, run_id=run_id, stage=stage)
+
+
+def _normalize_declined_findings(
+    payload: Any,
+    *,
+    run_id: str,
+    stage: str,
+    field_name: str,
+) -> list[RevisionDisposition]:
+    return _normalize_revision_dispositions(
+        payload,
+        run_id=run_id,
+        stage=stage,
+        field_name=field_name,
+    )
 
 
 def validate_voice_intent_output(
@@ -863,6 +1020,18 @@ def validate_terminology_policy_output(
         rationale_notes=_require_string_list(
             payload, field_name="rationale_notes", run_id=run_id, stage=stage
         ),
+        resolved_decisions=_require_terminology_decisions(
+            payload,
+            field_name="resolved_decisions",
+            run_id=run_id,
+            stage=stage,
+        ),
+        education_degree_localization_policy=_require_education_degree_policy(
+            payload,
+            field_name="education_degree_localization_policy",
+            run_id=run_id,
+            stage=stage,
+        ),
     )
 
 
@@ -924,3 +1093,297 @@ def validate_final_review_output(
         terminology_score=float(terminology_score),
         locale_naturalness_score=float(locale_naturalness_score),
     )
+
+
+def _require_terminology_decisions(
+    payload: dict[str, Any], *, field_name: str, run_id: str, stage: str
+) -> list[TerminologyDecision]:
+    raw = payload.get(field_name, [])
+    if not isinstance(raw, list):
+        raise TypeMismatchError(
+            message="Field type mismatch",
+            run_id=run_id,
+            stage=stage,
+            field=field_name,
+            expected_type="list",
+            actual_type=type(raw).__name__,
+        )
+    normalized: list[TerminologyDecision] = []
+    for index, item in enumerate(raw):
+        if not isinstance(item, dict):
+            raise TypeMismatchError(
+                message="Field type mismatch",
+                run_id=run_id,
+                stage=stage,
+                field=f"{field_name}[{index}]",
+                expected_type="dict",
+                actual_type=type(item).__name__,
+            )
+        normalized.append(
+            TerminologyDecision(
+                source_term=_require_nested_string(item, "source_term", run_id, stage, field_name),
+                preferred_rendering=_require_nested_string_alias(
+                    item,
+                    ("preferred_rendering", "approved_rendering"),
+                    run_id,
+                    stage,
+                    field_name,
+                ),
+                decision_type=_require_nested_string_alias(
+                    item,
+                    ("decision_type", "decision"),
+                    run_id,
+                    stage,
+                    field_name,
+                ),
+                scope=_require_nested_string(item, "scope", run_id, stage, field_name),
+                rationale=_require_nested_string_alias(
+                    item,
+                    ("rationale", "notes"),
+                    run_id,
+                    stage,
+                    field_name,
+                ),
+                applies_to=_require_nested_string_list_optional(
+                    item,
+                    "applies_to",
+                    run_id,
+                    stage,
+                    field_name,
+                ),
+            )
+        )
+    return normalized
+
+
+def _require_education_degree_policy(
+    payload: dict[str, Any], *, field_name: str, run_id: str, stage: str
+) -> EducationDegreeLocalizationPolicy | None:
+    raw = payload.get(field_name)
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        raise TypeMismatchError(
+            message="Field type mismatch",
+            run_id=run_id,
+            stage=stage,
+            field=field_name,
+            expected_type="dict",
+            actual_type=type(raw).__name__,
+        )
+    exceptions_raw = raw.get("exceptions", [])
+    if not isinstance(exceptions_raw, list):
+        raise TypeMismatchError(
+            message="Field type mismatch",
+            run_id=run_id,
+            stage=stage,
+            field=f"{field_name}.exceptions",
+            expected_type="list[object]",
+            actual_type=type(exceptions_raw).__name__,
+        )
+    exceptions: list[EducationDegreePolicyException] = []
+    for index, item in enumerate(exceptions_raw):
+        if not isinstance(item, dict):
+            raise TypeMismatchError(
+                message="Field type mismatch",
+                run_id=run_id,
+                stage=stage,
+                field=f"{field_name}.exceptions[{index}]",
+                expected_type="dict",
+                actual_type=type(item).__name__,
+            )
+        exceptions.append(
+            EducationDegreePolicyException(
+                source_degree=_require_nested_string(
+                    item, "source_degree", run_id, stage, f"{field_name}.exceptions"
+                ),
+                approved_rendering=_require_nested_string(
+                    item, "approved_rendering", run_id, stage, f"{field_name}.exceptions"
+                ),
+                reason=_require_nested_string(
+                    item, "reason", run_id, stage, f"{field_name}.exceptions"
+                ),
+            )
+        )
+    decision = _require_nested_string(raw, "decision", run_id, stage, field_name)
+    apply_consistently = raw.get("apply_consistently")
+    if not isinstance(apply_consistently, bool):
+        raise TypeMismatchError(
+            message="Field type mismatch",
+            run_id=run_id,
+            stage=stage,
+            field=f"{field_name}.apply_consistently",
+            expected_type="bool",
+            actual_type=type(apply_consistently).__name__,
+        )
+    rule = _require_nested_string(raw, "rule", run_id, stage, field_name)
+    return EducationDegreeLocalizationPolicy(
+        decision=decision,
+        apply_consistently=apply_consistently,
+        rule=rule,
+        exceptions=exceptions,
+    )
+
+
+def _normalize_revision_dispositions(
+    payload: Any,
+    *,
+    run_id: str,
+    stage: str,
+    field_name: str,
+) -> list[RevisionDisposition]:
+    if not isinstance(payload, list):
+        raise TypeMismatchError(
+            message="Field type mismatch",
+            run_id=run_id,
+            stage=stage,
+            field=field_name,
+            expected_type="list[object]",
+            actual_type=type(payload).__name__,
+        )
+
+    normalized: list[RevisionDisposition] = []
+    for index, item in enumerate(payload):
+        if not isinstance(item, dict):
+            raise TypeMismatchError(
+                message="Field type mismatch",
+                run_id=run_id,
+                stage=stage,
+                field=f"{field_name}[{index}]",
+                expected_type="dict",
+                actual_type=type(item).__name__,
+            )
+        normalized.append(
+            RevisionDisposition(
+                finding_id=_require_nested_string(item, "finding_id", run_id, stage, field_name),
+                status=str(item.get("status", "declined")).strip() or "declined",
+                rationale=_require_nested_string_alias(
+                    item,
+                    ("rationale", "reason"),
+                    run_id,
+                    stage,
+                    field_name,
+                ),
+            )
+        )
+    return normalized
+
+
+def _normalize_applied_findings(
+    payload: Any,
+    *,
+    run_id: str,
+    stage: str,
+    field_name: str,
+) -> list[RevisionAppliedFinding]:
+    if not isinstance(payload, list):
+        raise TypeMismatchError(
+            message="Field type mismatch",
+            run_id=run_id,
+            stage=stage,
+            field=field_name,
+            expected_type="list[object]",
+            actual_type=type(payload).__name__,
+        )
+    normalized: list[RevisionAppliedFinding] = []
+    for index, item in enumerate(payload):
+        if not isinstance(item, dict):
+            raise TypeMismatchError(
+                message="Field type mismatch",
+                run_id=run_id,
+                stage=stage,
+                field=f"{field_name}[{index}]",
+                expected_type="dict",
+                actual_type=type(item).__name__,
+            )
+        normalized.append(
+            RevisionAppliedFinding(
+                finding_id=_require_nested_string(item, "finding_id", run_id, stage, field_name),
+                field_path=_require_nested_string(item, "field_path", run_id, stage, field_name),
+                change_summary=_require_nested_string(
+                    item, "change_summary", run_id, stage, field_name
+                ),
+            )
+        )
+    return normalized
+
+
+def _normalize_protected_field_exceptions(
+    payload: Any,
+    *,
+    run_id: str,
+    stage: str,
+    field_name: str,
+) -> list[ProtectedFieldException]:
+    if not isinstance(payload, list):
+        raise TypeMismatchError(
+            message="Field type mismatch",
+            run_id=run_id,
+            stage=stage,
+            field=field_name,
+            expected_type="list[object]",
+            actual_type=type(payload).__name__,
+        )
+    normalized: list[ProtectedFieldException] = []
+    for index, item in enumerate(payload):
+        if not isinstance(item, dict):
+            raise TypeMismatchError(
+                message="Field type mismatch",
+                run_id=run_id,
+                stage=stage,
+                field=f"{field_name}[{index}]",
+                expected_type="dict",
+                actual_type=type(item).__name__,
+            )
+        normalized.append(
+            ProtectedFieldException(
+                finding_id=_require_nested_string(item, "finding_id", run_id, stage, field_name),
+                field_path=_require_nested_string(item, "field_path", run_id, stage, field_name),
+                protected_value=_require_nested_string(
+                    item, "protected_value", run_id, stage, field_name
+                ),
+                reason=_require_nested_string(item, "reason", run_id, stage, field_name),
+            )
+        )
+    return normalized
+
+
+def _require_nested_string_alias(
+    payload: dict[str, Any],
+    field_names: tuple[str, ...],
+    run_id: str,
+    stage: str,
+    parent: str,
+) -> str:
+    for field_name in field_names:
+        value = payload.get(field_name)
+        if isinstance(value, str):
+            return value
+    raise TypeMismatchError(
+        message="Field type mismatch",
+        run_id=run_id,
+        stage=stage,
+        field=f"{parent}.{field_names[0]}",
+        expected_type="str",
+        actual_type="missing",
+    )
+
+
+def _require_nested_string_list_optional(
+    payload: dict[str, Any],
+    field_name: str,
+    run_id: str,
+    stage: str,
+    parent: str,
+) -> list[str]:
+    value = payload.get(field_name, [])
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        raise TypeMismatchError(
+            message="Field type mismatch",
+            run_id=run_id,
+            stage=stage,
+            field=f"{parent}.{field_name}",
+            expected_type="list[str]",
+            actual_type=type(value).__name__,
+        )
+    return list(value)

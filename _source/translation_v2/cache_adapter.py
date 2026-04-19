@@ -245,9 +245,10 @@ class TranslationV2CacheAdapter:
 
     def _save_cache(self) -> None:
         self.cache_path.parent.mkdir(parents=True, exist_ok=True)
-        self.cache_path.write_text(
-            json.dumps(self.cache, indent=2, ensure_ascii=False), encoding="utf-8"
-        )
+        payload = json.dumps(self.cache, indent=2, ensure_ascii=False)
+        temp_path = self.cache_path.with_suffix(f"{self.cache_path.suffix}.tmp")
+        temp_path.write_text(payload, encoding="utf-8")
+        temp_path.replace(self.cache_path)
 
     @overload
     def _v2_root(self, *, create: Literal[True]) -> dict[str, Any]: ...

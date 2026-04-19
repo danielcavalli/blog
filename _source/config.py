@@ -96,9 +96,9 @@ LANGUAGES = {
             "landing_about": "About Me",
             "landing_cv": "CV",
             "meta_index": "Daniel Cavalli – Machine Learning Engineer. Blog on MLOps, distributed systems, CUDA optimization, and AI infrastructure.",
-            "meta_about": "Daniel Cavalli – Machine Learning Engineer at Nubank. Background in MLOps, distributed systems, and AI infrastructure.",
+            "meta_about": "Daniel Cavalli – Machine Learning Engineer. Blog on AI, systems design, and understanding how things actually work.",
             "meta_cv": "Daniel Cavalli – Machine Learning Engineer at Nubank. Experience in MLOps, distributed systems, and AI infrastructure powering hundreds of Data Scientists.",
-            "author_bio": "Machine Learning Engineer at Nubank, focused on distributed training and CUDA optimization.",
+            "author_bio": "Machine Learning Engineer, focused on distributed training and CUDA optimization.",
             "date_format": "{month} {day}, {year}",
         },
         "months": {
@@ -117,10 +117,12 @@ LANGUAGES = {
         },
         "about": {
             "title": "ABOUT",
-            "p1": "My name is Daniel Cavalli, and I've always been drawn to understanding how things work. I like to take things apart, whether it's a CUDA kernel, a surfboard, or a washing machine, and see what makes them move. There's something deeply satisfying about breaking something open, learning its logic, and putting it back together in a way that feels cleaner, more honest, more complete.",
-            "p2": "I work as a Machine Learning Engineer at Nubank, where I spend most of my time making systems faster, simpler, and easier to understand. I care about efficiency, but not the kind that strips things down until they lose meaning. What I look for is clarity, the kind of simplicity where everything has a purpose and moves with intention. I like when things just work, quietly and well.",
-            "p3": "This blog is an extension of that way of thinking. Building and writing are how I make sense of the world. When I put ideas into code or words, I can see their edges more clearly, what holds, what doesn't, and what needs to be rebuilt. It's less about publishing and more about refining my own understanding of how things connect.",
-            "p4": "Outside of work, I try to keep my life close to the ocean. I surf, bike, build things with my hands, and spend time with Moana, my dog. I live in Copacabana, where the sea is part of the backdrop of everything. Here, even an ordinary day ends with people standing by the water, just watching the light fade. That rhythm, fast, grounded and sometimes even chaotic, is what I try to keep in everything I do.",
+            "p1": "My name is Daniel Cavalli. I'm a Machine Learning Engineer who studied economics, which, at the very least, gave me a formal excuse to be suspicious of systems that appear to work before I understand why they work.",
+            "p2": "Not that I needed formal education for that. That instinct has been fairly consistent in my life, and even as a child I would {{STRIKETHROUGH:constantly}} at times get in trouble for taking apart something that was \"broken\", to better understand how it works.",
+            "p3": "Well, having formal education meant applying this same mentality to other, uhm, less concrete, topics. Sometimes it leads to distributed training stacks being repurposed, CUDA kernels being written for pipelines that were working, but barely. Other times it leads to surfboards being built in the storage room of my kitchen (with all the fiberglass, tools and dust that comes with it) or a washing machine that had been operating perfectly well, until I decided it should now contribute to science!",
+            "p4": "The object changes, but the interest is usually the same: finding the real logic underneath things, where the friction actually is, which parts are carrying their weight, and what can be made simpler in order to make it better.",
+            "p5": "My family, while supportive of this behavior, still gives me the occasional look here and there. Unwavering in my intent to break things in order to learn, this blog is where that habit becomes easier to justify. I write about artificial intelligence, systems design, networking and whatever else seems worth understanding properly rather than merely using. Partly to explain things and share some knowledge or opinions, but mostly to see whether my own explanations survive contact with structure and opposing views. Proud to say that they usually don't, which is useful.",
+            "p6": "I live in Copacabana, stay as close to the ocean as ordinary life allows, and have found that surfing, engineering, and writing are similar in at least one respect: all three are less impressed by intention than by timing, feel, and whether you actually understand the medium you're working with.",
         },
     },
     "pt": {
@@ -161,9 +163,9 @@ LANGUAGES = {
             "landing_about": "Sobre Mim",
             "landing_cv": "CV",
             "meta_index": "Daniel Cavalli – Engenheiro de Machine Learning. Blog sobre MLOps, sistemas distribuídos, otimização CUDA e infraestrutura de IA.",
-            "meta_about": "Daniel Cavalli – Engenheiro de Machine Learning no Nubank. Experiência em MLOps, sistemas distribuídos e infraestrutura de IA.",
+            "meta_about": "Daniel Cavalli – Engenheiro de Machine Learning. Blog sobre IA, design de sistemas e entender como as coisas realmente funcionam.",
             "meta_cv": "Daniel Cavalli – Engenheiro de Machine Learning no Nubank. Experiência em MLOps, sistemas distribuídos e infraestrutura de IA para centenas de Cientistas de Dados.",
-            "author_bio": "Engenheiro de Machine Learning no Nubank, focado em treinamento distribuído e otimização CUDA.",
+            "author_bio": "Engenheiro de Machine Learning, focado em treinamento distribuído e otimização CUDA.",
             "date_format": "{day} de {month} de {year}",
         },
         "months": {
@@ -225,7 +227,7 @@ SITE_NAME = "dan.rio"
 SITE_DESCRIPTION = "Daniel Cavalli's blog on machine learning, AI, CUDA optimization, distributed training, and software engineering."
 AUTHOR = "Daniel Cavalli"
 AUTHOR_BIO = (
-    "Machine Learning Engineer at Nubank, focused on distributed training and CUDA optimization."
+    "Machine Learning Engineer, focused on distributed training and CUDA optimization."
 )
 
 # Social links

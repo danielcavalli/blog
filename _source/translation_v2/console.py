@@ -785,7 +785,7 @@ def _render_tape_panel(events: list[_TapeEntry]) -> RenderableType:
         table,
         box=box.ROUNDED,
         border_style="#1e3a5f",
-        title=Text("settled translations", style="bold white"),
+        title=Text("settled translation work", style="bold white"),
         padding=(0, 1),
     )
 

@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .contracts import (
+    CVTranslationOutput,
+    CVRevisionOutput,
     CritiqueOutput,
     FinalReviewOutput,
     RevisionOutput,
@@ -15,6 +17,8 @@ from .contracts import (
     TranslationOutput,
     TranslationRequest,
     VoiceIntentPacket,
+    validate_cv_revision_output,
+    validate_cv_translation_output,
     validate_final_review_output,
     validate_critique_output,
     validate_revision_output,
@@ -126,11 +130,17 @@ class DeterministicMockTranslationProvider(TranslationProvider):
         request: TranslationRequest,
         source_analysis: VoiceIntentPacket | None = None,  # noqa: ARG002
         terminology_policy: TerminologyPolicyPacket | None = None,  # noqa: ARG002
-    ) -> StageResult[TranslationOutput]:
+    ) -> StageResult[TranslationOutput | CVTranslationOutput]:
         fixture = self._fixture_for_request(request)
-        translated_payload = validate_translation_output(
-            fixture["translated"], run_id=request.run_id, stage="translate"
-        )
+        artifact_type = str(request.metadata.get("artifact_type", "post")).strip().lower()
+        if artifact_type == "cv":
+            translated_payload = validate_cv_translation_output(
+                fixture["translated"], run_id=request.run_id, stage="translate"
+            )
+        else:
+            translated_payload = validate_translation_output(
+                fixture["translated"], run_id=request.run_id, stage="translate"
+            )
         return StageResult(
             run_id=request.run_id,
             stage="translate",
@@ -142,7 +152,7 @@ class DeterministicMockTranslationProvider(TranslationProvider):
     def critique(
         self,
         request: TranslationRequest,
-        translated: TranslationOutput,  # noqa: ARG002
+        translated: TranslationOutput | CVTranslationOutput,  # noqa: ARG002
         *,
         source_analysis: VoiceIntentPacket | None = None,  # noqa: ARG002
         terminology_policy: TerminologyPolicyPacket | None = None,  # noqa: ARG002
@@ -162,19 +172,28 @@ class DeterministicMockTranslationProvider(TranslationProvider):
     def revise(
         self,
         request: TranslationRequest,
-        translated: TranslationOutput,  # noqa: ARG002
+        translated: TranslationOutput | CVTranslationOutput,  # noqa: ARG002
         critique: CritiqueOutput,
         *,
         source_analysis: VoiceIntentPacket | None = None,  # noqa: ARG002
         terminology_policy: TerminologyPolicyPacket | None = None,  # noqa: ARG002
-    ) -> StageResult[RevisionOutput]:
+    ) -> StageResult[RevisionOutput | CVRevisionOutput]:
         fixture = self._fixture_for_request(request)
-        refined_payload = validate_revision_output(
-            fixture.get("revised", fixture.get("refined", {})),
-            run_id=request.run_id,
-            stage="revise",
-        )
-        result: StageResult[RevisionOutput] = StageResult(
+        raw_revision = fixture.get("revised", fixture.get("refined", {}))
+        artifact_type = str(request.metadata.get("artifact_type", "post")).strip().lower()
+        if artifact_type == "cv":
+            refined_payload = validate_cv_revision_output(
+                raw_revision,
+                run_id=request.run_id,
+                stage="revise",
+            )
+        else:
+            refined_payload = validate_revision_output(
+                raw_revision,
+                run_id=request.run_id,
+                stage="revise",
+            )
+        result: StageResult[RevisionOutput | CVRevisionOutput] = StageResult(
             run_id=request.run_id,
             stage="revise",
             model=self._model,
@@ -186,12 +205,12 @@ class DeterministicMockTranslationProvider(TranslationProvider):
     def refine(
         self,
         request: TranslationRequest,
-        translated: TranslationOutput,
+        translated: TranslationOutput | CVTranslationOutput,
         critique: CritiqueOutput,
         *,
         source_analysis: VoiceIntentPacket | None = None,
         terminology_policy: TerminologyPolicyPacket | None = None,
-    ) -> StageResult[RevisionOutput]:
+    ) -> StageResult[RevisionOutput | CVRevisionOutput]:
         """Backward-compatible alias for revise."""
 
         return self.revise(
@@ -205,8 +224,10 @@ class DeterministicMockTranslationProvider(TranslationProvider):
     def final_review(
         self,
         request: TranslationRequest,
-        translated: TranslationOutput,  # noqa: ARG002
+        translated: TranslationOutput | CVTranslationOutput,  # noqa: ARG002
+        critique: CritiqueOutput,  # noqa: ARG002
         *,
+        revision_report: RevisionOutput | CVRevisionOutput | None = None,  # noqa: ARG002
         source_analysis: VoiceIntentPacket | None = None,  # noqa: ARG002
         terminology_policy: TerminologyPolicyPacket | None = None,  # noqa: ARG002
     ) -> StageResult[FinalReviewOutput]:

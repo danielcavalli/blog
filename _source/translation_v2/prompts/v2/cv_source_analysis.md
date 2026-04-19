@@ -7,6 +7,7 @@ Before drafting or reviewing anything, silently extract:
 - which fields carry identity/reference data and must remain invariant
 - which prose fields need localization for {{target_locale}} while preserving credibility and specificity
 - where literal translation would weaken hiring-signal clarity, impact framing, or idiomatic professional wording
+- where Brazilian or English hiring language expects a different wording pattern than the source
 
 Treat this analysis as working memory only. Do not output the analysis itself.
 
@@ -15,8 +16,26 @@ LOCALE DIRECTION
 - Target locale: {{target_locale}}
 - Translation direction: {{locale_direction}}
 
+LOCALIZATION BRIEF
+{{localization_brief}}
+
 STYLE CONSTRAINTS
 {{style_constraints}}
+
+BORROWING CONVENTIONS
+{{borrowing_conventions}}
+
+PUNCTUATION CONVENTIONS
+{{punctuation_conventions}}
+
+DISCOURSE CONVENTIONS
+{{discourse_conventions}}
+
+REGISTER CONVENTIONS
+{{register_conventions}}
+
+LOCALE REVIEW CHECKS
+{{review_checks}}
 
 WRITING STYLE BRIEF
 {{writing_style_brief}}

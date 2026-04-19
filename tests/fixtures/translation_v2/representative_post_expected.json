@@ -21,7 +21,7 @@
       },
       "terminology_policy": {
         "keep_english": ["cache adapter", "OpenCode"],
-        "localize": ["latency => latencia"],
+        "localize": ["latency => latência"],
         "context_sensitive": ["rollout"],
         "do_not_translate": ["OpenCode", "CUDA"],
         "consistency_rules": [

@@ -14,6 +14,12 @@ def build_source_analysis_context(
     voice_profile: AuthorVoiceProfile,
     writing_style_brief: str,
     style_constraints: list[str],
+    localization_brief: str,
+    borrowing_conventions: list[str],
+    punctuation_conventions: list[str],
+    discourse_conventions: list[str],
+    register_conventions: list[str],
+    review_checks: list[str],
     glossary_entries: list[str] | list[object],
     do_not_translate_entities: list[str],
 ) -> dict[str, str]:
@@ -33,6 +39,12 @@ def build_source_analysis_context(
         "writing_style_brief": writing_style_brief,
         "author_voice_profile": voice_profile.brief,
         "style_constraints": _render_bullets(style_constraints),
+        "localization_brief": _render_text_block(localization_brief),
+        "borrowing_conventions": _render_bullets(borrowing_conventions),
+        "punctuation_conventions": _render_bullets(punctuation_conventions),
+        "discourse_conventions": _render_bullets(discourse_conventions),
+        "register_conventions": _render_bullets(register_conventions),
+        "review_checks": _render_bullets(review_checks),
         "glossary_entries": _render_glossary(glossary_entries),
         "do_not_translate_entities": _render_bullets(do_not_translate_entities),
         "source_markdown": request.source_text,
@@ -61,3 +73,8 @@ def _render_glossary(entries: list[str] | list[object]) -> str:
     if not rendered:
         return "- none"
     return "\n".join(rendered)
+
+
+def _render_text_block(value: str) -> str:
+    cleaned = value.strip()
+    return cleaned or "- none"

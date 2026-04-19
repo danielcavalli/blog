@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escolhendo a Configuração de GPU Certa para Engenharia de IA (e para Aprender) – Daniel Cavalli | dan.rio</title>
-    <meta name="description" content="Esta máquina não foi feita para ganhar benchmarks. Ela é um laboratório para aprender CUDA, otimização e sistemas distribuídos pela experiência direta. Isso mud">
+    <title>Escolhendo a configuração certa de GPU para engenharia de IA (e para aprender) – Daniel Cavalli | dan.rio</title>
+    <meta name="description" content="Esta máquina não foi feita para vencer benchmarks. Ela é um laboratório para aprender CUDA, otimização e sistemas distribuídos na prática.">
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://dan.rio/pt/blog/choosing-the-right-gpu-for-ai-learning.html">
@@ -12,8 +12,8 @@
     <!-- Open Graph / Social -->
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://dan.rio/pt/blog/choosing-the-right-gpu-for-ai-learning.html">
-    <meta property="og:title" content="Escolhendo a Configuração de GPU Certa para Engenharia de IA (e para Aprender)">
-    <meta property="og:description" content="Esta máquina não foi feita para ganhar benchmarks. Ela é um laboratório para aprender CUDA, otimização e sistemas distribuídos pela experiência direta. Isso mud">
+    <meta property="og:title" content="Escolhendo a configuração certa de GPU para engenharia de IA (e para aprender)">
+    <meta property="og:description" content="Esta máquina não foi feita para vencer benchmarks. Ela é um laboratório para aprender CUDA, otimização e sistemas distribuídos na prática.">
     <meta property="og:site_name" content="dan.rio">
     <meta property="og:locale" content="pt_BR">
     <meta property="og:locale:alternate" content="en_US">
@@ -23,10 +23,10 @@
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Escolhendo a Configuração de GPU Certa para Engenharia de IA (e para Aprender)">
-    <meta name="twitter:description" content="Esta máquina não foi feita para ganhar benchmarks. Ela é um laboratório para aprender CUDA, otimização e sistemas distribuídos pela experiência direta. Isso mud">
+    <meta name="twitter:title" content="Escolhendo a configuração certa de GPU para engenharia de IA (e para aprender)">
+    <meta name="twitter:description" content="Esta máquina não foi feita para vencer benchmarks. Ela é um laboratório para aprender CUDA, otimização e sistemas distribuídos na prática.">
     
-    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Escolhendo a Configuração de GPU Certa para Engenharia de IA (e para Aprender)", "description": "Esta máquina não foi feita para ganhar benchmarks. Ela é um laboratório para aprender CUDA, otimização e sistemas distribuídos pela experiência direta. Isso mud", "url": "https://dan.rio/pt/blog/choosing-the-right-gpu-for-ai-learning.html", "inLanguage": "pt", "datePublished": "2025-10-20", "dateModified": "2025-10-20", "author": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "publisher": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://dan.rio/pt/blog/choosing-the-right-gpu-for-ai-learning.html"}}</script>
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Escolhendo a configuração certa de GPU para engenharia de IA (e para aprender)", "description": "Esta máquina não foi feita para vencer benchmarks. Ela é um laboratório para aprender CUDA, otimização e sistemas distribuídos na prática.", "url": "https://dan.rio/pt/blog/choosing-the-right-gpu-for-ai-learning.html", "inLanguage": "pt", "datePublished": "2025-10-20", "dateModified": "2025-10-20", "author": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "publisher": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://dan.rio/pt/blog/choosing-the-right-gpu-for-ai-learning.html"}, "keywords": "engenharia de IA, GPU, CUDA, treinamento distribuído"}</script>
     
     <!-- Additional SEO -->
     <meta name="author" content="Daniel Cavalli">
@@ -85,35 +85,34 @@
     </nav>
 
     <main id="main-content" class="container">
-        <article class="post" style="view-transition-name: post-container-6;">
+        <article class="post" style="view-transition-name: post-container-4;">
             <header class="post-header">
                 <a href="/pt/index.html" class="back-link">← Voltar ao Blog</a>
                 
-                <h1 class="post-title-large" style="view-transition-name: post-title-6;">ESCOLHENDO A CONFIGURAÇÃO DE GPU CERTA PARA ENGENHARIA DE IA (E PARA APRENDER)</h1>
+                <h1 class="post-title-large" style="view-transition-name: post-title-4;">ESCOLHENDO A CONFIGURAÇÃO CERTA DE GPU PARA ENGENHARIA DE IA (E PARA APRENDER)</h1>
                 <div class="post-meta">
-                    <time class="post-date" style="view-transition-name: post-date-6;">20 de Outubro de 2025</time>
+                    <time class="post-date" style="view-transition-name: post-date-4;">20 de Outubro de 2025</time>
                     <span class="post-separator">•</span>
                     <span class="post-reading-time">10 min de leitura</span>
                 </div>
-                
+                <div class="post-tags"><span class="tag-pill">engenharia de IA</span><span class="tag-pill">GPU</span><span class="tag-pill">CUDA</span><span class="tag-pill">treinamento distribuído</span></div>
             </header>
 
             <div class="post-body">
-                <p class="lead" style="view-transition-name: post-excerpt-6;">
-                    Esta máquina não foi feita para ganhar benchmarks. Ela é um laboratório para aprender CUDA, otimização e sistemas distribuídos pela experiência direta. Isso muda os critérios de escolha: FLOPs de pico importam menos do que quantos fenômenos você consegue observar antes que as restrições do hardware distorçam a lição. Por esse ângulo, duas RTX 5070 Ti superam uma única placa topo de linha.
+                <p class="lead" style="view-transition-name: post-excerpt-4;">
+                    Esta máquina não foi feita para vencer benchmarks. Ela é um laboratório para aprender CUDA, otimização e sistemas distribuídos na prática.
                 </p>
-                <h1>Escolhendo a Configuração de GPU Certa para Engenharia de IA (e para Aprender)</h1>
-<p>Esta máquina não foi feita para ganhar benchmarks. Ela é um laboratório para aprender CUDA, otimização e sistemas distribuídos pela experiência direta. Isso muda os critérios de escolha: FLOPs de pico importam menos do que quantos fenômenos você consegue observar antes que as restrições do hardware distorçam a lição. Por esse ângulo, duas RTX 5070 Ti superam uma única placa topo de linha.</p>
+                <p>Esta máquina não foi feita para vencer benchmarks. Ela é um laboratório para aprender CUDA, otimização e sistemas distribuídos na prática. Isso muda o critério de escolha: pico de FLOPs importa menos do que quantos fenômenos você consegue observar antes que as limitações do hardware distorçam a lição. Sob essa ótica, duas RTX 5070 Ti vencem uma única placa topo de linha.</p>
 <h2>TL;DR</h2>
 <ul>
-<li>Quer aprender CUDA + DDP/FSDP e observar comportamento distribuído de verdade? Prefira duas GPUs de 16 GB (por exemplo, duas 5070 Ti). Você troca o conforto de uma GPU só por visibilidade sobre coletivos, sobreposição e sharding.</li>
-<li>Quer iteração mais rápida em uma única GPU e menos restrições de VRAM? Uma 4090/5090 é o caminho mais confortável.</li>
-<li>Os números abaixo refletem fontes públicas e documentação, não medições originais de hardware.</li>
+<li>Quer aprender CUDA + DDP/FSDP e observar comportamento distribuído de verdade? Prefira duas GPUs de 16 GB (por exemplo, duas 5070 Ti). Você troca o conforto de uma GPU só por visibilidade sobre operações coletivas, sobreposição e particionamento.</li>
+<li>Quer iterar mais rápido em uma GPU só e lidar com menos restrições de VRAM? Uma 4090/5090 é o caminho do conforto.</li>
+<li>Os números abaixo refletem fontes públicas e documentação, não medições próprias de hardware.</li>
 </ul>
-<h2>Para quem é isto</h2>
+<h2>Para quem é isso</h2>
 <ul>
 <li>Desenvolvedores que querem estudar kernels, hierarquia de memória e treinamento distribuído em uma estação de trabalho controlada.</li>
-<li>Pessoas focadas em maximizar a amplitude do aprendizado por watt e por hora, não em resultados de ranking.</li>
+<li>Profissionais que otimizam pela amplitude de aprendizado por watt e por hora, não por posição em leaderboard.</li>
 </ul>
 <h2>Matriz de decisão</h2>
 <table>
@@ -127,62 +126,62 @@
 </thead>
 <tbody>
 <tr>
-<td>Aprender treinamento distribuído (DDP/FSDP), perfilar coletivos</td>
+<td>Aprender treinamento distribuído (DDP/FSDP), perfilar operações coletivas</td>
 <td>Custo razoável, gabinete compacto</td>
-<td>Duas de 16 GB (5070 Ti ou 5080 se o preço fizer sentido)</td>
-<td>Grupos de processos reais, sobreposição mensurável e comportamento de buckets</td>
+<td>Duas GPUs de 16 GB (5070 Ti ou 5080 se o preço fizer sentido)</td>
+<td>Grupo de processos real, sobreposição mensurável e comportamento dos buckets</td>
 </tr>
 <tr>
-<td>Máxima folga em GPU única</td>
-<td>Precisa de contexto/lote maiores, atrito mínimo</td>
+<td>Máxima folga em uma GPU</td>
+<td>Precisa de contexto/batch maior, atrito mínimo</td>
 <td>4090 ou 5090</td>
-<td>Mais VRAM e vazao, térmica mais simples</td>
+<td>Mais VRAM e vazão, comportamento térmico mais simples</td>
 </tr>
 <tr>
-<td>Alguns coletivos + conforto</td>
-<td>Prefere uma GPU única grande, mas quer semântica real de NCCL</td>
+<td>Algumas operações coletivas + conforto</td>
+<td>Prefere uma GPU grande, mas quer semântica real de NCCL</td>
 <td>4090 + placa CUDA auxiliar (por exemplo, A2000/3060)</td>
-<td>Coletivos úteis para aprendizado, com escalonamento modesto; limites heterogêneos se aplicam</td>
+<td>Operações coletivas com valor didático e escalabilidade modesta; as limitações da heterogeneidade se aplicam</td>
 </tr>
 </tbody>
 </table>
-<h2>O que aprender exige do hardware</h2>
-<p>Uma estação de trabalho voltada a aprendizado precisa ser capaz de operar em três modos. Ela precisa permitir que você inspecione kernels e a hierarquia de memória sem esbarrar o tempo todo em falta de recursos. Precisa expor comportamento distribuído real para que você raciocine sobre sincronização, sharding e sobreposição de comunicação com evidência, não por intuição. Também precisa ser versátil o bastante para servir como máquina do dia a dia; confiabilidade, térmica e entrega de energia fazem parte do currículo, porque instabilidade invalida resultados.</p>
-<p>Dezesseis gigabytes de VRAM em uma GPU NVIDIA moderna bastam para fundamentos de CUDA, fluxos com Nsight, experimentos com Triton e CUTLASS, e loops de treinamento relevantes com modelos médios. Vinte e quatro gigabytes aumentam bastante o conforto: lotes maiores, contextos mais longos e menos contorcionismos de memória. Duas GPUs fazem outra coisa. Elas trocam conforto por visibilidade. Timing de all-reduce, dimensionamento de buckets, sobreposição com backward passes, checkpoints shardados, restarts elásticos e tratamento de falhas deixam de ser teoria e viram medições que você consegue registrar e explicar.</p>
+<h2>O que o aprendizado exige do hardware</h2>
+<p>Uma estação de trabalho voltada ao aprendizado precisa operar em três modos. Ela precisa permitir inspecionar kernels e a hierarquia de memória sem fome constante de recursos. Precisa expor comportamento distribuído real para que você raciocine sobre sincronização, particionamento e sobreposição de comunicação com evidência, não com intuição. Também precisa ser versátil o bastante para servir como máquina de uso diário. Confiabilidade, comportamento térmico e alimentação elétrica fazem parte do currículo, porque instabilidade invalida os resultados.</p>
+<p>Dezesseis gigabytes de VRAM em uma GPU NVIDIA moderna bastam para fundamentos de CUDA, fluxos de trabalho com Nsight, experimentos com Triton e CUTLASS, e loops de treinamento relevantes com modelos médios. Vinte e quatro gigabytes aumentam bastante o conforto: batches maiores, contextos mais longos e menos artifícios de memória. Duas GPUs fazem outra coisa. Elas trocam conforto por visibilidade. Tempos de all-reduce, dimensionamento de buckets, sobreposição com a retropropagação, checkpoints particionados, reinícios elásticos e tratamento de falhas deixam de ser teoria e viram medições que você consegue registrar e explicar.</p>
 <h3>VRAM e dimensionamento de modelos (guia rápido)</h3>
 <ul>
-<li>~16 GB: confortável para kernels, Nsight, Triton/CUTLASS e modelos de ~0.7-1.0B parâmetros em BF16 com lotes pequenos (o comprimento do contexto importa).</li>
-<li>~24 GB: lotes/contextos maiores; menos contorcionismos de memória; ~1.0-1.3B prático sem offload.</li>
-<li>32 GB+: mais folga; ainda assim, algoritmos distribuídos são um eixo diferente de pura VRAM.</li>
+<li>~16 GB: confortável para kernels, Nsight, Triton/CUTLASS e modelos de ~0.7-1.0B parâmetros em BF16 com batches pequenos (o comprimento de contexto importa).</li>
+<li>~24 GB: batches/contextos maiores; menos artifícios de memória; ~1.0-1.3B viável sem offload.</li>
+<li>32 GB+: mais folga; ainda assim, algoritmos distribuídos são um eixo diferente de VRAM bruta.</li>
 </ul>
 <h2>Arquiteturas, precisão e recursos</h2>
-<p>RTX 5070 Ti e RTX 5080 são peças da geração Blackwell com Tensor Cores de quinta geração e suporte a FP4 e FP6 além de FP8/16/32/64. A RTX 4090 é Ada com Tensor Cores de quarta geração, o que significa sem FP4/6, mas com excelente vazao em FP8/16 e generosos 24 GB de VRAM. A RTX 5090 amplia ainda mais a computação bruta e a VRAM, mas em um tamanho e preço que entram em conflito com o objetivo de um laboratório compacto com duas GPUs. Recursos de precisão são interessantes quando você quer estudar estabilidade numérica e eficiência; VRAM é decisiva quando você quer observar trade-offs entre memória, computação e comunicação sem restrições artificiais.</p>
+<p>RTX 5070 Ti e RTX 5080 são placas da geração Blackwell, com Tensor Cores de quinta geração e suporte a FP4 e FP6, além de FP8/16/32/64. A RTX 4090 é Ada, com Tensor Cores de quarta geração. Isso significa ausência de FP4/6, mas excelente vazão em FP8/16 e generosos 24 GB de VRAM. A RTX 5090 empurra computação bruta e VRAM ainda mais para cima, mas em um tamanho e um preço que entram em conflito com a proposta de um laboratório compacto com duas GPUs. Recursos de precisão interessam quando o objetivo é estudar estabilidade numérica e eficiência. VRAM é decisiva quando você quer observar os trade-offs entre memória, computação e comunicação sem restrições artificiais.</p>
 <blockquote>
 <p>Notas sobre precisão e interconexão</p>
 <ul>
-<li>FP4/FP6 aparecem no hardware Blackwell, mas o suporte a kernels/otimizadores nos frameworks ainda está amadurecendo. Espere habilitação em etapas.</li>
-<li>A linha RTX 40/50 para consumidor normalmente não tem NVLink; coletivos multi-GPU rodam em PCIe. P2P pode variar por plataforma/BIOS. Use <code>nvidia-smi topo -m</code> para inspecionar a topologia quando você tiver acesso ao hardware.</li>
+<li>FP4/FP6 aparecem no hardware Blackwell, mas o suporte em kernels e otimizadores nos frameworks ainda está amadurecendo. Espere habilitação em etapas.</li>
+<li>As séries RTX 40/50 de consumo em geral não têm NVLink; as operações coletivas entre GPUs rodam sobre PCIe. P2P pode variar conforme plataforma/BIOS. Use <code>nvidia-smi topo -m</code> para inspecionar a topologia quando tiver acesso ao hardware.</li>
 </ul>
 </blockquote>
 <h2>Relações de desempenho que importam para aprender</h2>
-<p>Framerates exatos são irrelevantes aqui. Escalonamento relativo basta para estruturar experimentos e checagens básicas de preço.</p>
+<p>Taxas de quadros exatas são irrelevantes aqui. Escala relativa basta para estruturar experimentos e verificar se o preço faz sentido.</p>
 <blockquote>
 <p>Métodos e premissas (sem hardware local)</p>
 <ul>
-<li>Fonte: dados públicos consolidados (reviews, docs de fabricantes, benchmarks confiáveis da comunidade). Sem medições originais.</li>
-<li>Lente da carga de trabalho: vazao de treinamento de transformers em BF16; maturidade de kernels (FlashAttention, fused optimizers), drivers e pressão de memória alteram os números.</li>
-<li>Interpretação: trate os valores como guias para desenhar experimentos, não como garantias para decisão de compra.</li>
+<li>Fonte: dados públicos consolidados (reviews, docs de fabricante, benchmarks confiáveis da comunidade). Sem medições próprias.</li>
+<li>Recorte: vazão de treinamento de transformers em BF16; maturidade de kernels (FlashAttention, fused optimizers), drivers e pressão de memória deslocam os números.</li>
+<li>Interpretação: trate os valores como guias para desenho de experimentos, não como garantias de compra.</li>
 </ul>
 </blockquote>
-<p>Nas fontes públicas, uma aproximação prática útil é a seguinte: a 5080 é cerca de 13-15% mais rápida do que a 5070 Ti em cargas relevantes para treinamento, a 4090 entrega algo como o dobro da 5070 Ti em cálculo BF16/FP32 e fica aproximadamente 50% à frente da 5080, e a 5090 sobe mais 50-70% sobre a 5080 enquanto adiciona mais VRAM.</p>
+<p>Tomando as fontes públicas em conjunto, um modelo de trabalho plausível é o seguinte: a 5080 é algo como 13-15% mais rápida do que a 5070 Ti em cargas de trabalho relevantes para treinamento, a 4090 entrega cerca de 2x a 5070 Ti em matemática BF16/FP32 e fica aproximadamente 50% à frente da 5080, e a 5090 sobe mais 50-70% sobre a 5080 enquanto adiciona mais VRAM.</p>
 <table>
 <thead>
 <tr>
 <th>GPU</th>
 <th style="text-align: right;">VRAM</th>
-<th>Geração Tensor</th>
+<th>Geração dos Tensor Cores</th>
 <th>Precisão de destaque</th>
-<th style="text-align: right;">Vazao relativa prática em ML</th>
+<th style="text-align: right;">Vazão relativa de ML</th>
 </tr>
 </thead>
 <tbody>
@@ -216,35 +215,35 @@
 </tr>
 </tbody>
 </table>
-<p><em>Tabela: Vazao relativa para cargas orientadas a treinamento. Espera-se variabilidade entre frameworks e kernels; os valores refletem fontes públicas da internet em 2025-10.</em></p>
-<p>Os 8 GB adicionais da 4090 frequentemente importam mais do que seus FLOPs. A capacidade de rodar transformers de 1-1.3B parâmetros ou contextos mais longos sem offload é uma mudança qualitativa no tipo de pergunta que você consegue fazer. Duas placas de 16 GB não aumentam a capacidade por rank, mas permitem estudar algoritmos distribuídos em hardware real em vez de por aproximação.</p>
-<h2>Treinamento distribuído local é o primeiro laboratório; a nuvem é o segundo</h2>
-<p>Dual-GPU em um único nó entrega DDP e FSDP em condições que você controla. A comunicação acontece por PCIe. A latencia é baixa, a largura de banda é limitada e o tempo de cada passo se decompõe de forma limpa em fatias de forward, backward, optimizer e comunicação que você consegue perfilar com Nsight Systems e o profiler do PyTorch. Você verá o efeito do tamanho dos gradient buckets, do sharding de parâmetros, das políticas de prefetch e reshard, e se computação e comunicação se sobrepõem como deveriam.</p>
-<p>Esse conhecimento se transfere. Quando você passa para um nó na nuvem com NVLink ou um cluster com NVSwitch ou EFA/RDMA, o código não muda. O transporte muda. Coletivos hierárquicos ficam mais atraentes, a largura de banda melhora em uma ordem de grandeza e os modos de falha se multiplicam. Esse é o momento certo de medir curvas de escalonamento e sensibilidade à topologia. Sem o laboratório local, a nuvem só diz se está mais rápida ou mais lenta; não diz por quê.</p>
-<h2>Formato físico, térmica e por que uma flagship de 3 slots complica o aprendizado</h2>
-<p>Uma única 4090 é simples se você nunca pretende rodar uma segunda GPU. Seu cooler é grande, sua potência transitória é alta e ela ocupa o espaço físico de que uma segunda placa precisaria para fluxo de ar. Você pode simular comportamento multiprocesso com CUDA MPS e praticar orquestração com time-slicing em Kubernetes, mas não consegue formar um comunicador multi-GPU relevante sem um segundo dispositivo físico ou MIG. Em contraste, a maioria das placas 5070 Ti usa design de dois slots, o que deixa espaço para uma segunda placa e entrada de ar adequada. Se o objetivo é estudar sincronização em vez de apenas acelerar um único fluxo, esse fato mecânico importa.</p>
-<h2>Considerações sobre energia e estabilidade</h2>
-<p>Duas 5070 Ti e uma CPU moderna de ponta consomem algo entre 770-860 W de forma sustentada, com envelope transitório de 1.0-1.1 kW. Uma fonte ATX 3.1 de 1000 W é o mínimo viável; uma unidade de 1200 W é a escolha correta para operação mais silenciosa e com folga. Cada GPU deve ficar em seu próprio cabo nativo 12V-2×6. Estabilidade não é métrica de vaidade. É a pré-condição para medições reproduzíveis e para depurar lógica em vez de correr atrás de ruído elétrico.</p>
-<h3>BOM mínimo para um laboratório dual-GPU (exemplo)</h3>
+<p><em>Tabela: Vazão relativa para cargas de trabalho orientadas a treinamento. Variabilidade é esperada entre frameworks e kernels; os valores refletem fontes públicas da internet em 2025-10.</em></p>
+<p>Os 8 GB extras da 4090 muitas vezes importam mais do que seus FLOPs. A possibilidade de rodar transformers de 1-1.3B parâmetros ou contextos mais longos sem offload muda qualitativamente o tipo de pergunta que você consegue fazer. Duas placas de 16 GB não aumentam a capacidade por rank, mas permitem estudar algoritmos distribuídos em hardware real, e não por aproximação.</p>
+<h2>O treinamento distribuído local é o primeiro laboratório; a nuvem é o segundo</h2>
+<p>Duas GPUs em um único nó colocam DDP e FSDP na sua frente em condições que você controla. A comunicação acontece sobre PCIe. A latência é baixa, a largura de banda é limitada e o tempo de step se decompõe de forma limpa em fatias de forward, backward, otimizador e comunicação, que você consegue perfilar com Nsight Systems e o PyTorch profiler. Você verá o efeito do tamanho dos buckets de gradiente, do particionamento de parâmetros, de políticas de prefetch e reshard, e se computação e comunicação se sobrepõem como deveriam.</p>
+<p>O que se aprende aí se transfere. Quando você passa para um nó na nuvem com NVLink ou para um cluster com NVSwitch ou EFA/RDMA, o código não muda. O transporte, sim. Operações coletivas hierárquicas ficam mais atraentes, a largura de banda melhora em uma ordem de magnitude e os modos de falha se multiplicam. É nesse momento que faz sentido medir curvas de escala e sensibilidade à topologia. Sem o laboratório local, a nuvem só lhe diz se algo ficou mais rápido ou mais lento. Não diz por quê.</p>
+<h2>Formato físico, comportamento térmico e por que uma placa topo de linha de 3 slots complica o aprendizado</h2>
+<p>Uma única 4090 é simples se você nunca pretende rodar uma segunda GPU. O cooler é grande, o consumo transitório é alto e ela ocupa o espaço físico de que uma segunda placa precisaria para respirar. Você consegue simular comportamento multiprocesso com CUDA MPS e praticar orquestração com Kubernetes time-slicing, mas não consegue formar um comunicador entre múltiplas GPUs que realmente sirva sem um segundo dispositivo físico ou MIG. Em contraste, a maior parte das placas 5070 Ti usa desenho de dois slots, o que deixa espaço para uma segunda placa e entrada de ar adequada. Se o objetivo é estudar sincronização, e não apenas acelerar um único fluxo, esse fato mecânico importa.</p>
+<h2>Alimentação elétrica e considerações de estabilidade</h2>
+<p>Duas 5070 Ti e um CPU moderno de ponta consomem algo na faixa de 770-860 W sustentados, com envelope transitório de 1.0-1.1 kW. Uma fonte ATX 3.1 de 1000 W é o mínimo que funciona; 1200 W é a escolha certa para operar com mais silêncio e folga. Cada GPU deve usar seu próprio cabo nativo 12V-2×6. Estabilidade não é métrica de vaidade. É a pré-condição para medições reprodutíveis e para depurar lógica em vez de correr atrás de ruído elétrico.</p>
+<h3>Componentes mínimos de um laboratório com duas GPUs (exemplo)</h3>
 <ul>
-<li>CPU com lanes suficientes (por exemplo, classe 7950X/14900K)</li>
-<li>Placa-mãe com dois slots mecânicos x16 e bom espaçamento</li>
+<li>CPU com pistas suficientes (por exemplo, classe 7950X/14900K)</li>
+<li>Placa-mãe com dois slots x16 mecânicos e bom espaçamento</li>
 <li>64-128 GB de RAM</li>
-<li>SSD NVMe Gen4/5 de 2 TB+ (útil para offload/FSDP checkpointing)</li>
+<li>SSD NVMe Gen4/5 de 2 TB+ (útil para offload/checkpointing com FSDP)</li>
 <li>PSU ATX 3.1 de 1000-1200 W, dois 12V-2×6 nativos, cabos separados por GPU</li>
-<li>Gabinete com entrada frontal de ar; duas GPUs de 2 slots cabem com folga</li>
+<li>Gabinete com entrada de ar frontal; duas GPUs de 2 slots cabem com folga</li>
 </ul>
-<p>Checklist de BIOS: Above 4G Decoding, Resizable BAR, habilite PCIe P2P se disponível.</p>
+<p>Checklist de BIOS: Above 4G Decoding, Resizable BAR, habilitar PCIe P2P se disponível.</p>
 <h2>Sanidade de preço por paridade de desempenho e elasticidade</h2>
-<p>Mesmo quando economia não é o fator principal, o preço não deveria violar uma proporcionalidade básica. Uma checagem útil de paridade usa o preço da 5070 Ti como base e escala os outros alvos pela vazao relativa. Com uma 5070 Ti de referência perto de R$ 6,500, uma paridade proporcional estrita coloca a 5080 em torno de R$ 7,400 e a 5090 em torno de R$ 11,300. A elasticidade então desconta as faixas superiores para refletir retornos educacionais decrescentes e a penalidade de gastar mais, produzindo alvos ajustados perto de R$ 7,000 para a 5080 e R$ 11,500 para a 5090, com faixas para comprar agora e faixas a evitar em torno desses pontos de referência. Não são mandamentos, mas faz sentido tentar evitar pagar demais.</p>
+<p>Mesmo quando economia não é o fator principal, o preço não deveria violar uma proporcionalidade básica. Uma checagem útil de paridade toma o preço da 5070 Ti como linha de base e escala os demais alvos pela vazão relativa. Com uma 5070 Ti de referência perto de R$ 6,500, uma paridade proporcional estrita coloca a 5080 em torno de R$ 7,400 e a 5090 em torno de R$ 11,300. A elasticidade então desconta as faixas superiores para refletir retornos educacionais decrescentes e a penalidade de precisar gastar mais, chegando a alvos ajustados perto de R$ 7,000 para a 5080 e R$ 11,500 para a 5090, com faixas de compra imediata e de evitar ao redor dessas âncoras. Não são mandamentos, mas convém tentar não pagar caro demais.</p>
 <table>
 <thead>
 <tr>
 <th>GPU</th>
 <th style="text-align: right;">Paridade pura vs 5070 Ti</th>
 <th style="text-align: right;">Ótimo ajustado por elasticidade</th>
-<th style="text-align: right;">Faixa para comprar agora</th>
-<th style="text-align: right;">Faixa a evitar</th>
+<th style="text-align: right;">Faixa de compra imediata</th>
+<th style="text-align: right;">Faixa de evitar</th>
 </tr>
 </thead>
 <tbody>
@@ -271,15 +270,15 @@
 </tr>
 </tbody>
 </table>
-<p><em>Tabela: Sanidade de preço em relação a uma base de 5070 Ti. Preços praticados no varejo brasileiro em 2025-10; ajuste ao seu mercado.</em></p>
-<p>Tetos cumprem outro papel. Eles impedem que produtos mais fracos escorreguem para faixas de preço de produtos mais fortes quando existe uma variante superior. Limitar toda a família 5080 a R$ 8,500 e a 5090 a R$ 12,000 preserva a ordem de valor mesmo conforme os preços praticados no varejo se movem.</p>
-<h2>O meio-termo da placa auxiliar assimétrica</h2>
-<p>Se uma placa grande de 24 GB parece atraente pelo conforto, mas você ainda quer semântica genuína de NCCL localmente, uma configuração assimétrica é viável. Uma 4090 pode ser pareada com uma placa CUDA compacta, fria e de baixo consumo, como uma RTX A2000 ou uma 3060/4060 compacta. O dispositivo menor vira o gargalo e o escalonamento será modesto, mas a criação de grupos de processos, o comportamento de all-reduce, o estado shardado e o tratamento de falhas serão todos reais. Quando os experimentos dependem do comportamento da interconexão ou de paralelismo de tensores, uma sessão na nuvem ainda é necessária.</p>
-<h2>Kubernetes, time-slicing, e por que particionar uma 4090 não é MIG</h2>
-<p>Placas de consumidor não expõem MIG. Kubernetes com o NVIDIA device plugin pode fazer time-slicing de uma única GPU entre pods, mas isso não cria múltiplos dispositivos CUDA com VRAM isolada. Isso é útil para ensaiar manifests, geração de logs e gestão de artefatos. Não substitui coletivos multi-GPU. Para algoritmos distribuídos de verdade, você precisa de pelo menos duas GPUs físicas ou de uma GPU de datacenter com MIG.</p>
-<h2>A conclusão e a lógica dela</h2>
-<p>Duas RTX 5070 Ti são o melhor laboratório. Elas maximizam a amplitude do aprendizado por watt e por hora. Permitem que você estude CUDA a fundo e depois suba a pilha até treinamento distribuído sem sair da estação de trabalho. Preservam espaço mecânico e folga elétrica suficientes para seguir confiáveis. Trazem recursos de precisão da Blackwell para experimentos com treinamento em baixa precisão. Trocam parte do conforto de uma GPU só por acesso à parte do sistema que é mais difícil de aprender com um único dispositivo: como múltiplos processos coordenam trabalho que eles não conseguem ver. Quando chega a hora de estudar interconexões e escalonamento multinó, o mesmo código roda em um nó na nuvem com transporte diferente, e as diferenças são mensuráveis.</p>
-<p>Uma única GPU grande continua sendo uma escolha legítima para outro objetivo: iteração rápida e menos restrições de memória. É apenas uma classe diferente de instrumento. Em um laboratório construído para entender como as peças se encaixam, em vez de apenas acelerá-las, duas GPUs intermediárias são a ferramenta mais instrutiva.</p>
+<p><em>Tabela: Sanidade de preço em relação à linha de base da 5070 Ti. Preços praticados no varejo brasileiro em 2025-10; ajuste ao seu mercado.</em></p>
+<p>Tetos cumprem outro papel. Eles impedem que produtos mais fracos avancem para regiões de preço de produtos mais fortes quando existe uma variante superior. Limitar toda a família 5080 a R$ 8,500 e a 5090 a R$ 12,000 preserva a ordem de valor mesmo quando o preço de rua se move.</p>
+<h2>A solução de compromisso com placa auxiliar assimétrica</h2>
+<p>Se uma placa grande de 24 GB é atraente pelo conforto, mas você ainda quer semântica real de NCCL localmente, um arranjo assimétrico é viável. Uma 4090 pode ser combinada com uma placa CUDA compacta, fria e de baixo consumo, como uma RTX A2000 ou uma 3060/4060 compacta. O dispositivo menor vira o gargalo e a escalabilidade será modesta, mas criação de grupo de processos, comportamento de all-reduce, estado particionado e tratamento de falhas serão todos reais. Quando os experimentos dependem do comportamento da interconexão ou de paralelismo de tensores, uma sessão na nuvem continua sendo necessária.</p>
+<h2>Kubernetes, time-slicing e por que particionar uma 4090 não é MIG</h2>
+<p>Placas de consumo não expõem MIG. Kubernetes com o NVIDIA device plugin pode aplicar time-slicing a uma única GPU entre pods, mas isso não cria múltiplos dispositivos CUDA com VRAM isolada. É útil para ensaiar arquivos de manifesto, logs e gestão de artefatos. Não substitui operações coletivas entre múltiplas GPUs. Para algoritmos distribuídos de verdade, você precisa de pelo menos duas GPUs físicas ou de uma GPU de datacenter com MIG.</p>
+<h2>A conclusão e sua lógica</h2>
+<p>Como laboratório, duas RTX 5070 Ti são melhores. Elas maximizam a amplitude de aprendizado por watt e por hora. Permitem estudar CUDA a fundo e depois subir a pilha até o treinamento distribuído sem sair da estação de trabalho. Preservam espaço físico e folga elétrica suficientes para continuar confiáveis. Carregam recursos de precisão da Blackwell para experimentos com treinamento de poucos bits. Trocam parte do conforto de uma GPU só por acesso à parte do sistema mais difícil de aprender em um único dispositivo: como múltiplos processos coordenam um trabalho que eles não conseguem enxergar por inteiro. Quando chegar a hora de estudar interconexões e escalabilidade multinó, o mesmo código roda em um nó na nuvem com outro transporte, e as diferenças são mensuráveis.</p>
+<p>Uma GPU grande continua sendo uma escolha legítima para outro objetivo: iteração rápida e menos restrições de memória. É simplesmente outra classe de instrumento. Em um laboratório montado para entender como as peças se encaixam, e não apenas para acelerá-las, duas GPUs intermediárias são a ferramenta mais instrutiva.</p>
             </div>
         </article>
     </main>

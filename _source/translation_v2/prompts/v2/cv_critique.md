@@ -5,6 +5,7 @@ What to inspect:
 - factual and technical accuracy against the source CV
 - preservation of hiring signal, seniority cues, and credible professional tone
 - consistency of role-title, skill, and achievement terminology
+- punctuation, wording cadence, and borrowing choices expected by a native {{target_locale}} recruiter or hiring manager
 - invariant-field protection and JSON-structure preservation
 - fluency in {{target_locale}}, especially where the CV still sounds like literal transfer from the source locale
 
@@ -20,6 +21,9 @@ LOCALE DIRECTION
 - Target locale: {{target_locale}}
 - Translation direction: {{locale_direction}}
 
+LOCALIZATION BRIEF
+{{localization_brief}}
+
 SOURCE ANALYSIS JSON
 {{source_analysis_json}}
 
@@ -28,6 +32,18 @@ TERMINOLOGY POLICY JSON
 
 STYLE CONSTRAINTS
 {{style_constraints}}
+
+BORROWING CONVENTIONS
+{{borrowing_conventions}}
+
+PUNCTUATION CONVENTIONS
+{{punctuation_conventions}}
+
+DISCOURSE CONVENTIONS
+{{discourse_conventions}}
+
+REGISTER CONVENTIONS
+{{register_conventions}}
 
 WRITING STYLE BRIEF
 {{writing_style_brief}}
@@ -38,6 +54,9 @@ GLOSSARY
 DO_NOT_TRANSLATE_ENTITIES
 {{do_not_translate_entities}}
 
+LOCALE REVIEW CHECKS
+{{review_checks}}
+
 SOURCE CV JSON
 {{source_markdown}}
 
@@ -45,7 +64,7 @@ OUTPUT CONTRACT
 - Return exactly one JSON object.
 - Do not wrap in markdown fences.
 - score must be a number from 0 to 100.
-- dimension_scores must include at least: accuracy_completeness, terminology_entities, markdown_code_link_fidelity.
+- dimension_scores must include at least: accuracy_completeness, terminology_entities, markdown_code_link_fidelity, locale_naturalness, borrowing_consistency, rhetorical_structure.
 - critical_errors and major_core_errors must be non-negative integers.
 - confidence must be a number from 0 to 1.
 - findings must be an array of objects with span-based diagnosis.
@@ -58,7 +77,10 @@ BEGIN_OUTPUT_JSON
   "dimension_scores": {
     "accuracy_completeness": 0,
     "terminology_entities": 0,
-    "markdown_code_link_fidelity": 0
+    "markdown_code_link_fidelity": 0,
+    "locale_naturalness": 0,
+    "borrowing_consistency": 0,
+    "rhetorical_structure": 0
   },
   "critical_errors": 0,
   "major_core_errors": 0,

@@ -29,6 +29,7 @@ from .console import (
 from .contracts import (
     CVEducationEntry,
     CVExperienceEntry,
+    CVRevisionOutput,
     CVTranslationOutput,
     CritiqueOutput,
     FinalReviewOutput,
@@ -70,6 +71,7 @@ def _to_dict(
 
 ProviderPayloadLike = (
     TranslationOutput
+    | CVRevisionOutput
     | CVTranslationOutput
     | CritiqueOutput
     | RevisionOutput
@@ -110,6 +112,7 @@ class TranslationV2PostOrchestrator:
             self.author_voice_profile
         )
         self._prompt_fingerprint_cache: dict[str, str] = {}
+        self._artifact_persist_context: dict[tuple[str, str], dict[str, Any]] = {}
         self.artifact_base_dir = Path(
             os.getenv("TRANSLATION_V2_ARTIFACT_BASE_DIR", "_cache/translation-runs")
         )
@@ -185,6 +188,35 @@ class TranslationV2PostOrchestrator:
         *,
         target_locale: str = "pt-br",
     ) -> dict[str, Any] | None:
+        return self._translate_post(
+            post,
+            target_locale=target_locale,
+            persist_cache=True,
+            force_revision_reason=None,
+        )
+
+    def translate_if_needed_unpersisted(
+        self,
+        post: dict[str, Any],
+        *,
+        target_locale: str = "pt-br",
+        force_revision_reason: str | None = None,
+    ) -> dict[str, Any] | None:
+        return self._translate_post(
+            post,
+            target_locale=target_locale,
+            persist_cache=False,
+            force_revision_reason=force_revision_reason,
+        )
+
+    def _translate_post(
+        self,
+        post: dict[str, Any],
+        *,
+        target_locale: str,
+        persist_cache: bool,
+        force_revision_reason: str | None,
+    ) -> dict[str, Any] | None:
         """Translate one post and return build-compatible translated payload."""
         source_locale = str(post.get("lang") or "en-us")
         if source_locale.lower() == target_locale.lower():
@@ -202,6 +234,8 @@ class TranslationV2PostOrchestrator:
                 "excerpt": post.get("excerpt", ""),
                 "tags": post.get("tags", []),
             },
+            persist_cache=False,
+            force_revision_reason=force_revision_reason,
         )
 
         translated_markdown = str(translation.get("content", ""))
@@ -233,6 +267,28 @@ class TranslationV2PostOrchestrator:
                 issue_text = "; ".join(issues) if issues else "unknown validation error"
                 raise RuntimeError(f"translation_v2 strict validation failed: {issue_text}")
 
+        if persist_cache:
+            persist_context = self.consume_artifact_persist_context(
+                slug=str(post.get("slug") or ""),
+                artifact_type="post",
+            )
+            if persist_context.get("outcome") == "cache_hit":
+                return translated_post
+            self.persist_artifact_translation(
+                slug=str(post.get("slug") or ""),
+                source_text=content_to_translate,
+                source_locale=source_locale,
+                target_locale=target_locale,
+                artifact_type="post",
+                frontmatter={
+                    "title": post.get("title", ""),
+                    "excerpt": post.get("excerpt", ""),
+                    "tags": post.get("tags", []),
+                },
+                translation=translation,
+                revised_from_cache_source=persist_context.get("revised_from_cache_source"),
+            )
+
         return translated_post
 
     def translate_artifact_if_needed(
@@ -246,6 +302,8 @@ class TranslationV2PostOrchestrator:
         frontmatter: dict[str, Any] | None = None,
         attach_path: str | None = None,
         do_not_translate_entities: list[str] | None = None,
+        persist_cache: bool = True,
+        force_revision_reason: str | None = None,
     ) -> dict[str, Any]:
         frontmatter = frontmatter or {"title": slug, "excerpt": "", "tags": []}
         prompt_fingerprint = self._prompt_fingerprint(artifact_type)
@@ -289,6 +347,8 @@ class TranslationV2PostOrchestrator:
         request.metadata["prompt_fingerprint"] = prompt_fingerprint
         if do_not_translate_entities:
             request.metadata["do_not_translate_entities"] = list(do_not_translate_entities)
+        if force_revision_reason is not None:
+            request.metadata["force_revision_reason"] = force_revision_reason
         self.artifacts.write_trigger_event(trigger_event.slug, trigger_event)
 
         revision_request = self.revision_manifest.get(slug=slug, target_locale=target_locale)
@@ -300,6 +360,7 @@ class TranslationV2PostOrchestrator:
         should_revise = self._should_revise(
             cached_record=cached_record,
             revision_marker=revision_request.marker if revision_request else None,
+            force_revision_reason=force_revision_reason,
         )
 
         if cached_record is not None and not should_revise:
@@ -310,16 +371,18 @@ class TranslationV2PostOrchestrator:
             translation = dict(cached_record.translation)
             outcome = "cache_hit"
         elif cached_record is not None:
+            revision_detail = (
+                force_revision_reason
+                if force_revision_reason is not None
+                else revision_request.marker if revision_request is not None else "requested"
+            )
             start_artifact_status(
                 artifact_key=f"{artifact_type}:{trigger_event.slug}",
                 title=f"translation_v2 {artifact_type}:{trigger_event.slug}",
                 details=[
                     ("Cache", "stale"),
                     ("Action", "reassess cached translation"),
-                    (
-                        "Revision",
-                        revision_request.marker if revision_request is not None else "requested",
-                    ),
+                    ("Revision", revision_detail),
                 ],
             )
             try:
@@ -331,22 +394,23 @@ class TranslationV2PostOrchestrator:
             except Exception as exc:
                 fail_artifact_status(str(exc))
                 raise
-            self.cache.store_translation(
-                source_text=cache_source,
-                source_locale=source_locale.lower(),
-                target_locale=target_locale.lower(),
-                provider=self.provider_name,
-                model=self._model_id,
-                prompt_version=self.prompt_version,
-                translation=translation,
-                metadata=self._cache_metadata(
-                    workflow="revision",
-                    revision_marker=revision_request.marker if revision_request else None,
-                    revised_from_cache_source=cached_record.source,
-                    artifact_type=artifact_type,
-                    prompt_fingerprint=prompt_fingerprint,
-                ),
-            )
+            if persist_cache:
+                self.cache.store_translation(
+                    source_text=cache_source,
+                    source_locale=source_locale.lower(),
+                    target_locale=target_locale.lower(),
+                    provider=self.provider_name,
+                    model=self._model_id,
+                    prompt_version=self.prompt_version,
+                    translation=translation,
+                    metadata=self._cache_metadata(
+                        workflow="revision",
+                        revision_marker=revision_request.marker if revision_request else None,
+                        revised_from_cache_source=cached_record.source,
+                        artifact_type=artifact_type,
+                        prompt_fingerprint=prompt_fingerprint,
+                    ),
+                )
             outcome = "revision"
         else:
             start_artifact_status(
@@ -362,22 +426,23 @@ class TranslationV2PostOrchestrator:
             except Exception as exc:
                 fail_artifact_status(str(exc))
                 raise
-            self.cache.store_translation(
-                source_text=cache_source,
-                source_locale=source_locale.lower(),
-                target_locale=target_locale.lower(),
-                provider=self.provider_name,
-                model=self._model_id,
-                prompt_version=self.prompt_version,
-                translation=translation,
-                metadata=self._cache_metadata(
-                    workflow="translate",
-                    revision_marker=revision_request.marker if revision_request else None,
-                    revised_from_cache_source=None,
-                    artifact_type=artifact_type,
-                    prompt_fingerprint=prompt_fingerprint,
-                ),
-            )
+            if persist_cache:
+                self.cache.store_translation(
+                    source_text=cache_source,
+                    source_locale=source_locale.lower(),
+                    target_locale=target_locale.lower(),
+                    provider=self.provider_name,
+                    model=self._model_id,
+                    prompt_version=self.prompt_version,
+                    translation=translation,
+                    metadata=self._cache_metadata(
+                        workflow="translate",
+                        revision_marker=revision_request.marker if revision_request else None,
+                        revised_from_cache_source=None,
+                        artifact_type=artifact_type,
+                        prompt_fingerprint=prompt_fingerprint,
+                    ),
+                )
             outcome = "cache_miss"
 
         self.event_logger.emit_stage_event(
@@ -396,12 +461,71 @@ class TranslationV2PostOrchestrator:
                 "artifact_type": artifact_type,
                 "revision_requested": revision_request is not None,
                 "revision_marker": revision_request.marker if revision_request else None,
+                "force_revision_reason": force_revision_reason,
             },
         )
         if outcome in {"cache_miss", "revision"}:
             finish_artifact_status(outcome)
 
+        self._artifact_persist_context[(artifact_type, slug)] = {
+            "outcome": outcome,
+            "revised_from_cache_source": (
+                cached_record.source if outcome == "revision" and cached_record is not None else None
+            ),
+        }
         return translation
+
+    def consume_artifact_persist_context(
+        self,
+        *,
+        slug: str,
+        artifact_type: str,
+    ) -> dict[str, Any]:
+        return self._artifact_persist_context.pop(
+            (artifact_type, slug),
+            {"outcome": "cache_hit", "revised_from_cache_source": None},
+        )
+
+    def persist_artifact_translation(
+        self,
+        *,
+        slug: str,
+        source_text: str,
+        source_locale: str,
+        target_locale: str,
+        artifact_type: str,
+        frontmatter: dict[str, Any] | None = None,
+        translation: dict[str, Any],
+        revised_from_cache_source: str | None = None,
+    ) -> str:
+        frontmatter = frontmatter or {"title": slug, "excerpt": "", "tags": []}
+        prompt_fingerprint = self._prompt_fingerprint(artifact_type)
+        cache_source = self._build_cache_source(
+            source_text=source_text,
+            frontmatter=frontmatter,
+            source_locale=source_locale,
+            target_locale=target_locale,
+            artifact_type=artifact_type,
+            prompt_fingerprint=prompt_fingerprint,
+        )
+        revision_request = self.revision_manifest.get(slug=slug, target_locale=target_locale)
+        workflow = "revision" if revised_from_cache_source is not None else "translate"
+        return self.cache.store_translation(
+            source_text=cache_source,
+            source_locale=source_locale.lower(),
+            target_locale=target_locale.lower(),
+            provider=self.provider_name,
+            model=self._model_id,
+            prompt_version=self.prompt_version,
+            translation=translation,
+            metadata=self._cache_metadata(
+                workflow=workflow,
+                revision_marker=revision_request.marker if revision_request else None,
+                revised_from_cache_source=revised_from_cache_source,
+                artifact_type=artifact_type,
+                prompt_fingerprint=prompt_fingerprint,
+            ),
+        )
 
     def _build_cache_source(
         self,
@@ -475,26 +599,46 @@ class TranslationV2PostOrchestrator:
             source_analysis=source_analysis_stage.payload,
             terminology_policy=terminology_stage.payload,
         )
-        revised_stage = self.provider.revise(
-            request,
-            translated_stage.payload,
-            critique_stage.payload,
-            source_analysis=source_analysis_stage.payload,
-            terminology_policy=terminology_stage.payload,
-        )
-        revised_payload = revised_stage.payload
-        if isinstance(revised_payload, CVTranslationOutput):
-            return _to_dict(revised_payload)
-        if isinstance(revised_payload, RevisionOutput):
-            return _to_dict(
-                TranslationOutput(
+        final_candidate: TranslationOutput | CVTranslationOutput = translated_stage.payload
+        revision_report: RevisionOutput | CVRevisionOutput | None = None
+        if critique_stage.payload.needs_refinement:
+            revised_stage = self.provider.revise(
+                request,
+                translated_stage.payload,
+                critique_stage.payload,
+                source_analysis=source_analysis_stage.payload,
+                terminology_policy=terminology_stage.payload,
+            )
+            revised_payload = revised_stage.payload
+            revision_report = revised_payload
+            if isinstance(revised_payload, CVRevisionOutput):
+                final_candidate = revised_payload.revised_cv
+            elif isinstance(revised_payload, RevisionOutput):
+                final_candidate = TranslationOutput(
                     title=revised_payload.title,
                     excerpt=revised_payload.excerpt,
                     tags=revised_payload.tags,
                     content=revised_payload.content,
                 )
+            else:
+                final_candidate = revised_payload
+        final_review_stage = self.provider.final_review(
+            request,
+            final_candidate,
+            critique_stage.payload,
+            revision_report=revision_report,
+            source_analysis=source_analysis_stage.payload,
+            terminology_policy=terminology_stage.payload,
+        )
+        if not final_review_stage.payload.accept or not final_review_stage.payload.publish_ready:
+            raise RuntimeError("Final review rejected localized output")
+        if isinstance(final_candidate, CVTranslationOutput):
+            return _to_dict(final_candidate)
+        if isinstance(final_candidate, TranslationOutput):
+            return _to_dict(
+                final_candidate
             )
-        return _to_dict(revised_payload)
+        return _to_dict(final_candidate)
 
     def _revise_translation(
         self,
@@ -575,32 +719,55 @@ class TranslationV2PostOrchestrator:
             source_analysis=source_analysis_stage.payload,
             terminology_policy=terminology_stage.payload,
         )
-        revised_stage = self.provider.revise(
-            request,
-            existing_output,
-            critique_stage.payload,
-            source_analysis=source_analysis_stage.payload,
-            terminology_policy=terminology_stage.payload,
-        )
-        if isinstance(revised_stage.payload, RevisionOutput):
-            return _to_dict(
-                TranslationOutput(
+        final_candidate: TranslationOutput | CVTranslationOutput = existing_output
+        revision_report: RevisionOutput | CVRevisionOutput | None = None
+        if critique_stage.payload.needs_refinement:
+            revised_stage = self.provider.revise(
+                request,
+                existing_output,
+                critique_stage.payload,
+                source_analysis=source_analysis_stage.payload,
+                terminology_policy=terminology_stage.payload,
+            )
+            revision_report = revised_stage.payload
+            if isinstance(revised_stage.payload, RevisionOutput):
+                final_candidate = TranslationOutput(
                     title=revised_stage.payload.title,
                     excerpt=revised_stage.payload.excerpt,
                     tags=revised_stage.payload.tags,
                     content=revised_stage.payload.content,
                 )
+            elif isinstance(revised_stage.payload, CVRevisionOutput):
+                final_candidate = revised_stage.payload.revised_cv
+            else:
+                final_candidate = revised_stage.payload
+        final_review_stage = self.provider.final_review(
+            request,
+            final_candidate,
+            critique_stage.payload,
+            revision_report=revision_report,
+            source_analysis=source_analysis_stage.payload,
+            terminology_policy=terminology_stage.payload,
+        )
+        if not final_review_stage.payload.accept or not final_review_stage.payload.publish_ready:
+            raise RuntimeError("Final review rejected localized output")
+        if isinstance(final_candidate, TranslationOutput):
+            return _to_dict(
+                final_candidate
             )
-        return _to_dict(revised_stage.payload)
+        return _to_dict(final_candidate)
 
     def _should_revise(
         self,
         *,
         cached_record: Any,
         revision_marker: str | None,
+        force_revision_reason: str | None,
     ) -> bool:
         if cached_record is None:
             return False
+        if force_revision_reason is not None:
+            return True
         if getattr(cached_record, "is_legacy", False):
             return True
         cached_marker = None

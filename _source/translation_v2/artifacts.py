@@ -24,9 +24,11 @@ class TranslationRunArtifacts:
         self.run_dir = self.base_dir / run_id
         self.run_dir.mkdir(parents=True, exist_ok=True)
 
-    def stage_dir(self, post_slug: str, stage: str) -> Path:
+    def stage_dir(self, post_slug: str, stage: str, *, pass_name: str | None = None) -> Path:
         slug = _sanitize_slug(post_slug)
         stage_path = self.run_dir / "posts" / slug / stage
+        if pass_name:
+            stage_path = stage_path / _sanitize_slug(pass_name)
         stage_path.mkdir(parents=True, exist_ok=True)
         return stage_path
 
@@ -38,8 +40,9 @@ class TranslationRunArtifacts:
         *,
         prompt_version: str | None = None,
         prompt_fingerprint: str | None = None,
+        pass_name: str | None = None,
     ) -> Path:
-        path = self.stage_dir(post_slug, stage) / "prompt.txt"
+        path = self.stage_dir(post_slug, stage, pass_name=pass_name) / "prompt.txt"
         path.write_text(prompt_text, encoding="utf-8")
         if prompt_version is not None or prompt_fingerprint is not None:
             metadata: dict[str, str] = {}
@@ -47,39 +50,71 @@ class TranslationRunArtifacts:
                 metadata["prompt_version"] = prompt_version
             if prompt_fingerprint is not None:
                 metadata["prompt_fingerprint"] = prompt_fingerprint
-            metadata_path = self.stage_dir(post_slug, stage) / "prompt-metadata.json"
+            metadata_path = (
+                self.stage_dir(post_slug, stage, pass_name=pass_name) / "prompt-metadata.json"
+            )
             metadata_path.write_text(
                 json.dumps(metadata, ensure_ascii=True, indent=2), encoding="utf-8"
             )
         return path
 
     def write_structured_response(
-        self, post_slug: str, stage: str, response: dict[str, Any]
+        self,
+        post_slug: str,
+        stage: str,
+        response: dict[str, Any],
+        *,
+        pass_name: str | None = None,
     ) -> Path:
         sanitized = _redact_sensitive_fields(response)
-        path = self.stage_dir(post_slug, stage) / "structured-response.json"
+        path = self.stage_dir(post_slug, stage, pass_name=pass_name) / "structured-response.json"
         path.write_text(json.dumps(sanitized, ensure_ascii=True, indent=2), encoding="utf-8")
         return path
 
-    def write_error(self, post_slug: str, stage: str, error_message: str) -> Path:
-        path = self.stage_dir(post_slug, stage) / "error.txt"
+    def write_error(
+        self, post_slug: str, stage: str, error_message: str, *, pass_name: str | None = None
+    ) -> Path:
+        path = self.stage_dir(post_slug, stage, pass_name=pass_name) / "error.txt"
         path.write_text(error_message, encoding="utf-8")
         return path
 
-    def write_runner_stdout(self, post_slug: str, stage: str, stdout_text: str) -> Path:
-        path = self.stage_dir(post_slug, stage) / "runner-stdout.log"
+    def write_runner_stdout(
+        self,
+        post_slug: str,
+        stage: str,
+        stdout_text: str,
+        *,
+        pass_name: str | None = None,
+    ) -> Path:
+        path = self.stage_dir(post_slug, stage, pass_name=pass_name) / "runner-stdout.log"
         path.write_text(stdout_text, encoding="utf-8")
         return path
 
-    def write_runner_stderr(self, post_slug: str, stage: str, stderr_text: str) -> Path:
-        path = self.stage_dir(post_slug, stage) / "runner-stderr.log"
+    def write_runner_stderr(
+        self,
+        post_slug: str,
+        stage: str,
+        stderr_text: str,
+        *,
+        pass_name: str | None = None,
+    ) -> Path:
+        path = self.stage_dir(post_slug, stage, pass_name=pass_name) / "runner-stderr.log"
         path.write_text(stderr_text, encoding="utf-8")
         return path
 
     def write_runner_attempt(
-        self, post_slug: str, stage: str, attempt: int, artifact: dict[str, Any]
+        self,
+        post_slug: str,
+        stage: str,
+        attempt: int,
+        artifact: dict[str, Any],
+        *,
+        pass_name: str | None = None,
     ) -> Path:
-        path = self.stage_dir(post_slug, stage) / f"runner-attempt-{attempt}.json"
+        path = (
+            self.stage_dir(post_slug, stage, pass_name=pass_name)
+            / f"runner-attempt-{attempt}.json"
+        )
         path.write_text(
             json.dumps(_redact_sensitive_fields(artifact), ensure_ascii=True, indent=2),
             encoding="utf-8",

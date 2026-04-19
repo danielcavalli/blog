@@ -5,6 +5,7 @@ and root landing pages. Each function returns a full HTML string.
 """
 
 import html as _html
+import re as _re
 
 from config import (
     BASE_PATH,
@@ -670,7 +671,7 @@ def generate_index_html(posts, lang="en"):
 </html>"""
 
 
-def generate_about_html(lang="en"):
+def generate_about_html(lang="en", translated_about=None):
     """Generate About page with translated content.
 
     Creates about.html page with author bio content from config,
@@ -683,7 +684,10 @@ def generate_about_html(lang="en"):
         str: Complete HTML document for the About page.
     """
     lang_toggle_html = generate_lang_toggle_html(lang, "about.html")
-    about = LANGUAGES[lang]["about"]
+    if lang == "pt" and translated_about:
+        about = translated_about
+    else:
+        about = LANGUAGES[lang]["about"]
 
     # SEO info
     other_lang = get_alternate_lang(lang)
@@ -741,6 +745,16 @@ def generate_about_html(lang="en"):
     footer = render_footer(lang)
     skip_link = render_skip_link(lang)
 
+    # Build about paragraphs dynamically
+    _strikethrough_re = _re.compile(r"\{\{STRIKETHROUGH:(.+?)\}\}")
+    paragraph_keys = sorted(k for k in about if k.startswith("p") and k[1:].isdigit())
+    paragraphs_html = []
+    for key in paragraph_keys:
+        escaped = _html.escape(about[key])
+        escaped = _strikethrough_re.sub(r'<s>\1</s>', escaped)
+        paragraphs_html.append(f"                <p>{escaped}</p>")
+    paragraphs_block = "\n\n".join(paragraphs_html)
+
     return f"""<!DOCTYPE html>
 <html lang="{lang}">
 {head}
@@ -755,13 +769,7 @@ def generate_about_html(lang="en"):
             </header>
 
             <div class="post-body" style="view-transition-name: about-body;">
-                <p>{_html.escape(about["p1"])}</p>
-
-                <p>{_html.escape(about["p2"])}</p>
-
-                <p>{_html.escape(about["p3"])}</p>
-
-                <p>{_html.escape(about["p4"])}</p>
+{paragraphs_block}
 
                 <img src="{BASE_PATH}/static/images/Logo.png" alt="Moana Surfworks" loading="lazy" class="about-image">
             </div>

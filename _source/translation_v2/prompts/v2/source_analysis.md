@@ -9,14 +9,33 @@ Your job is to extract what must survive localization:
 - humor or irony signals
 - stance markers
 - stylistic signals that are essential to preserve in {{target_locale}}
+- places where the source can stay itself in {{target_locale}} only by changing sentence movement, punctuation, or connective structure
 
 LOCALE DIRECTION
 - Source locale: {{source_locale}}
 - Target locale: {{target_locale}}
 - Translation direction: {{locale_direction}}
 
+LOCALIZATION BRIEF
+{{localization_brief}}
+
 STYLE CONSTRAINTS
 {{style_constraints}}
+
+BORROWING CONVENTIONS
+{{borrowing_conventions}}
+
+PUNCTUATION CONVENTIONS
+{{punctuation_conventions}}
+
+DISCOURSE CONVENTIONS
+{{discourse_conventions}}
+
+REGISTER CONVENTIONS
+{{register_conventions}}
+
+LOCALE REVIEW CHECKS
+{{review_checks}}
 
 WRITING STYLE BRIEF
 {{writing_style_brief}}

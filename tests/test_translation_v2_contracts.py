@@ -233,9 +233,31 @@ def test_validate_voice_intent_output_accepts_expected_packet_shape():
 def test_validate_terminology_policy_output_accepts_expected_packet_shape():
     payload = {
         "keep_english": ["cache adapter"],
-        "localize": ["latency => latencia"],
+        "localize": ["latency => latência"],
         "context_sensitive": ["rollout"],
         "do_not_translate": ["OpenCode"],
+        "resolved_decisions": [
+            {
+                "source_term": "AI Platform",
+                "approved_rendering": "AI Platform",
+                "decision": "keep_english",
+                "scope": "artifact-wide",
+                "applies_to": ["summary", "experience[].description"],
+                "notes": "Internal product name in this artifact.",
+            }
+        ],
+        "education_degree_localization_policy": {
+            "decision": "localize_equivalent",
+            "apply_consistently": True,
+            "rule": "Use recruiter-facing PT-BR degree names consistently.",
+            "exceptions": [
+                {
+                    "source_degree": "Bachelor of Economics - BBA, Economics",
+                    "approved_rendering": "Bacharelado em Economia",
+                    "reason": "Prefer idiomatic PT-BR credential naming.",
+                }
+            ],
+        },
         "consistency_rules": ["Keep terminology stable."],
         "rationale_notes": ["Borrow infra terms when PT-BR usage expects it."],
     }
@@ -245,6 +267,9 @@ def test_validate_terminology_policy_output_accepts_expected_packet_shape():
     assert isinstance(result, TerminologyPolicyPacket)
     assert result.keep_english == ["cache adapter"]
     assert result.do_not_translate == ["OpenCode"]
+    assert result.resolved_decisions[0].preferred_rendering == "AI Platform"
+    assert result.education_degree_localization_policy is not None
+    assert result.education_degree_localization_policy.apply_consistently is True
 
 
 def test_validate_refinement_output_rejects_non_string_tag_values():

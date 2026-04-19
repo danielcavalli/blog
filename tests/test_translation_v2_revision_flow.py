@@ -19,6 +19,10 @@ from translation_v2.style_loader import (  # noqa: E402
     compute_writing_style_fingerprint,
     load_writing_style_brief,
 )
+from translation_v2.voice_profile import (  # noqa: E402
+    compute_author_voice_fingerprint,
+    load_author_voice_profile,
+)
 
 
 class _FakeRevisionProvider:
@@ -100,12 +104,14 @@ def _cache_source(post: dict[str, object]) -> str:
         artifact_type="post",
     )
     writing_style_fingerprint = compute_writing_style_fingerprint(load_writing_style_brief())
+    author_voice_fingerprint = compute_author_voice_fingerprint(load_author_voice_profile())
     return (
         str(post["raw_content"])
         + json.dumps(frontmatter, ensure_ascii=False, sort_keys=True)
         + "|en-us|pt-br|artifact=post"
         + f"|prompt_fingerprint={prompt_fingerprint}"
         + f"|writing_style_fingerprint={writing_style_fingerprint}"
+        + f"|author_voice_fingerprint={author_voice_fingerprint}"
     )
 
 
@@ -173,6 +179,7 @@ def test_orchestrator_revises_legacy_translation_and_upgrades_cache(tmp_path):
         strict_validation=False,
         cache_path=cache_path,
         run_id="revision-test",
+        prompt_version="v1",
     )
     fake_provider = _FakeRevisionProvider()
     orchestrator.provider = fake_provider  # type: ignore[assignment]
@@ -227,6 +234,7 @@ def test_orchestrator_reuses_v2_translation_when_revision_marker_is_satisfied(tm
         strict_validation=False,
         cache_path=cache_path,
         run_id="revision-test",
+        prompt_version="v1",
     )
     orchestrator.provider = _NoOpProvider()  # type: ignore[assignment]
     orchestrator._model_id = "fake/model"

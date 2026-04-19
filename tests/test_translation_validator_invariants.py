@@ -71,7 +71,7 @@ def test_validate_translation_still_flags_non_invariant_identical_block():
 def test_validate_translation_pt_br_to_en_us_accepts_translated_content():
     original = "\n\n".join(
         [
-            "Este sistema reduz latencia em picos de trafego.",
+            "Este sistema reduz latência em picos de tráfego.",
             "Tambem melhora a confiabilidade da plataforma.",
         ]
     )

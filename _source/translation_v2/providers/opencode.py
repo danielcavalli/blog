@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import inspect
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from typing import Any, Protocol
@@ -10,6 +11,7 @@ from typing import Any, Protocol
 from ..artifacts import TranslationRunArtifacts
 from ..console import finish_stage_status, start_stage_status
 from ..contracts import (
+    CVRevisionOutput,
     CVTranslationOutput,
     CritiqueOutput,
     FinalReviewOutput,
@@ -43,6 +45,7 @@ class OpenCodeRunnerLike(Protocol):
         prompt_text: str,
         attach_path: str,
         artifacts: TranslationRunArtifacts,
+        pass_name: str | None = None,
     ) -> StageResult[ProviderPayload]:
         ...
 
@@ -110,6 +113,12 @@ class OpenCodeTranslationProvider(TranslationProvider):
             voice_profile=self._voice_profile,
             writing_style_brief=str(request.metadata.get("writing_style_brief", "")),
             style_constraints=lists["style_constraints"],
+            localization_brief=lists["localization_brief"],
+            borrowing_conventions=lists["borrowing_conventions"],
+            punctuation_conventions=lists["punctuation_conventions"],
+            discourse_conventions=lists["discourse_conventions"],
+            register_conventions=lists["register_conventions"],
+            review_checks=lists["review_checks"],
             glossary_entries=lists["glossary"],
             do_not_translate_entities=lists["do_not_translate_entities"],
         )
@@ -134,6 +143,12 @@ class OpenCodeTranslationProvider(TranslationProvider):
             glossary_entries=lists["glossary"],
             do_not_translate_entities=lists["do_not_translate_entities"],
             style_constraints=lists["style_constraints"],
+            localization_brief=lists["localization_brief"],
+            borrowing_conventions=lists["borrowing_conventions"],
+            punctuation_conventions=lists["punctuation_conventions"],
+            discourse_conventions=lists["discourse_conventions"],
+            register_conventions=lists["register_conventions"],
+            review_checks=lists["review_checks"],
         )
         return self._run_stage_with_repair(
             runner=self._terminology_runner,
@@ -171,6 +186,7 @@ class OpenCodeTranslationProvider(TranslationProvider):
         *,
         source_analysis: VoiceIntentPacket | None = None,
         terminology_policy: TerminologyPolicyPacket | None = None,
+        pass_name: str | None = None,
     ) -> StageResult[CritiqueOutput]:
         if source_analysis is None:
             source_analysis = self.source_analysis(request).payload
@@ -192,6 +208,7 @@ class OpenCodeTranslationProvider(TranslationProvider):
             request=request,
             stage="critique",
             context=context,
+            pass_name=pass_name,
         )
 
     def revise(
@@ -202,7 +219,8 @@ class OpenCodeTranslationProvider(TranslationProvider):
         *,
         source_analysis: VoiceIntentPacket | None = None,
         terminology_policy: TerminologyPolicyPacket | None = None,
-    ) -> StageResult[RevisionOutput | CVTranslationOutput]:
+        pass_name: str | None = None,
+    ) -> StageResult[RevisionOutput | CVRevisionOutput]:
         if source_analysis is None:
             source_analysis = self.source_analysis(request).payload
         if terminology_policy is None:
@@ -229,15 +247,19 @@ class OpenCodeTranslationProvider(TranslationProvider):
             request=request,
             stage="revise",
             context=context,
+            pass_name=pass_name,
         )
 
     def final_review(
         self,
         request: TranslationRequest,
         translated: TranslationOutput | CVTranslationOutput,
+        critique: CritiqueOutput,
         *,
+        revision_report: RevisionOutput | CVRevisionOutput | None = None,
         source_analysis: VoiceIntentPacket | None = None,
         terminology_policy: TerminologyPolicyPacket | None = None,
+        pass_name: str | None = None,
     ) -> StageResult[FinalReviewOutput]:
         if source_analysis is None:
             source_analysis = self.source_analysis(request).payload
@@ -254,11 +276,24 @@ class OpenCodeTranslationProvider(TranslationProvider):
             sort_keys=True,
             indent=2,
         )
+        context["critique_json"] = json.dumps(
+            _payload_to_dict(critique),
+            ensure_ascii=False,
+            sort_keys=True,
+            indent=2,
+        )
+        context["revision_report_json"] = json.dumps(
+            _revision_report_dict(revision_report),
+            ensure_ascii=False,
+            sort_keys=True,
+            indent=2,
+        )
         return self._run_stage_with_repair(
             runner=self._final_review_runner,
             request=request,
             stage="final_review",
             context=context,
+            pass_name=pass_name,
         )
 
     def run_translation_pipeline(
@@ -285,29 +320,38 @@ class OpenCodeTranslationProvider(TranslationProvider):
             current_translation = existing_translation
 
         for revision_pass in range(1, self._max_revision_passes + 1):
+            pass_name = f"pass-{revision_pass}"
             critique_result = self.critique(
                 request,
                 current_translation,
                 source_analysis=source_analysis,
                 terminology_policy=terminology_policy,
+                pass_name=pass_name,
             )
             stage_results.append(critique_result)
 
-            revision_result = self.revise(
-                request,
-                current_translation,
-                critique_result.payload,
-                source_analysis=source_analysis,
-                terminology_policy=terminology_policy,
-            )
-            stage_results.append(revision_result)
+            revision_result: StageResult[RevisionOutput | CVRevisionOutput] | None = None
+            revised_translation = current_translation
+            if critique_result.payload.needs_refinement:
+                revision_result = self.revise(
+                    request,
+                    current_translation,
+                    critique_result.payload,
+                    source_analysis=source_analysis,
+                    terminology_policy=terminology_policy,
+                    pass_name=pass_name,
+                )
+                stage_results.append(revision_result)
+                revised_translation = _coerce_revision_payload(revision_result.payload)
 
-            revised_translation = _coerce_revision_payload(revision_result.payload)
             final_review_result = self.final_review(
                 request,
                 revised_translation,
+                critique_result.payload,
+                revision_report=revision_result.payload if revision_result is not None else None,
                 source_analysis=source_analysis,
                 terminology_policy=terminology_policy,
+                pass_name=pass_name,
             )
             stage_results.append(final_review_result)
 
@@ -350,7 +394,7 @@ class OpenCodeTranslationProvider(TranslationProvider):
         *,
         source_analysis: VoiceIntentPacket | None = None,
         terminology_policy: TerminologyPolicyPacket | None = None,
-    ) -> StageResult[RevisionOutput | CVTranslationOutput]:
+    ) -> StageResult[RevisionOutput | CVRevisionOutput]:
         """Backward-compatible alias for revise."""
 
         return self.revise(
@@ -368,6 +412,7 @@ class OpenCodeTranslationProvider(TranslationProvider):
         request: TranslationRequest,
         stage: str,
         context: Mapping[str, str],
+        pass_name: str | None = None,
     ) -> StageResult[ProviderPayload]:
         post_slug = self._post_slug(request)
         artifact_type = self._artifact_type(request)
@@ -387,24 +432,29 @@ class OpenCodeTranslationProvider(TranslationProvider):
             prompt_text,
             prompt_version=request.prompt_version,
             prompt_fingerprint=prompt_fingerprint,
+            pass_name=pass_name,
         )
 
         attach_path = self._resolve_attach_path(request)
         artifact_key = f"{artifact_type}:{post_slug}"
         start_stage_status(stage, artifact_key, _stage_launch_label(stage))
         try:
-            result = runner.run_stage(
-                request=request,
-                post_slug=post_slug,
-                stage=stage,
-                prompt_text=prompt_text,
-                attach_path=attach_path,
-                artifacts=self._artifacts,
-            )
+            runner_kwargs = {
+                "request": request,
+                "post_slug": post_slug,
+                "stage": stage,
+                "prompt_text": prompt_text,
+                "attach_path": attach_path,
+                "artifacts": self._artifacts,
+            }
+            if pass_name is not None and "pass_name" in inspect.signature(runner.run_stage).parameters:
+                runner_kwargs["pass_name"] = pass_name
+            result = runner.run_stage(**runner_kwargs)
             self._artifacts.write_structured_response(
                 post_slug,
                 stage,
                 _payload_to_dict(result.payload),
+                pass_name=pass_name,
             )
             finish_stage_status(
                 stage,
@@ -413,11 +463,11 @@ class OpenCodeTranslationProvider(TranslationProvider):
             )
             return result
         except ContractValidationError as exc:
-            self._artifacts.write_error(post_slug, stage, str(exc))
+            self._artifacts.write_error(post_slug, stage, str(exc), pass_name=pass_name)
             finish_stage_status(stage, artifact_key, error=_stage_invalid_label(stage, exc))
             raise
         except Exception as exc:
-            self._artifacts.write_error(post_slug, stage, str(exc))
+            self._artifacts.write_error(post_slug, stage, str(exc), pass_name=pass_name)
             finish_stage_status(stage, artifact_key, error=str(exc))
             raise
 
@@ -436,10 +486,16 @@ class OpenCodeTranslationProvider(TranslationProvider):
             glossary_entries=lists["glossary"],
             do_not_translate_entities=lists["do_not_translate_entities"],
             style_constraints=lists["style_constraints"],
+            localization_brief=lists["localization_brief"],
+            borrowing_conventions=lists["borrowing_conventions"],
+            punctuation_conventions=lists["punctuation_conventions"],
+            discourse_conventions=lists["discourse_conventions"],
+            register_conventions=lists["register_conventions"],
+            review_checks=lists["review_checks"],
             writing_style_brief=str(request.metadata.get("writing_style_brief", "")),
         )
 
-    def _policy_lists(self, request: TranslationRequest) -> dict[str, list[Any]]:
+    def _policy_lists(self, request: TranslationRequest) -> dict[str, Any]:
         metadata = request.metadata
         locale_defaults = get_default_locale_rules(
             source_locale=request.source_locale,
@@ -449,6 +505,30 @@ class OpenCodeTranslationProvider(TranslationProvider):
             "style_constraints": _merge_string_lists(
                 locale_defaults["style_constraints"],
                 metadata.get("style_constraints"),
+            ),
+            "localization_brief": _merge_text_blocks(
+                locale_defaults.get("localization_brief", ""),
+                metadata.get("localization_brief"),
+            ),
+            "borrowing_conventions": _merge_string_lists(
+                locale_defaults.get("borrowing_conventions"),
+                metadata.get("borrowing_conventions"),
+            ),
+            "punctuation_conventions": _merge_string_lists(
+                locale_defaults.get("punctuation_conventions"),
+                metadata.get("punctuation_conventions"),
+            ),
+            "discourse_conventions": _merge_string_lists(
+                locale_defaults.get("discourse_conventions"),
+                metadata.get("discourse_conventions"),
+            ),
+            "register_conventions": _merge_string_lists(
+                locale_defaults.get("register_conventions"),
+                metadata.get("register_conventions"),
+            ),
+            "review_checks": _merge_string_lists(
+                locale_defaults.get("review_checks"),
+                metadata.get("review_checks"),
             ),
             "glossary": _merge_glossary_entries(
                 locale_defaults["glossary"],
@@ -499,6 +579,11 @@ def _merge_string_lists(defaults: Any, overrides: Any) -> list[str]:
     return merged
 
 
+def _merge_text_blocks(default: Any, override: Any) -> str:
+    sections = [str(value).strip() for value in (default, override) if str(value).strip()]
+    return "\n\n".join(sections)
+
+
 def _merge_glossary_entries(defaults: Any, overrides: Any) -> list[Any]:
     merged: list[Any] = []
     source_to_index: dict[str, int] = {}
@@ -540,16 +625,36 @@ def _payload_to_dict(payload: ProviderPayload | dict[str, Any]) -> dict[str, Any
 
 
 def _coerce_revision_payload(
-    payload: RevisionOutput | CVTranslationOutput,
+    payload: RevisionOutput | CVRevisionOutput,
 ) -> TranslationOutput | CVTranslationOutput:
-    if isinstance(payload, CVTranslationOutput):
-        return payload
+    if isinstance(payload, CVRevisionOutput):
+        return payload.revised_cv
     return TranslationOutput(
         title=payload.title,
         excerpt=payload.excerpt,
         tags=payload.tags,
         content=payload.content,
     )
+
+
+def _revision_report_dict(
+    payload: RevisionOutput | CVRevisionOutput | None,
+) -> dict[str, Any]:
+    if payload is None:
+        return {
+            "applied_feedback": [],
+            "declined_feedback": [],
+            "rewrite_summary": [],
+            "unresolved_risks": [],
+        }
+    if isinstance(payload, CVRevisionOutput):
+        return asdict(payload.revision_report)
+    return {
+        "applied_feedback": payload.applied_feedback,
+        "declined_feedback": [asdict(item) for item in payload.declined_feedback],
+        "rewrite_summary": payload.rewrite_summary,
+        "unresolved_risks": payload.unresolved_risks,
+    }
 
 
 def _stage_launch_label(stage: str) -> str:

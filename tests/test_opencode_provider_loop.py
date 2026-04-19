@@ -52,6 +52,7 @@ class _FakeRunner:
         prompt_text: str,
         attach_path: str,
         artifacts: TranslationRunArtifacts,  # noqa: ARG002
+        pass_name: str | None = None,
     ) -> StageResult:
         self.calls.append(
             {
@@ -59,6 +60,7 @@ class _FakeRunner:
                 "prompt_text": prompt_text,
                 "attach_path": attach_path,
                 "post_slug": post_slug,
+                "pass_name": pass_name or "",
             }
         )
 
@@ -91,8 +93,8 @@ def _request() -> TranslationRequest:
                 "Keep understated humor implicit."
             ),
             "glossary": [
-                {"source": "throughput", "target": "vazao"},
-                "latency => latencia",
+                {"source": "throughput", "target": "vazão"},
+                "latency => latência",
             ],
             "do_not_translate_entities": ["OpenCode", "CUDA"],
         },
@@ -142,7 +144,7 @@ def _terminology_policy_result(*, model: str = "openai/gpt-5.4-high") -> StageRe
         model=model,
         payload=TerminologyPolicyPacket(
             keep_english=["cache adapter", "throughput"],
-            localize=["latency => latencia"],
+            localize=["latency => latência"],
             context_sensitive=["rollout"],
             do_not_translate=["OpenCode", "CUDA"],
             consistency_rules=["Use the same borrowing decision in title and body."],
@@ -258,7 +260,7 @@ def test_opencode_provider_runs_settled_stage_graph_with_model_split(tmp_path):
             _source_analysis_result(),
             _terminology_policy_result(),
             _translation_result("Conteudo inicial"),
-            _critique_result(72.0),
+            _critique_result(72.0, needs_refinement=True),
             _revision_result("Conteudo revisado"),
             _final_review_result(accept=True, publish_ready=True),
         ]
@@ -297,7 +299,11 @@ def test_opencode_provider_revision_pass_receives_source_draft_and_critique(tmp_
         [
             _source_analysis_result(),
             _terminology_policy_result(),
-            _critique_result(81.0, description="Replace generic wording with approved terminology."),
+            _critique_result(
+                81.0,
+                description="Replace generic wording with approved terminology.",
+                needs_refinement=True,
+            ),
             _revision_result("Conteudo revisado"),
             _final_review_result(accept=True, publish_ready=True),
         ]
@@ -340,14 +346,18 @@ def test_opencode_provider_uses_final_review_as_accept_reject_gate(tmp_path):
             _source_analysis_result(),
             _terminology_policy_result(),
             _translation_result("Conteudo inicial"),
-            _critique_result(78.0),
+            _critique_result(78.0, needs_refinement=True),
             _revision_result("Conteudo revisado 1"),
             _final_review_result(
                 accept=False,
                 publish_ready=False,
                 residual_issues=["Voice still sounds imported."],
             ),
-            _critique_result(88.0, description="Tighten the second paragraph."),
+            _critique_result(
+                88.0,
+                description="Tighten the second paragraph.",
+                needs_refinement=True,
+            ),
             _revision_result("Conteudo revisado 2"),
             _final_review_result(
                 accept=False,
@@ -401,7 +411,12 @@ def test_opencode_provider_translate_prompt_carries_voice_and_terminology_packet
     assert '"keep_english": [' in translate_prompt
     assert '"cache adapter"' in translate_prompt
     assert '"OpenCode"' in translate_prompt
-    assert "Prefer natural PT-BR wording over literal English word order." in translate_prompt
+    assert "LOCALIZATION BRIEF" in translate_prompt
+    assert "Brazilian Portuguese" in translate_prompt
+    assert (
+        "Localize for Brazilian Portuguese readership; do not mirror English sentence order"
+        in translate_prompt
+    )
 
 
 def test_opencode_provider_propagates_schema_validation_failures(tmp_path):
@@ -432,3 +447,88 @@ def test_opencode_provider_propagates_schema_validation_failures(tmp_path):
     )
     assert error_path.exists()
     assert "Missing required field" in error_path.read_text(encoding="utf-8")
+
+
+def test_opencode_provider_skips_revision_when_critique_does_not_require_it(tmp_path):
+    runner = _FakeRunner(
+        [
+            _source_analysis_result(),
+            _terminology_policy_result(),
+            _translation_result("Conteudo inicial"),
+            _critique_result(91.0, needs_refinement=False),
+            _final_review_result(accept=True, publish_ready=True),
+        ]
+    )
+    provider = OpenCodeTranslationProvider(
+        runner=runner,
+        artifacts=TranslationRunArtifacts(run_id="opencode-provider-test", base_dir=tmp_path),
+        default_attach_path="/tmp/fallback.md",
+    )
+
+    result = provider.run_translation_pipeline(_request())
+
+    assert result.stop_reason == "accepted"
+    assert [item.stage for item in result.stage_results] == [
+        "source_analysis",
+        "terminology_policy",
+        "translate",
+        "critique",
+        "final_review",
+    ]
+    assert [call["stage"] for call in runner.calls] == [
+        "source_analysis",
+        "terminology_policy",
+        "translate",
+        "critique",
+        "final_review",
+    ]
+
+
+def test_opencode_provider_final_review_prompt_receives_critique_and_revision_report(tmp_path):
+    runner = _FakeRunner(
+        [
+            _source_analysis_result(),
+            _terminology_policy_result(),
+            _translation_result("Conteudo inicial"),
+            _critique_result(72.0, needs_refinement=True),
+            _revision_result("Conteudo revisado"),
+            _final_review_result(accept=True, publish_ready=True),
+        ]
+    )
+    provider = OpenCodeTranslationProvider(
+        runner=runner,
+        artifacts=TranslationRunArtifacts(run_id="opencode-provider-test", base_dir=tmp_path),
+        default_attach_path="/tmp/fallback.md",
+    )
+
+    provider.run_translation_pipeline(_request())
+
+    final_review_prompt = runner.calls[-1]["prompt_text"]
+    assert "CRITIQUE JSON" in final_review_prompt
+    assert '"finding_id": "finding-1"' in final_review_prompt
+    assert "REVISION REPORT JSON" in final_review_prompt
+    assert '"applied_feedback": [' in final_review_prompt
+
+
+def test_translation_run_artifacts_scope_revision_pass_files(tmp_path):
+    artifacts = TranslationRunArtifacts(run_id="artifact-pass-scope", base_dir=tmp_path)
+
+    artifacts.write_prompt(
+        "cv",
+        "critique",
+        "prompt text",
+        prompt_version="v2",
+        prompt_fingerprint="fingerprint",
+        pass_name="pass-2",
+    )
+    artifacts.write_structured_response(
+        "cv",
+        "critique",
+        {"score": 82},
+        pass_name="pass-2",
+    )
+
+    scoped_dir = artifacts.stage_dir("cv", "critique", pass_name="pass-2")
+    assert scoped_dir.exists()
+    assert (scoped_dir / "prompt.txt").exists()
+    assert (scoped_dir / "structured-response.json").exists()

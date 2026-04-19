@@ -12,6 +12,7 @@ from typing import Any, Callable, Literal, Protocol, overload
 from .artifacts import TranslationRunArtifacts
 from .console import finish_runner_status, start_runner_status
 from .contracts import (
+    CVRevisionOutput,
     CVTranslationOutput,
     CritiqueOutput,
     FinalReviewOutput,
@@ -23,6 +24,7 @@ from .contracts import (
     TranslationRequest,
     VoiceIntentPacket,
     validate_final_review_output,
+    validate_cv_revision_output,
     validate_cv_translation_output,
     validate_critique_output,
     validate_revision_output,
@@ -141,6 +143,7 @@ class OpenCodeHeadlessRunner:
         prompt_text: str,
         attach_path: str,
         artifacts: TranslationRunArtifacts,
+        pass_name: str | None = None,
     ) -> StageResult[ProviderPayload]: ...
 
     def run_stage(
@@ -152,6 +155,7 @@ class OpenCodeHeadlessRunner:
         prompt_text: str,
         attach_path: str,
         artifacts: TranslationRunArtifacts,
+        pass_name: str | None = None,
     ) -> StageResult[ProviderPayload]:
         command = self._build_command(attach_path=attach_path)
         backoff_seconds = self._backoff_initial_seconds
@@ -197,9 +201,25 @@ class OpenCodeHeadlessRunner:
                     else None
                 ),
             }
-            artifacts.write_runner_attempt(post_slug, stage, attempt, artifact_payload)
-            artifacts.write_runner_stdout(post_slug, stage, execution.stdout)
-            artifacts.write_runner_stderr(post_slug, stage, execution.stderr)
+            artifacts.write_runner_attempt(
+                post_slug,
+                stage,
+                attempt,
+                artifact_payload,
+                pass_name=pass_name,
+            )
+            artifacts.write_runner_stdout(
+                post_slug,
+                stage,
+                execution.stdout,
+                pass_name=pass_name,
+            )
+            artifacts.write_runner_stderr(
+                post_slug,
+                stage,
+                execution.stderr,
+                pass_name=pass_name,
+            )
 
             if execution.exit_code == 0 and parsed_output is not None:
                 finish_runner_status(
@@ -466,6 +486,7 @@ def _looks_like_direct_stage_payload(payload: dict[str, Any], stage: str) -> boo
                 "do_not_translate",
                 "consistency_rules",
                 "rationale_notes",
+                "resolved_decisions",
             },
         )
     elif stage == "translate":
@@ -488,17 +509,7 @@ def _looks_like_direct_stage_payload(payload: dict[str, Any], stage: str) -> boo
     elif stage == "revise":
         required_key_sets = (
             {"title", "excerpt", "tags", "content", "applied_feedback"},
-            {
-                "name",
-                "tagline",
-                "location",
-                "contact",
-                "skills",
-                "languages_spoken",
-                "summary",
-                "experience",
-                "education",
-            },
+            {"revised_cv", "revision_report"},
         )
     elif stage == "final_review":
         required_key_sets = (
@@ -588,7 +599,7 @@ def _stage_result_from_payload(
         )
     elif stage == "revise":
         if artifact_type == "cv":
-            payload = validate_cv_translation_output(
+            payload = validate_cv_revision_output(
                 parsed_output.payload,
                 run_id=request.run_id,
                 stage=stage,

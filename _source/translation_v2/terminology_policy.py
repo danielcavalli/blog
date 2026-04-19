@@ -16,6 +16,12 @@ def build_terminology_policy_context(
     glossary_entries: list[Any],
     do_not_translate_entities: list[str],
     style_constraints: list[str],
+    localization_brief: str,
+    borrowing_conventions: list[str],
+    punctuation_conventions: list[str],
+    discourse_conventions: list[str],
+    register_conventions: list[str],
+    review_checks: list[str],
 ) -> dict[str, str]:
     """Build prompt context for terminology and borrowing analysis."""
 
@@ -32,6 +38,12 @@ def build_terminology_policy_context(
         "glossary_entries": _render_glossary(glossary_entries),
         "do_not_translate_entities": _render_bullets(do_not_translate_entities),
         "style_constraints": _render_bullets(style_constraints),
+        "localization_brief": _render_text_block(localization_brief),
+        "borrowing_conventions": _render_bullets(borrowing_conventions),
+        "punctuation_conventions": _render_bullets(punctuation_conventions),
+        "discourse_conventions": _render_bullets(discourse_conventions),
+        "register_conventions": _render_bullets(register_conventions),
+        "review_checks": _render_bullets(review_checks),
         "source_markdown": request.source_text,
     }
 
@@ -44,6 +56,12 @@ def build_translation_policy_context(
     glossary_entries: list[Any],
     do_not_translate_entities: list[str],
     style_constraints: list[str],
+    localization_brief: str,
+    borrowing_conventions: list[str],
+    punctuation_conventions: list[str],
+    discourse_conventions: list[str],
+    register_conventions: list[str],
+    review_checks: list[str],
     writing_style_brief: str,
 ) -> dict[str, str]:
     """Build common translation/critique/revise/final-review prompt context."""
@@ -54,6 +72,12 @@ def build_translation_policy_context(
         "target_locale": request.target_locale,
         "locale_direction": str(request.metadata.get("locale_direction", "")),
         "style_constraints": _render_bullets(style_constraints),
+        "localization_brief": _render_text_block(localization_brief),
+        "borrowing_conventions": _render_bullets(borrowing_conventions),
+        "punctuation_conventions": _render_bullets(punctuation_conventions),
+        "discourse_conventions": _render_bullets(discourse_conventions),
+        "register_conventions": _render_bullets(register_conventions),
+        "review_checks": _render_bullets(review_checks),
         "writing_style_brief": writing_style_brief,
         "glossary_entries": _render_glossary(glossary_entries),
         "do_not_translate_entities": _render_bullets(merged_do_not_translate),
@@ -65,6 +89,44 @@ def build_translation_policy_context(
         ),
         "terminology_policy_json": json.dumps(
             _terminology_packet_dict(terminology_policy),
+            ensure_ascii=False,
+            sort_keys=True,
+            indent=2,
+        ),
+        "resolved_terminology_decisions_json": json.dumps(
+            [
+                {
+                    "source_term": decision.source_term,
+                    "preferred_rendering": decision.preferred_rendering,
+                    "decision_type": decision.decision_type,
+                    "scope": decision.scope,
+                    "rationale": decision.rationale,
+                    "applies_to": decision.applies_to,
+                }
+                for decision in terminology_policy.resolved_decisions
+            ],
+            ensure_ascii=False,
+            sort_keys=True,
+            indent=2,
+        ),
+        "education_degree_localization_policy_json": json.dumps(
+            (
+                {
+                    "decision": terminology_policy.education_degree_localization_policy.decision,
+                    "apply_consistently": terminology_policy.education_degree_localization_policy.apply_consistently,
+                    "rule": terminology_policy.education_degree_localization_policy.rule,
+                    "exceptions": [
+                        {
+                            "source_degree": exception.source_degree,
+                            "approved_rendering": exception.approved_rendering,
+                            "reason": exception.reason,
+                        }
+                        for exception in terminology_policy.education_degree_localization_policy.exceptions
+                    ],
+                }
+                if terminology_policy.education_degree_localization_policy is not None
+                else {}
+            ),
             ensure_ascii=False,
             sort_keys=True,
             indent=2,
@@ -97,6 +159,11 @@ def _render_glossary(entries: list[Any]) -> str:
     return "\n".join(rendered)
 
 
+def _render_text_block(value: str) -> str:
+    cleaned = value.strip()
+    return cleaned or "- none"
+
+
 def _voice_packet_dict(packet: VoiceIntentPacket) -> dict[str, Any]:
     return {
         "author_voice_summary": packet.author_voice_summary,
@@ -119,5 +186,32 @@ def _terminology_packet_dict(packet: TerminologyPolicyPacket) -> dict[str, Any]:
         "do_not_translate": packet.do_not_translate,
         "consistency_rules": packet.consistency_rules,
         "rationale_notes": packet.rationale_notes,
+        "resolved_decisions": [
+            {
+                "source_term": decision.source_term,
+                "preferred_rendering": decision.preferred_rendering,
+                "decision_type": decision.decision_type,
+                "scope": decision.scope,
+                "rationale": decision.rationale,
+                "applies_to": decision.applies_to,
+            }
+            for decision in packet.resolved_decisions
+        ],
+        "education_degree_localization_policy": (
+            {
+                "decision": packet.education_degree_localization_policy.decision,
+                "apply_consistently": packet.education_degree_localization_policy.apply_consistently,
+                "rule": packet.education_degree_localization_policy.rule,
+                "exceptions": [
+                    {
+                        "source_degree": exception.source_degree,
+                        "approved_rendering": exception.approved_rendering,
+                        "reason": exception.reason,
+                    }
+                    for exception in packet.education_degree_localization_policy.exceptions
+                ],
+            }
+            if packet.education_degree_localization_policy is not None
+            else None
+        ),
     }
-

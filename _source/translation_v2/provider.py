@@ -5,6 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from .contracts import (
+    CVRevisionOutput,
     CVTranslationOutput,
     CritiqueOutput,
     FinalReviewOutput,
@@ -61,7 +62,7 @@ class TranslationProvider(ABC):
         *,
         source_analysis: VoiceIntentPacket | None = None,
         terminology_policy: TerminologyPolicyPacket | None = None,
-    ) -> StageResult[RevisionOutput | CVTranslationOutput]:
+    ) -> StageResult[RevisionOutput | CVRevisionOutput]:
         """Run revision stage and return structured revised output."""
 
     @abstractmethod
@@ -69,7 +70,9 @@ class TranslationProvider(ABC):
         self,
         request: TranslationRequest,
         translated: TranslationOutput | CVTranslationOutput,
+        critique: CritiqueOutput,
         *,
+        revision_report: RevisionOutput | CVRevisionOutput | None = None,
         source_analysis: VoiceIntentPacket | None = None,
         terminology_policy: TerminologyPolicyPacket | None = None,
     ) -> StageResult[FinalReviewOutput]:
@@ -83,5 +86,6 @@ ProviderPayload = (
     | CVTranslationOutput
     | CritiqueOutput
     | RevisionOutput
+    | CVRevisionOutput
     | FinalReviewOutput
 )

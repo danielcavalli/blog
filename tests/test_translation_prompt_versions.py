@@ -20,6 +20,8 @@ sys.path.insert(0, _SOURCE)
 from translation_v2.artifacts import TranslationRunArtifacts  # noqa: E402
 from translation_v2.prompt_registry import (  # noqa: E402
     PROMPT_STAGES,
+    PROMPT_STAGES_V1,
+    PROMPT_STAGES_V2,
     build_prompt_artifact_metadata,
     build_prompt_cache_key,
     compute_prompt_pack_fingerprint,
@@ -36,21 +38,24 @@ PROMPT_CASE_PATH = FIXTURES_DIR / "prompt_policy_regression_case.json"
 
 
 def test_prompt_pack_loads_for_all_stages_and_stage_selection_is_valid():
-    prompt_pack = load_prompt_pack(prompt_version="v1")
-    cv_prompt_pack = load_prompt_pack(prompt_version="v1", artifact_type="cv")
+    prompt_pack = load_prompt_pack(prompt_version="v2")
+    cv_prompt_pack = load_prompt_pack(prompt_version="v2", artifact_type="cv")
 
-    assert tuple(prompt_pack.keys()) == PROMPT_STAGES
+    assert tuple(prompt_pack.keys()) == PROMPT_STAGES_V2
+    assert PROMPT_STAGES == PROMPT_STAGES_V2
     for stage in PROMPT_STAGES:
-        template = load_prompt_template(stage, prompt_version="v1")
+        template = load_prompt_template(stage, prompt_version="v2")
         assert template == prompt_pack[stage]
-        assert prompt_template_path(stage, prompt_version="v1").exists()
+        assert prompt_template_path(stage, prompt_version="v2").exists()
 
-        cv_template = load_prompt_template(stage, prompt_version="v1", artifact_type="cv")
+        cv_template = load_prompt_template(stage, prompt_version="v2", artifact_type="cv")
         assert cv_template == cv_prompt_pack[stage]
-        assert prompt_template_path(stage, prompt_version="v1", artifact_type="cv").exists()
+        assert prompt_template_path(stage, prompt_version="v2", artifact_type="cv").exists()
 
     with pytest.raises(ValueError):
-        load_prompt_template("unknown-stage", prompt_version="v1")
+        load_prompt_template("unknown-stage", prompt_version="v2")
+
+    assert tuple(load_prompt_pack(prompt_version="v1").keys()) == PROMPT_STAGES_V1
 
 
 def test_all_stage_prompts_include_strict_output_contract_markers():
@@ -61,94 +66,116 @@ def test_all_stage_prompts_include_strict_output_contract_markers():
     )
 
     for stage in PROMPT_STAGES:
-        template = load_prompt_template(stage, prompt_version="v1")
+        template = load_prompt_template(stage, prompt_version="v2")
         for marker in required_contract_markers:
             assert marker in template
 
 
 def test_prompts_include_protected_token_policy_constraints():
-    policy_markers = (
-        "PROTECTED TOKEN AND ENTITY POLICY",
-        "markdown links",
-        "inline code",
-        "fenced code",
-        "placeholders",
-        "citation",
-        "DO_NOT_TRANSLATE_ENTITIES",
-    )
+    expected_markers = {
+        "translate": ("inline code", "fenced code", "placeholders", "citation", "DO_NOT_TRANSLATE_ENTITIES"),
+        "critique": ("placeholders", "citation", "DO_NOT_TRANSLATE_ENTITIES"),
+        "revise": ("markdown links", "inline code", "fenced code", "placeholders", "citation", "DO_NOT_TRANSLATE_ENTITIES"),
+    }
 
-    for stage in PROMPT_STAGES:
-        template = load_prompt_template(stage, prompt_version="v1")
+    for stage, markers in expected_markers.items():
+        template = load_prompt_template(stage, prompt_version="v2")
         normalized = template.lower()
-        for marker in policy_markers:
+        for marker in markers:
             assert marker.lower() in normalized
 
 
 def test_post_prompts_explicitly_guard_against_translationese():
-    translate_template = load_prompt_template("translate", prompt_version="v1")
-    critique_template = load_prompt_template("critique", prompt_version="v1")
-    refine_template = load_prompt_template("refine", prompt_version="v1")
+    translate_template = load_prompt_template("translate", prompt_version="v2")
+    critique_template = load_prompt_template("critique", prompt_version="v2")
+    refine_template = load_prompt_template("revise", prompt_version="v2")
 
-    assert "idiomatic target-locale prose" in translate_template
-    assert "literal calques" in critique_template
-    assert "translated-English phrasing" in critique_template
-    assert "literal calques" in refine_template
+    assert "native {{target_locale}} prose" in translate_template
+    assert "imported or translated" in translate_template
+    assert "LOCALIZATION BRIEF" in translate_template
+    assert "BORROWING CONVENTIONS" in translate_template
+    assert "PUNCTUATION CONVENTIONS" in translate_template
+    assert "DISCOURSE CONVENTIONS" in translate_template
+    assert "calque" in critique_template.lower()
+    assert "locale_naturalness" in critique_template
+    assert "borrowing_consistency" in critique_template
+    assert "rhetorical_structure" in critique_template
+    assert "translated span" in critique_template.lower()
+    assert "translated candidate" in refine_template.lower()
 
 
 def test_cv_prompts_explicitly_guard_against_translationese():
     translate_template = load_prompt_template(
         "translate",
-        prompt_version="v1",
+        prompt_version="v2",
         artifact_type="cv",
     )
     critique_template = load_prompt_template(
         "critique",
-        prompt_version="v1",
+        prompt_version="v2",
         artifact_type="cv",
     )
     refine_template = load_prompt_template(
-        "refine",
-        prompt_version="v1",
+        "revise",
+        prompt_version="v2",
         artifact_type="cv",
     )
 
-    assert "idiomatic target-locale prose" in translate_template
-    assert "literal calques" in critique_template
-    assert "translated-English phrasing" in critique_template
-    assert "literal calques" in refine_template
+    assert "native {{target_locale}} material" in translate_template
+    assert "LOCALIZATION BRIEF" in translate_template
+    assert "calque" in critique_template.lower()
+    assert "locale_naturalness" in critique_template
+    assert "translated span" in critique_template.lower()
+    assert "education degree localization policy" in refine_template
 
 
 def test_render_prompt_template_requires_exact_placeholder_set():
     with pytest.raises(KeyError):
         render_prompt_template(
             "translate",
-            prompt_version="v1",
+            prompt_version="v2",
             context={
                 "source_locale": "en-us",
                 "target_locale": "pt-br",
                 "locale_direction": "en-us->pt-br",
                 "style_constraints": "- Keep concise",
+                "localization_brief": "PT-BR localization brief",
+                "borrowing_conventions": "- Keep expected borrowings stable",
+                "punctuation_conventions": "- Normalize punctuation",
+                "discourse_conventions": "- Rebuild connective flow",
+                "register_conventions": "- Keep serious technical prose",
+                "review_checks": "- Flag translationese",
                 "writing_style_brief": "Dry, layered, structurally aware.",
-                "glossary_entries": "- throughput => vazao",
+                "glossary_entries": "- throughput => vazão",
             },
         )
 
-    with pytest.raises(ValueError):
-        render_prompt_template(
-            "translate",
-            prompt_version="v1",
-            context={
-                "source_locale": "en-us",
-                "target_locale": "pt-br",
-                "locale_direction": "en-us->pt-br",
-                "style_constraints": "- Keep concise",
-                "writing_style_brief": "Dry, layered, structurally aware.",
-                "glossary_entries": "- throughput => vazao",
-                "do_not_translate_entities": "OpenAI",
-                "source_markdown": "content",
-                "extra": "unexpected",
-            },
-        )
+    rendered = render_prompt_template(
+        "translate",
+        prompt_version="v2",
+        context={
+            "source_locale": "en-us",
+            "target_locale": "pt-br",
+            "locale_direction": "en-us->pt-br",
+            "style_constraints": "- Keep concise",
+            "localization_brief": "PT-BR localization brief",
+            "borrowing_conventions": "- Keep expected borrowings stable",
+            "punctuation_conventions": "- Normalize punctuation",
+            "discourse_conventions": "- Rebuild connective flow",
+            "register_conventions": "- Keep serious technical prose",
+            "review_checks": "- Flag translationese",
+            "writing_style_brief": "Dry, layered, structurally aware.",
+            "glossary_entries": "- throughput => vazão",
+            "do_not_translate_entities": "OpenAI",
+            "source_markdown": "content",
+            "source_analysis_json": "{}",
+            "terminology_policy_json": "{}",
+            "resolved_terminology_decisions_json": "[]",
+            "education_degree_localization_policy_json": "{}",
+            "extra": "unexpected",
+        },
+    )
+    assert "unexpected" not in rendered
 
 
 def test_render_prompt_template_treats_backslashes_as_literal_content():
@@ -157,16 +184,26 @@ Windows path: C:\temp\build\artifact.txt
 """
     rendered = render_prompt_template(
         "translate",
-        prompt_version="v1",
+        prompt_version="v2",
         context={
             "source_locale": "en-us",
             "target_locale": "pt-br",
             "locale_direction": "en-us->pt-br",
             "style_constraints": "- Keep concise",
+            "localization_brief": "PT-BR localization brief",
+            "borrowing_conventions": "- Keep expected borrowings stable",
+            "punctuation_conventions": "- Normalize punctuation",
+            "discourse_conventions": "- Rebuild connective flow",
+            "register_conventions": "- Keep serious technical prose",
+            "review_checks": "- Flag translationese",
             "writing_style_brief": "Dry, layered, structurally aware.",
-            "glossary_entries": "- throughput => vazao",
+            "glossary_entries": "- throughput => vazão",
             "do_not_translate_entities": "OpenCode",
             "source_markdown": source_markdown,
+            "source_analysis_json": "{}",
+            "terminology_policy_json": "{}",
+            "resolved_terminology_decisions_json": "[]",
+            "education_degree_localization_policy_json": "{}",
         },
     )
 
@@ -174,43 +211,43 @@ Windows path: C:\temp\build\artifact.txt
 
 
 def test_prompt_pack_fingerprint_is_stable_and_detects_template_changes():
-    baseline = compute_prompt_pack_fingerprint(prompt_version="v1")
-    repeated = compute_prompt_pack_fingerprint(prompt_version="v1")
+    baseline = compute_prompt_pack_fingerprint(prompt_version="v2")
+    repeated = compute_prompt_pack_fingerprint(prompt_version="v2")
     assert baseline == repeated
 
-    cv_baseline = compute_prompt_pack_fingerprint(prompt_version="v1", artifact_type="cv")
-    cv_repeated = compute_prompt_pack_fingerprint(prompt_version="v1", artifact_type="cv")
+    cv_baseline = compute_prompt_pack_fingerprint(prompt_version="v2", artifact_type="cv")
+    cv_repeated = compute_prompt_pack_fingerprint(prompt_version="v2", artifact_type="cv")
     assert cv_baseline == cv_repeated
 
-    prompt_pack = load_prompt_pack(prompt_version="v1")
+    prompt_pack = load_prompt_pack(prompt_version="v2")
     mutated_pack = dict(prompt_pack)
     mutated_pack["translate"] = mutated_pack["translate"] + "\nMUTATION"
 
     mutated_fingerprint = compute_prompt_pack_fingerprint_from_templates(
         templates_by_stage=mutated_pack,
-        prompt_version="v1",
+        prompt_version="v2",
     )
     assert mutated_fingerprint != baseline
     assert cv_baseline != baseline
 
     cache_key = build_prompt_cache_key(
         "slug:hash:base",
-        prompt_version="v1",
+        prompt_version="v2",
         prompt_fingerprint=baseline,
     )
-    assert "prompt_version=v1" in cache_key
+    assert "prompt_version=v2" in cache_key
     assert f"prompt_fingerprint={baseline}" in cache_key
 
 
 def test_cv_prompt_pack_fingerprint_uses_cv_templates():
-    prompt_pack = load_prompt_pack(prompt_version="v1", artifact_type="cv")
+    prompt_pack = load_prompt_pack(prompt_version="v2", artifact_type="cv")
     mutated_pack = dict(prompt_pack)
     mutated_pack["translate"] = mutated_pack["translate"] + "\nCV-ONLY-MUTATION"
 
-    baseline = compute_prompt_pack_fingerprint(prompt_version="v1", artifact_type="cv")
+    baseline = compute_prompt_pack_fingerprint(prompt_version="v2", artifact_type="cv")
     mutated = compute_prompt_pack_fingerprint_from_templates(
         templates_by_stage=mutated_pack,
-        prompt_version="v1",
+        prompt_version="v2",
         artifact_type="cv",
     )
 
@@ -228,7 +265,7 @@ def test_cv_prompt_templates_render_with_artifact_specific_contract():
             "locale_direction": "en-us->pt-br",
             "style_constraints": "- Preserve tone",
             "writing_style_brief": "Opinionated, layered, structurally aware, dry.",
-            "glossary_entries": "- throughput => vazao",
+            "glossary_entries": "- throughput => vazão",
             "do_not_translate_entities": "- Nubank\n- Kubeflow",
             "source_markdown": '{"name":"Daniel","summary":"I build ML systems."}',
         },
@@ -255,7 +292,7 @@ def test_fixture_driven_prompt_regression_for_technical_markdown_and_citations(
             "locale_direction": f"{case['source_locale']}->{case['target_locale']}",
             "style_constraints": "- Keep an engineering blog tone",
             "writing_style_brief": "Opinionated, layered, structurally aware, dry.",
-            "glossary_entries": "- throughput => vazao",
+            "glossary_entries": "- throughput => vazão",
             "do_not_translate_entities": entity_lines,
             "source_markdown": case["source_markdown"],
         },
@@ -278,7 +315,7 @@ def test_fixture_driven_prompt_regression_for_technical_markdown_and_citations(
             "locale_direction": f"{case['source_locale']}->{case['target_locale']}",
             "style_constraints": "- Keep an engineering blog tone",
             "writing_style_brief": "Opinionated, layered, structurally aware, dry.",
-            "glossary_entries": "- throughput => vazao",
+            "glossary_entries": "- throughput => vazão",
             "do_not_translate_entities": entity_lines,
             "source_markdown": case["source_markdown"],
             "translated_json": case["translated_json"],
@@ -295,7 +332,7 @@ def test_fixture_driven_prompt_regression_for_technical_markdown_and_citations(
             "locale_direction": f"{case['source_locale']}->{case['target_locale']}",
             "style_constraints": "- Keep an engineering blog tone",
             "writing_style_brief": "Opinionated, layered, structurally aware, dry.",
-            "glossary_entries": "- throughput => vazao",
+            "glossary_entries": "- throughput => vazão",
             "do_not_translate_entities": entity_lines,
             "source_markdown": case["source_markdown"],
             "translated_json": case["translated_json"],

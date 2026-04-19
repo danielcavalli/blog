@@ -58,10 +58,28 @@ class FakePostOrchestrator:
         self.run_id = run_id
         self.artifact_run_dir = artifact_run_dir
 
-    def translate_if_needed(self, post, target_locale="pt-br"):
+    def translate_if_needed(self, post, target_locale="pt-br", force_revision_reason=None):  # noqa: ARG002
         translated = post.copy()
         translated["lang"] = target_locale
         return translated
+
+    def translate_if_needed_unpersisted(
+        self,
+        post,
+        target_locale="pt-br",
+        force_revision_reason=None,
+    ):
+        return self.translate_if_needed(
+            post,
+            target_locale=target_locale,
+            force_revision_reason=force_revision_reason,
+        )
+
+    def persist_artifact_translation(self, **kwargs):  # noqa: ANN003
+        return None
+
+    def consume_artifact_persist_context(self, *, slug, artifact_type):  # noqa: ARG002
+        return {"outcome": "cache_miss", "revised_from_cache_source": None}
 
 
 def configure_onefile_build(tmp_path: Path, monkeypatch, build_module, source_post: dict) -> None:
@@ -81,6 +99,13 @@ def configure_onefile_build(tmp_path: Path, monkeypatch, build_module, source_po
     monkeypatch.setattr(build_module, "POSTS_DIR", posts_dir)
     monkeypatch.setattr(build_module, "LANG_DIRS", {"en": en_dir, "pt": pt_dir})
     monkeypatch.setattr(build_module, "STAGING_DIR", tmp_path / "_staging")
+    monkeypatch.setattr(
+        build_module,
+        "_out",
+        lambda rel_path, staging_dir: rel_path
+        if staging_dir is None
+        else staging_dir / rel_path.relative_to(tmp_path),
+    )
     monkeypatch.setattr(
         build_module,
         "TRANSLATION_CACHE",

@@ -57,12 +57,30 @@ class _FakePostOrchestrator:
         self.prompt_version = "v1"
         self.correlation_id = "test-correlation"
 
-    def translate_if_needed(self, post, target_locale="pt-br"):
+    def translate_if_needed(self, post, target_locale="pt-br", force_revision_reason=None):  # noqa: ARG002
         translated = post.copy()
         translated["lang"] = target_locale
         translated["raw_content"] = "translated"
         translated["content"] = "<p>translated</p>"
         return translated
+
+    def translate_if_needed_unpersisted(
+        self,
+        post,
+        target_locale="pt-br",
+        force_revision_reason=None,
+    ):
+        return self.translate_if_needed(
+            post,
+            target_locale=target_locale,
+            force_revision_reason=force_revision_reason,
+        )
+
+    def persist_artifact_translation(self, **kwargs):  # noqa: ANN003
+        return None
+
+    def consume_artifact_persist_context(self, *, slug, artifact_type):  # noqa: ARG002
+        return {"outcome": "cache_miss", "revised_from_cache_source": None}
 
     def _run_pipeline(self, request):
         return {
@@ -83,6 +101,7 @@ class _FakePostOrchestrator:
         frontmatter=None,
         attach_path=None,
         do_not_translate_entities=None,
+        force_revision_reason=None,  # noqa: ARG002
     ):
         if artifact_type == "about":
             return {
@@ -124,6 +143,13 @@ def _configure_build_for_test(tmp_path: Path, monkeypatch, source_post: dict):
     monkeypatch.setattr(build, "POSTS_DIR", posts_dir)
     monkeypatch.setattr(build, "LANG_DIRS", {"en": en_dir, "pt": pt_dir})
     monkeypatch.setattr(build, "STAGING_DIR", tmp_path / "_staging")
+    monkeypatch.setattr(
+        build,
+        "_out",
+        lambda rel_path, staging_dir: rel_path
+        if staging_dir is None
+        else staging_dir / rel_path.relative_to(tmp_path),
+    )
 
     monkeypatch.setattr(build, "load_post_metadata", lambda: {})
     monkeypatch.setattr(build, "save_post_metadata", lambda *_: None)
@@ -162,6 +188,7 @@ def test_pt_br_source_routes_translated_output_to_en(monkeypatch, tmp_path):
 
     ok = build.build(strict=False, use_staging=False, skip_about_cv_translation=True)
     assert ok is True
+    assert (tmp_path / "pt" / "blog" / "pt-source.html").exists()
     assert (tmp_path / "en" / "blog" / "pt-source.html").exists()
 
 
@@ -213,6 +240,7 @@ def test_en_us_source_routes_translated_output_to_pt(monkeypatch, tmp_path):
 
     ok = build.build(strict=False, use_staging=False, skip_about_cv_translation=True)
     assert ok is True
+    assert (tmp_path / "en" / "blog" / "en-source.html").exists()
     assert (tmp_path / "pt" / "blog" / "en-source.html").exists()
 
 
