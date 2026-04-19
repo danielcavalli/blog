@@ -1,4 +1,4 @@
-"""Deterministic tests for OpenCode provider critique/refine loop.
+"""Deterministic tests for the settled translation_v2 stage pipeline.
 
 Run only this suite:
     uv run --extra dev pytest tests/test_opencode_provider_loop.py -q
@@ -8,28 +8,34 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Literal
+import types
 
 import pytest
 
 
 _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 sys.path.insert(0, _SOURCE)
+_mock_provider_stub = types.ModuleType("translation_v2.mock_provider")
+_mock_provider_stub.DeterministicMockTranslationProvider = object
+sys.modules.setdefault("translation_v2.mock_provider", _mock_provider_stub)
 
 from translation_v2.artifacts import TranslationRunArtifacts  # noqa: E402
 from translation_v2.contracts import (  # noqa: E402
+    CritiqueFinding,
     CritiqueOutput,
-    RefinementOutput,
+    FinalReviewOutput,
+    RevisionOutput,
     StageResult,
+    TerminologyPolicyPacket,
     TranslationOutput,
     TranslationRequest,
+    VoiceIntentPacket,
 )
 from translation_v2.errors import MissingFieldError  # noqa: E402
 from translation_v2.providers.opencode import (  # noqa: E402
     OpenCodeProviderLoopError,
     OpenCodeTranslationProvider,
 )
-from translation_v2.rubric import RubricThresholds  # noqa: E402
 
 
 class _FakeRunner:
@@ -42,7 +48,7 @@ class _FakeRunner:
         *,
         request: TranslationRequest,  # noqa: ARG002
         post_slug: str,
-        stage: Literal["translate", "critique", "refine"],
+        stage: str,
         prompt_text: str,
         attach_path: str,
         artifacts: TranslationRunArtifacts,  # noqa: ARG002
@@ -71,7 +77,7 @@ def _request() -> TranslationRequest:
         source_locale="en-us",
         target_locale="pt-br",
         source_text="## Heading\n\nOriginal body with [@smith2024]",
-        prompt_version="v1",
+        prompt_version="v2",
         metadata={
             "slug": "provider-loop-post",
             "attach_path": "/tmp/provider-loop-source.md",
@@ -101,7 +107,7 @@ def _request_without_locale_metadata(
         source_locale=source_locale,
         target_locale=target_locale,
         source_text="## Heading\n\nOriginal body",
-        prompt_version="v1",
+        prompt_version="v2",
         metadata={
             "slug": "provider-loop-post",
             "attach_path": "/tmp/provider-loop-source.md",
@@ -109,11 +115,48 @@ def _request_without_locale_metadata(
     )
 
 
-def _translation_result(content: str) -> StageResult:
+def _source_analysis_result(*, model: str = "openai/gpt-5.4-high") -> StageResult:
+    return StageResult(
+        run_id="opencode-provider-test",
+        stage="source_analysis",
+        model=model,
+        payload=VoiceIntentPacket(
+            author_voice_summary="Dry, technical, confident.",
+            tone="technical",
+            register="professional",
+            sentence_rhythm=["medium cadence", "occasional long sentence"],
+            connective_tissue=["contrastive pivots"],
+            rhetorical_moves=["thesis then qualification"],
+            humor_signals=["understated irony"],
+            stance_markers=["first-person ownership"],
+            must_preserve=["[@smith2024]"],
+        ),
+        raw_response={"source_analysis": True},
+    )
+
+
+def _terminology_policy_result(*, model: str = "openai/gpt-5.4-high") -> StageResult:
+    return StageResult(
+        run_id="opencode-provider-test",
+        stage="terminology_policy",
+        model=model,
+        payload=TerminologyPolicyPacket(
+            keep_english=["cache adapter", "throughput"],
+            localize=["latency => latencia"],
+            context_sensitive=["rollout"],
+            do_not_translate=["OpenCode", "CUDA"],
+            consistency_rules=["Use the same borrowing decision in title and body."],
+            rationale_notes=["Borrow well-known infra terms when PT-BR usage expects it."],
+        ),
+        raw_response={"terminology_policy": True},
+    )
+
+
+def _translation_result(content: str, *, model: str = "openai/gpt-5.4-high") -> StageResult:
     return StageResult(
         run_id="opencode-provider-test",
         stage="translate",
-        model="openai/gpt-5.4",
+        model=model,
         payload=TranslationOutput(
             title="Titulo",
             excerpt="Resumo",
@@ -126,60 +169,98 @@ def _translation_result(content: str) -> StageResult:
 
 def _critique_result(
     score: float,
-    needs_refinement: bool,
-    findings: list[str],
     *,
-    dimension_scores: dict[str, float] | None = None,
-    critical_errors: int = 0,
-    major_core_errors: int = 0,
-    confidence: float = 1.0,
+    model: str = "openai/gpt-5.2",
+    description: str = "tighten terminology",
+    needs_refinement: bool = False,
 ) -> StageResult:
-    if dimension_scores is None:
-        dimension_scores = {
-            "accuracy_completeness": score,
-            "terminology_entities": score,
-            "markdown_code_link_fidelity": score,
-        }
-
     return StageResult(
         run_id="opencode-provider-test",
         stage="critique",
-        model="openai/gpt-5.4",
+        model=model,
         payload=CritiqueOutput(
             score=score,
             feedback="feedback",
             needs_refinement=needs_refinement,
-            findings=findings,
-            dimension_scores=dimension_scores,
-            critical_errors=critical_errors,
-            major_core_errors=major_core_errors,
-            confidence=confidence,
+            findings=[
+                CritiqueFinding(
+                    finding_id="finding-1",
+                    severity="major",
+                    category="terminology",
+                    source_span="throughput",
+                    target_span="taxa",
+                    description=description,
+                    rewrite_instruction="Use the approved borrowed term.",
+                )
+            ],
+            dimension_scores={
+                "accuracy_completeness": score,
+                "terminology_entities": score,
+                "markdown_code_link_fidelity": score,
+            },
+            critical_errors=0,
+            major_core_errors=0,
+            confidence=0.9,
         ),
         raw_response={"critique": True},
     )
 
 
-def _refine_result(content: str) -> StageResult:
+def _revision_result(
+    content: str,
+    *,
+    model: str = "openai/gpt-5.4-high",
+) -> StageResult:
     return StageResult(
         run_id="opencode-provider-test",
-        stage="refine",
-        model="openai/gpt-5.4",
-        payload=RefinementOutput(
-            title="Titulo refinado",
-            excerpt="Resumo refinado",
+        stage="revise",
+        model=model,
+        payload=RevisionOutput(
+            title="Titulo revisado",
+            excerpt="Resumo revisado",
             tags=["ia", "agentes"],
             content=content,
-            applied_feedback=["fixed tone"],
+            applied_feedback=["Applied terminology policy to the draft."],
+            rewrite_summary=["Re-anchored terminology against the source."],
+            unresolved_risks=[],
         ),
-        raw_response={"refine": True},
+        raw_response={"revise": True},
     )
 
 
-def test_opencode_provider_happy_path_accepts_without_refine(tmp_path):
+def _final_review_result(
+    *,
+    accept: bool,
+    publish_ready: bool,
+    model: str = "openai/gpt-5.2",
+    residual_issues: list[str] | None = None,
+) -> StageResult:
+    return StageResult(
+        run_id="opencode-provider-test",
+        stage="final_review",
+        model=model,
+        payload=FinalReviewOutput(
+            accept=accept,
+            publish_ready=publish_ready,
+            confidence=0.88,
+            residual_issues=residual_issues or [],
+            voice_score=92.0,
+            terminology_score=95.0,
+            locale_naturalness_score=93.0,
+        ),
+        raw_response={"final_review": True},
+    )
+
+
+def test_opencode_provider_runs_settled_stage_graph_with_model_split(tmp_path):
     runner = _FakeRunner(
         [
+            _source_analysis_result(),
+            _terminology_policy_result(),
             _translation_result("Conteudo inicial"),
-            _critique_result(96.0, False, []),
+            _critique_result(72.0),
+            _revision_result("Conteudo revisado"),
+            _final_review_result(accept=True, publish_ready=True),
         ]
     )
     provider = OpenCodeTranslationProvider(
@@ -188,61 +269,37 @@ def test_opencode_provider_happy_path_accepts_without_refine(tmp_path):
         default_attach_path="/tmp/fallback.md",
     )
 
-    result = provider.run_translation_loop(_request())
-
-    assert result.stop_reason == "accepted"
-    assert result.loops_completed == 0
-    assert [item.stage for item in result.stage_results] == ["translate", "critique"]
-    assert result.final_translation.content == "Conteudo inicial"
-
-    translate_prompt = runner.calls[0]["prompt_text"]
-    assert "Translation direction: en-us->pt-br" in translate_prompt
-    assert "Keep a practical engineering voice" in translate_prompt
-    assert "Keep understated humor implicit." in translate_prompt
-    assert "throughput => vazao" in translate_prompt
-    assert "- OpenCode" in translate_prompt
-    assert "literal calques" in translate_prompt or "idiomatic target-locale prose" in translate_prompt
-
-
-def test_opencode_provider_invokes_refine_when_critique_requires_it(tmp_path):
-    runner = _FakeRunner(
-        [
-            _translation_result("Conteudo inicial"),
-            _critique_result(86.0, True, ["major: phrasing issue"]),
-            _refine_result("Conteudo refinado"),
-            _critique_result(95.0, False, []),
-        ]
-    )
-    provider = OpenCodeTranslationProvider(
-        runner=runner,
-        artifacts=TranslationRunArtifacts(run_id="opencode-provider-test", base_dir=tmp_path),
-        default_attach_path="/tmp/fallback.md",
-        thresholds=RubricThresholds(max_loops=3, min_score_delta=3.0),
-    )
-
-    result = provider.run_translation_loop(_request())
+    result = provider.run_translation_pipeline(_request())
 
     assert result.stop_reason == "accepted"
     assert result.loops_completed == 1
     assert [item.stage for item in result.stage_results] == [
+        "source_analysis",
+        "terminology_policy",
         "translate",
         "critique",
-        "refine",
-        "critique",
+        "revise",
+        "final_review",
     ]
-    assert result.final_translation.content == "Conteudo refinado"
+    assert [item.model for item in result.stage_results] == [
+        "openai/gpt-5.4-high",
+        "openai/gpt-5.4-high",
+        "openai/gpt-5.4-high",
+        "openai/gpt-5.2",
+        "openai/gpt-5.4-high",
+        "openai/gpt-5.2",
+    ]
+    assert result.final_translation.content == "Conteudo revisado"
 
 
-def test_opencode_provider_schema_repair_path_is_deterministic(tmp_path):
+def test_opencode_provider_revision_pass_receives_source_draft_and_critique(tmp_path):
     runner = _FakeRunner(
         [
-            MissingFieldError(
-                message="Missing required field",
-                run_id="opencode-provider-test",
-                stage="translate",
-                field="content",
-            ),
-            _translation_result("Conteudo reparado"),
+            _source_analysis_result(),
+            _terminology_policy_result(),
+            _critique_result(81.0, description="Replace generic wording with approved terminology."),
+            _revision_result("Conteudo revisado"),
+            _final_review_result(accept=True, publish_ready=True),
         ]
     )
     provider = OpenCodeTranslationProvider(
@@ -251,65 +308,51 @@ def test_opencode_provider_schema_repair_path_is_deterministic(tmp_path):
         default_attach_path="/tmp/fallback.md",
     )
 
-    stage_result = provider.translate(_request())
-
-    assert stage_result.payload.content == "Conteudo reparado"
-    assert [call["stage"] for call in runner.calls] == ["translate", "translate"]
-    assert runner.calls[1]["prompt_text"].startswith("You must repair a schema-invalid response.")
-
-    stage_dir = TranslationRunArtifacts(
-        run_id="opencode-provider-test", base_dir=tmp_path
-    ).stage_dir("provider-loop-post", "translate")
-    error_path = stage_dir / "error.txt"
-    assert error_path.exists()
-    assert "Missing required field" in error_path.read_text(encoding="utf-8")
-
-
-def test_opencode_provider_auto_refines_on_low_core_dimension(tmp_path):
-    runner = _FakeRunner(
-        [
-            _translation_result("Conteudo inicial"),
-            _critique_result(
-                96.0,
-                False,
-                ["terminology mismatch"],
-                dimension_scores={
-                    "accuracy_completeness": 96.0,
-                    "terminology_entities": 72.0,
-                    "markdown_code_link_fidelity": 98.0,
-                },
-            ),
-            _refine_result("Conteudo corrigido"),
-            _critique_result(100.0, False, []),
-        ]
+    result = provider.run_translation_pipeline(
+        _request(),
+        existing_translation=TranslationOutput(
+            title="Titulo atual",
+            excerpt="Resumo atual",
+            tags=["ia"],
+            content="Rascunho atual",
+        ),
     )
-    provider = OpenCodeTranslationProvider(
-        runner=runner,
-        artifacts=TranslationRunArtifacts(run_id="opencode-provider-test", base_dir=tmp_path),
-        default_attach_path="/tmp/fallback.md",
-    )
-
-    result = provider.run_translation_loop(_request())
 
     assert result.stop_reason == "accepted"
-    assert result.loops_completed == 1
     assert [item.stage for item in result.stage_results] == [
-        "translate",
+        "source_analysis",
+        "terminology_policy",
         "critique",
-        "refine",
-        "critique",
+        "revise",
+        "final_review",
     ]
 
+    revise_prompt = runner.calls[3]["prompt_text"]
+    assert "## Heading" in revise_prompt
+    assert '"content": "Rascunho atual"' in revise_prompt
+    assert "Replace generic wording with approved terminology." in revise_prompt
+    assert "Use the approved borrowed term." in revise_prompt
 
-def test_opencode_provider_fails_on_critical_errors(tmp_path):
+
+def test_opencode_provider_uses_final_review_as_accept_reject_gate(tmp_path):
     runner = _FakeRunner(
         [
+            _source_analysis_result(),
+            _terminology_policy_result(),
             _translation_result("Conteudo inicial"),
-            _critique_result(
-                97.0,
-                False,
-                ["critical token corruption"],
-                critical_errors=1,
+            _critique_result(78.0),
+            _revision_result("Conteudo revisado 1"),
+            _final_review_result(
+                accept=False,
+                publish_ready=False,
+                residual_issues=["Voice still sounds imported."],
+            ),
+            _critique_result(88.0, description="Tighten the second paragraph."),
+            _revision_result("Conteudo revisado 2"),
+            _final_review_result(
+                accept=False,
+                publish_ready=False,
+                residual_issues=["Terminology still drifts."],
             ),
         ]
     )
@@ -317,13 +360,26 @@ def test_opencode_provider_fails_on_critical_errors(tmp_path):
         runner=runner,
         artifacts=TranslationRunArtifacts(run_id="opencode-provider-test", base_dir=tmp_path),
         default_attach_path="/tmp/fallback.md",
+        max_revision_passes=2,
     )
 
-    with pytest.raises(OpenCodeProviderLoopError):
-        provider.run_translation_loop(_request())
+    with pytest.raises(OpenCodeProviderLoopError, match="Final review rejected"):
+        provider.run_translation_pipeline(_request())
+
+    assert [call["stage"] for call in runner.calls] == [
+        "source_analysis",
+        "terminology_policy",
+        "translate",
+        "critique",
+        "revise",
+        "final_review",
+        "critique",
+        "revise",
+        "final_review",
+    ]
 
 
-def test_opencode_provider_injects_default_locale_rules_for_en_to_pt(tmp_path):
+def test_opencode_provider_translate_prompt_carries_voice_and_terminology_packets(tmp_path):
     runner = _FakeRunner([_translation_result("Conteudo inicial")])
     provider = OpenCodeTranslationProvider(
         runner=runner,
@@ -332,30 +388,47 @@ def test_opencode_provider_injects_default_locale_rules_for_en_to_pt(tmp_path):
     )
 
     provider.translate(
-        _request_without_locale_metadata(source_locale="en-us", target_locale="pt-br")
+        _request_without_locale_metadata(source_locale="en-us", target_locale="pt-br"),
+        _source_analysis_result().payload,
+        _terminology_policy_result().payload,
     )
 
     translate_prompt = runner.calls[0]["prompt_text"]
+    assert "TRANSLATE" in translate_prompt
+    assert "SOURCE ANALYSIS JSON" in translate_prompt
+    assert '"author_voice_summary": "Dry, technical, confident."' in translate_prompt
+    assert "TERMINOLOGY POLICY JSON" in translate_prompt
+    assert '"keep_english": [' in translate_prompt
+    assert '"cache adapter"' in translate_prompt
+    assert '"OpenCode"' in translate_prompt
     assert "Prefer natural PT-BR wording over literal English word order." in translate_prompt
-    assert "Do not calque expressions literally" in translate_prompt
-    assert "throughput => vazao" in translate_prompt
-    assert "- OpenAPI" in translate_prompt
 
 
-def test_opencode_provider_injects_default_locale_rules_for_pt_to_en(tmp_path):
-    runner = _FakeRunner([_translation_result("Initial content")])
+def test_opencode_provider_propagates_schema_validation_failures(tmp_path):
+    runner = _FakeRunner(
+        [
+            MissingFieldError(
+                message="Missing required field",
+                run_id="opencode-provider-test",
+                stage="source_analysis",
+                field="tone",
+            )
+        ]
+    )
     provider = OpenCodeTranslationProvider(
         runner=runner,
         artifacts=TranslationRunArtifacts(run_id="opencode-provider-test", base_dir=tmp_path),
         default_attach_path="/tmp/fallback.md",
     )
 
-    request = _request_without_locale_metadata(source_locale="pt-br", target_locale="en-us")
-    request.metadata["glossary"] = [{"source": "vazao", "target": "data throughput"}]
-    provider.translate(request)
+    with pytest.raises(MissingFieldError):
+        provider.source_analysis(_request())
 
-    translate_prompt = runner.calls[0]["prompt_text"]
-    assert "Prefer idiomatic US English over literal Portuguese structure." in translate_prompt
-    assert "vazao => data throughput" in translate_prompt
-    assert "latencia => latency" in translate_prompt
-    assert "- RFC 9110" in translate_prompt
+    assert [call["stage"] for call in runner.calls] == ["source_analysis"]
+    error_path = (
+        TranslationRunArtifacts(run_id="opencode-provider-test", base_dir=tmp_path)
+        .stage_dir("provider-loop-post", "source_analysis")
+        / "error.txt"
+    )
+    assert error_path.exists()
+    assert "Missing required field" in error_path.read_text(encoding="utf-8")

@@ -9,12 +9,16 @@ from __future__ import annotations
 import json
 import os
 import sys
+import types
 from pathlib import Path
 
 
 _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 if _SOURCE not in sys.path:
     sys.path.insert(0, _SOURCE)
+_mock_provider_stub = types.ModuleType("translation_v2.mock_provider")
+_mock_provider_stub.DeterministicMockTranslationProvider = object
+sys.modules.setdefault("translation_v2.mock_provider", _mock_provider_stub)
 
 from translation_v2.eval_harness import (  # noqa: E402
     HARD_FAIL_GATES,
@@ -45,11 +49,14 @@ def test_regression_fixtures_cover_target_categories():
     assert "placeholder-integrity" in by_id
     assert "locale-formatting" in by_id
     assert "tone-constraints" in by_id
+    assert "voice-terminology-packets" in by_id
 
     assert by_id["terminology-entities"].required_terminology
     assert by_id["placeholder-integrity"].required_placeholders
     assert by_id["locale-formatting"].locale_required_patterns
     assert by_id["tone-constraints"].tone_forbidden_phrases
+    assert by_id["voice-terminology-packets"].required_terminology
+    assert by_id["voice-terminology-packets"].tone_forbidden_phrases
 
 
 def test_hard_failures_cover_schema_empty_tag_and_placeholder_integrity():
@@ -153,6 +160,34 @@ def test_compare_runs_renders_baseline_vs_candidate_report_and_threshold_source(
     assert report.candidate.average_score > report.baseline.average_score
     assert report.candidate.hard_fail_count == 0
     assert report.candidate_passes_thresholds is True
+
+
+def test_voice_and_terminology_packet_regression_case_rewards_candidate_alignment():
+    cases = load_regression_cases(CASES_FIXTURE)
+    case = next(current for current in cases if current.case_id == "voice-terminology-packets")
+
+    baseline_outputs = _load_json(BASELINE_FIXTURE)
+    candidate_outputs = _load_json(CANDIDATE_FIXTURE)
+
+    baseline_run = evaluate_outputs(
+        cases=[case],
+        outputs_by_case_id=baseline_outputs,
+        run_label="baseline",
+    )
+    candidate_run = evaluate_outputs(
+        cases=[case],
+        outputs_by_case_id=candidate_outputs,
+        run_label="candidate",
+    )
+
+    baseline_case = baseline_run.case_results[0]
+    candidate_case = candidate_run.case_results[0]
+
+    assert baseline_case.metric_scores["terminology_coverage"] < 1.0
+    assert baseline_case.metric_scores["tone_constraints"] < 1.0
+    assert candidate_case.metric_scores["terminology_coverage"] == 1.0
+    assert candidate_case.metric_scores["tone_constraints"] == 1.0
+    assert candidate_case.case_score > baseline_case.case_score
 
 
 def test_threshold_source_defaults_to_configurable_packet_values(monkeypatch):

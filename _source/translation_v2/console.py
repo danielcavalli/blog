@@ -19,8 +19,18 @@ from rich.text import Text
 
 _console = Console(highlight=False, soft_wrap=True)
 _current_session: _ArtifactSession | None = None
+_dashboard: _TranslationDashboard | None = None
 _verbose = False
-_STAGE_ORDER = ("translate", "critique", "refine")
+_STAGE_ORDER = (
+    "source_analysis",
+    "terminology_policy",
+    "translate",
+    "critique",
+    "revise",
+    "final_review",
+)
+_TAPE_ROWS = 6
+_ANIMATION_FPS = 6
 
 
 @dataclass(slots=True)
@@ -33,6 +43,12 @@ class _LogBlock:
     status: str = "info"
 
 
+@dataclass(slots=True)
+class _TapeEntry:
+    message: str
+    status: str = "info"
+
+
 class _ArtifactSession:
     def __init__(
         self,
@@ -40,10 +56,8 @@ class _ArtifactSession:
         artifact_key: str,
         title: str,
         details: Iterable[tuple[str, object]] | None,
-        console: Console,
     ) -> None:
         self.artifact_key = artifact_key
-        self._console = console
         self._blocks: list[_LogBlock] = [
             _LogBlock(
                 key="artifact",
@@ -67,28 +81,12 @@ class _ArtifactSession:
                 )
             )
         self._current_runner_key: str | None = None
-        self._live = Live(
-            console=console,
-            auto_refresh=True,
-            refresh_per_second=8,
-            transient=False,
-            vertical_overflow="visible",
-            get_renderable=self.render,
-        )
-        self._live.start()
 
     def render(self) -> RenderableType:
         artifact = self._find_block("artifact")
         if artifact is None:
             return Text("")
         return Padding(_render_artifact_card(artifact, self._blocks[1:]), (0, 0, 0, 1))
-
-    def refresh(self) -> None:
-        self._live.update(self.render(), refresh=True)
-
-    def stop(self) -> None:
-        self.refresh()
-        self._live.stop()
 
     def upsert_artifact_details(self, details: Iterable[tuple[str, object]]) -> None:
         self._replace_block_details("artifact", details)
@@ -108,7 +106,6 @@ class _ArtifactSession:
             indent=2,
             status="running",
         )
-        self.refresh()
 
     def finish_stage(
         self,
@@ -137,7 +134,6 @@ class _ArtifactSession:
         if block is not None:
             block.status = "error" if error is not None else "success"
         self._current_runner_key = None
-        self.refresh()
 
     def start_runner(
         self,
@@ -175,7 +171,6 @@ class _ArtifactSession:
         else:
             block.details = _normalize_details(details)
             block.status = "running"
-        self.refresh()
 
     def finish_runner(
         self,
@@ -215,7 +210,6 @@ class _ArtifactSession:
             style="dim",
             status="error" if error is not None else "success",
         )
-        self.refresh()
 
     def _replace_block_details(
         self,
@@ -261,6 +255,50 @@ class _ArtifactSession:
             if block.key == key:
                 return block
         return None
+
+
+class _TranslationDashboard:
+    def __init__(self, *, console: Console) -> None:
+        self._console = console
+        self._session: _ArtifactSession | None = None
+        self._events: list[_TapeEntry] = []
+        self._live = Live(
+            console=console,
+            auto_refresh=True,
+            refresh_per_second=_ANIMATION_FPS,
+            transient=False,
+            vertical_overflow="visible",
+            get_renderable=self.render,
+        )
+        self._live.start()
+
+    def set_session(self, session: _ArtifactSession | None, *, refresh: bool = True) -> None:
+        self._session = session
+        if refresh:
+            self.refresh()
+
+    def append_event(self, *, message: str, status: str, refresh: bool = True) -> None:
+        self._events.append(_TapeEntry(message=message, status=status))
+        self._events = self._events[-10:]
+        if refresh:
+            self.refresh()
+
+    def refresh(self) -> None:
+        self._live.update(self.render(), refresh=True)
+
+    def stop(self) -> None:
+        self.refresh()
+        self._live.stop()
+
+    def render(self) -> RenderableType:
+        parts: list[RenderableType] = []
+        if self._session is not None:
+            parts.append(self._session.render())
+        if self._events:
+            parts.append(Padding(_render_tape_panel(self._events), (0, 0, 0, 1)))
+        if not parts:
+            return Text("")
+        return Group(*parts)
 
 
 def configure_console(*, verbose: bool) -> None:
@@ -353,6 +391,16 @@ def log_build_footer(
     _console.print(panel)
 
 
+def record_translation_event(message: str, *, status: str = "info") -> None:
+    """Append one settled translation event to the live tape when available."""
+
+    dashboard = _ensure_dashboard()
+    if dashboard is not None:
+        dashboard.append_event(message=message, status=status)
+        return
+    log_line(message, indent=1, status=status)
+
+
 def start_artifact_status(
     artifact_key: str,
     title: str,
@@ -365,22 +413,29 @@ def start_artifact_status(
     if not _supports_live_updates():
         log_block(title, details, indent=1, status="running")
         return
+    dashboard = _ensure_dashboard()
+    if dashboard is None:
+        log_block(title, details, indent=1, status="running")
+        return
     _current_session = _ArtifactSession(
         artifact_key=artifact_key,
         title=title,
         details=details,
-        console=_console,
     )
+    dashboard.set_session(_current_session)
 
 
 def update_artifact_status(details: Iterable[tuple[str, object]]) -> None:
     if _current_session is None:
         return
     _current_session.upsert_artifact_details(details)
-    _current_session.refresh()
+    dashboard = _ensure_dashboard()
+    if dashboard is not None:
+        dashboard.refresh()
 
 
 def finish_artifact_status(result: str) -> None:
+    global _current_session
     if _current_session is None:
         return
     block = _current_session._find_block("artifact")
@@ -390,10 +445,16 @@ def finish_artifact_status(result: str) -> None:
     _current_session.upsert_artifact_details(filtered)
     if block is not None:
         block.status = "success"
-    stop_artifact_status()
+    message = _artifact_event_message(_current_session, result=result)
+    dashboard = _ensure_dashboard()
+    if dashboard is not None:
+        dashboard.append_event(message=message, status="success", refresh=False)
+        dashboard.set_session(None, refresh=True)
+    _current_session = None
 
 
 def fail_artifact_status(error: str) -> None:
+    global _current_session
     if _current_session is None:
         return
     block = _current_session._find_block("artifact")
@@ -407,21 +468,29 @@ def fail_artifact_status(error: str) -> None:
     _current_session.upsert_artifact_details(filtered)
     if block is not None:
         block.status = "error"
-    stop_artifact_status()
+    message = _artifact_event_message(_current_session, error=error)
+    dashboard = _ensure_dashboard()
+    if dashboard is not None:
+        dashboard.append_event(message=message, status="error", refresh=False)
+        dashboard.set_session(None, refresh=True)
+    _current_session = None
 
 
 def stop_artifact_status() -> None:
     global _current_session
-    if _current_session is None:
-        return
-    _current_session.stop()
     _current_session = None
+    if _dashboard is not None:
+        _dashboard.set_session(None)
 
 
 def shutdown_console() -> None:
     """Stop any active live session before emitting terminal-safe final output."""
 
+    global _dashboard
     stop_artifact_status()
+    if _dashboard is not None:
+        _dashboard.stop()
+        _dashboard = None
 
 
 def start_stage_status(stage: str, artifact: str, action: str) -> None:
@@ -434,6 +503,9 @@ def start_stage_status(stage: str, artifact: str, action: str) -> None:
         )
         return
     _current_session.start_stage(stage, artifact, action)
+    dashboard = _ensure_dashboard()
+    if dashboard is not None:
+        dashboard.refresh()
 
 
 def finish_stage_status(
@@ -468,6 +540,9 @@ def finish_stage_status(
         error=error,
         extra_details=extra_details,
     )
+    dashboard = _ensure_dashboard()
+    if dashboard is not None:
+        dashboard.refresh()
 
 
 def start_runner_status(
@@ -499,6 +574,9 @@ def start_runner_status(
         model=model,
         attach_path=attach_path,
     )
+    dashboard = _ensure_dashboard()
+    if dashboard is not None:
+        dashboard.refresh()
 
 
 def finish_runner_status(
@@ -543,10 +621,22 @@ def finish_runner_status(
         exit_code=exit_code,
         classification=classification,
     )
+    dashboard = _ensure_dashboard()
+    if dashboard is not None:
+        dashboard.refresh()
 
 
 def _supports_live_updates() -> bool:
     return bool(_console.is_terminal and sys.stdout.isatty())
+
+
+def _ensure_dashboard() -> _TranslationDashboard | None:
+    global _dashboard
+    if not _supports_live_updates():
+        return None
+    if _dashboard is None:
+        _dashboard = _TranslationDashboard(console=_console)
+    return _dashboard
 
 
 def _block_from(
@@ -603,7 +693,13 @@ def _render_artifact_card(
     artifact: _LogBlock,
     blocks: list[_LogBlock],
 ) -> RenderableType:
-    body: list[RenderableType] = [_render_details_table(artifact.details)]
+    action = _detail_value(artifact.details, "Action")
+    details = [(label, value) for label, value in artifact.details if label != "Action"]
+    body: list[RenderableType] = []
+    if action:
+        body.append(_render_focus_line(action))
+    if details:
+        body.append(_render_details_table(details))
     stage_rows = _render_stage_table(blocks)
     if stage_rows is not None:
         body.append(Text(""))
@@ -616,6 +712,13 @@ def _render_artifact_card(
         padding=(0, 1),
     )
     return panel
+
+
+def _render_focus_line(action: str) -> RenderableType:
+    text = Text()
+    text.append("current action  ", style="bold #7dd3fc")
+    text.append(action, style="bold white")
+    return Padding(text, (0, 0, 0, 0))
 
 
 def _render_details_table(details: list[tuple[str, str]]) -> RenderableType:
@@ -656,7 +759,7 @@ def _render_stage_table(blocks: list[_LogBlock]) -> RenderableType | None:
         return (len(_STAGE_ORDER) + 1, block.title)
 
     for block in sorted(visible, key=_sort_key):
-        label = block.title.replace("stage ", "")
+        label = block.title.replace("stage ", "").replace("_", " ")
         if block.title == "runner":
             label = "runner"
         detail = _detail_summary(block)
@@ -669,6 +772,24 @@ def _render_stage_table(blocks: list[_LogBlock]) -> RenderableType | None:
     return table
 
 
+def _render_tape_panel(events: list[_TapeEntry]) -> RenderableType:
+    table = Table.grid(expand=True)
+    table.add_column(width=8)
+    table.add_column(ratio=1)
+    for entry in events:
+        table.add_row(_status_badge(entry.status), Text(entry.message, style="white"))
+    remaining_rows = max(0, _TAPE_ROWS - len(events))
+    for _ in range(remaining_rows):
+        table.add_row(Text(""), Text(""))
+    return Panel(
+        table,
+        box=box.ROUNDED,
+        border_style="#1e3a5f",
+        title=Text("settled translations", style="bold white"),
+        padding=(0, 1),
+    )
+
+
 def _detail_summary(block: _LogBlock) -> str:
     details = list(block.details)
     if not details:
@@ -678,6 +799,34 @@ def _detail_summary(block: _LogBlock) -> str:
     if not tail:
         return head
     return f"{head} | " + " | ".join(tail)
+
+
+def _detail_value(details: list[tuple[str, str]], label: str) -> str | None:
+    for current_label, value in details:
+        if current_label == label:
+            return value
+    return None
+
+
+def _artifact_event_message(
+    session: _ArtifactSession,
+    *,
+    result: str | None = None,
+    error: str | None = None,
+) -> str:
+    artifact_block = session._find_block("artifact")
+    title = "translation"
+    if artifact_block is not None:
+        title = artifact_block.title.replace("translation_v2 ", "", 1)
+    if error is not None:
+        return f"{title} failed: {error}"
+    if result == "cache_hit":
+        return f"{title} cache hit"
+    if result == "cache_miss":
+        return f"{title} translated"
+    if result == "revision":
+        return f"{title} revised"
+    return f"{title} complete"
 
 
 def _title_text(title: str, status: str) -> Text:

@@ -42,5 +42,16 @@
     "required_terminology": [],
     "locale_required_patterns": [],
     "tone_forbidden_phrases": ["mano", "cara"]
+  },
+  {
+    "case_id": "voice-terminology-packets",
+    "source_title": "Packeted voice and terminology guidance",
+    "source_excerpt": "Honor the approved voice brief and technical terminology packet.",
+    "source_content": "Preserve GPT-5.4, cache adapter, and orchestration language while keeping an understated engineering voice.",
+    "expected_tags": ["translation", "style"],
+    "required_placeholders": [],
+    "required_terminology": ["GPT-5.4", "cache adapter", "orquestracao"],
+    "locale_required_patterns": [],
+    "tone_forbidden_phrases": ["mano", "show de bola"]
   }
 ]

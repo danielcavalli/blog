@@ -22,6 +22,33 @@ class TranslationRequest:
 
 
 @dataclass(slots=True)
+class VoiceIntentPacket:
+    """Source-analysis output describing authorial and rhetorical intent."""
+
+    author_voice_summary: str
+    tone: str
+    register: str
+    sentence_rhythm: list[str] = field(default_factory=list)
+    connective_tissue: list[str] = field(default_factory=list)
+    rhetorical_moves: list[str] = field(default_factory=list)
+    humor_signals: list[str] = field(default_factory=list)
+    stance_markers: list[str] = field(default_factory=list)
+    must_preserve: list[str] = field(default_factory=list)
+
+
+@dataclass(slots=True)
+class TerminologyPolicyPacket:
+    """Artifact-wide borrowing and localization policy."""
+
+    keep_english: list[str] = field(default_factory=list)
+    localize: list[str] = field(default_factory=list)
+    context_sensitive: list[str] = field(default_factory=list)
+    do_not_translate: list[str] = field(default_factory=list)
+    consistency_rules: list[str] = field(default_factory=list)
+    rationale_notes: list[str] = field(default_factory=list)
+
+
+@dataclass(slots=True)
 class TranslationOutput:
     """Structured output for the translation stage."""
 
@@ -64,13 +91,26 @@ class CVTranslationOutput:
 
 
 @dataclass(slots=True)
+class CritiqueFinding:
+    """Structured critique finding tied to source/target spans."""
+
+    finding_id: str
+    severity: str
+    category: str
+    source_span: str
+    target_span: str
+    description: str
+    rewrite_instruction: str
+
+
+@dataclass(slots=True)
 class CritiqueOutput:
     """Structured output for critique stage."""
 
     score: float
     feedback: str
     needs_refinement: bool
-    findings: list[str] = field(default_factory=list)
+    findings: list[CritiqueFinding] = field(default_factory=list)
     dimension_scores: dict[str, float] = field(default_factory=dict)
     critical_errors: int = 0
     major_core_errors: int = 0
@@ -78,17 +118,42 @@ class CritiqueOutput:
 
 
 @dataclass(slots=True)
-class RefinementOutput:
-    """Structured output for refinement stage."""
+class RevisionOutput:
+    """Structured output for revision stage."""
 
     title: str
     excerpt: str
     tags: list[str]
     content: str
     applied_feedback: list[str] = field(default_factory=list)
+    rewrite_summary: list[str] = field(default_factory=list)
+    unresolved_risks: list[str] = field(default_factory=list)
 
 
-ProviderPayload = TranslationOutput | CVTranslationOutput | CritiqueOutput | RefinementOutput
+@dataclass(slots=True)
+class FinalReviewOutput:
+    """Structured output for final review stage."""
+
+    accept: bool
+    publish_ready: bool
+    confidence: float
+    residual_issues: list[str] = field(default_factory=list)
+    voice_score: float = 0.0
+    terminology_score: float = 0.0
+    locale_naturalness_score: float = 0.0
+
+
+RefinementOutput = RevisionOutput
+
+ProviderPayload = (
+    VoiceIntentPacket
+    | TerminologyPolicyPacket
+    | TranslationOutput
+    | CVTranslationOutput
+    | CritiqueOutput
+    | RevisionOutput
+    | FinalReviewOutput
+)
 StagePayloadT = TypeVar("StagePayloadT", bound=ProviderPayload, covariant=True)
 
 
@@ -476,7 +541,9 @@ def validate_critique_output(
     )
 
 
-def _normalize_findings(payload: dict[str, Any], *, run_id: str, stage: str) -> list[str]:
+def _normalize_findings(
+    payload: dict[str, Any], *, run_id: str, stage: str
+) -> list[CritiqueFinding]:
     findings = payload.get("findings", [])
     if not isinstance(findings, list):
         raise TypeMismatchError(
@@ -489,11 +556,22 @@ def _normalize_findings(payload: dict[str, Any], *, run_id: str, stage: str) -> 
         )
 
     if all(isinstance(item, str) for item in findings):
-        return findings
+        return [
+            CritiqueFinding(
+                finding_id=f"finding-{index + 1}",
+                severity="major",
+                category="general",
+                source_span="",
+                target_span="",
+                description=item,
+                rewrite_instruction=item,
+            )
+            for index, item in enumerate(findings)
+        ]
 
     if all(isinstance(item, dict) for item in findings):
-        normalized: list[str] = []
-        for item in findings:
+        normalized: list[CritiqueFinding] = []
+        for index, item in enumerate(findings):
             description = item.get("description")
             if not isinstance(description, str):
                 raise TypeMismatchError(
@@ -504,7 +582,22 @@ def _normalize_findings(payload: dict[str, Any], *, run_id: str, stage: str) -> 
                     expected_type="str",
                     actual_type=type(description).__name__,
                 )
-            normalized.append(description)
+            normalized.append(
+                CritiqueFinding(
+                    finding_id=str(item.get("id", f"finding-{index + 1}")).strip()
+                    or f"finding-{index + 1}",
+                    severity=str(item.get("severity", "major")).strip() or "major",
+                    category=str(item.get("dimension", item.get("category", "general"))).strip()
+                    or "general",
+                    source_span=str(item.get("source_span", "")).strip(),
+                    target_span=str(item.get("target_span", "")).strip(),
+                    description=description,
+                    rewrite_instruction=str(
+                        item.get("fix_hint", item.get("rewrite_instruction", description))
+                    ).strip()
+                    or description,
+                )
+            )
         return normalized
 
     raise TypeMismatchError(
@@ -631,10 +724,10 @@ def _extract_nonnegative_int(
     return value
 
 
-def validate_refinement_output(
-    payload: dict[str, Any], *, run_id: str, stage: str = "refine"
-) -> RefinementOutput:
-    """Validate and parse structured refinement output."""
+def validate_revision_output(
+    payload: dict[str, Any], *, run_id: str, stage: str = "revise"
+) -> RevisionOutput:
+    """Validate and parse structured revision output."""
 
     base = validate_translation_output(payload, run_id=run_id, stage=stage)
     applied_feedback = payload.get("applied_feedback", [])
@@ -650,10 +743,184 @@ def validate_refinement_output(
             actual_type=type(applied_feedback).__name__,
         )
 
-    return RefinementOutput(
+    rewrite_summary = payload.get("rewrite_summary", [])
+    if not isinstance(rewrite_summary, list) or not all(
+        isinstance(item, str) for item in rewrite_summary
+    ):
+        raise TypeMismatchError(
+            message="Field type mismatch",
+            run_id=run_id,
+            stage=stage,
+            field="rewrite_summary",
+            expected_type="list[str]",
+            actual_type=type(rewrite_summary).__name__,
+        )
+
+    unresolved_risks = payload.get("unresolved_risks", [])
+    if not isinstance(unresolved_risks, list) or not all(
+        isinstance(item, str) for item in unresolved_risks
+    ):
+        raise TypeMismatchError(
+            message="Field type mismatch",
+            run_id=run_id,
+            stage=stage,
+            field="unresolved_risks",
+            expected_type="list[str]",
+            actual_type=type(unresolved_risks).__name__,
+        )
+
+    return RevisionOutput(
         title=base.title,
         excerpt=base.excerpt,
         tags=base.tags,
         content=base.content,
         applied_feedback=applied_feedback,
+        rewrite_summary=rewrite_summary,
+        unresolved_risks=unresolved_risks,
+    )
+
+
+def validate_refinement_output(
+    payload: dict[str, Any], *, run_id: str, stage: str = "refine"
+) -> RefinementOutput:
+    """Backward-compatible alias for revision-stage parsing."""
+
+    return validate_revision_output(payload, run_id=run_id, stage=stage)
+
+
+def validate_voice_intent_output(
+    payload: dict[str, Any], *, run_id: str, stage: str = "source_analysis"
+) -> VoiceIntentPacket:
+    """Validate source-analysis output."""
+
+    author_voice_summary = _require_field(
+        payload,
+        field_name="author_voice_summary",
+        expected_type=str,
+        run_id=run_id,
+        stage=stage,
+    )
+    tone = _require_field(
+        payload,
+        field_name="tone",
+        expected_type=str,
+        run_id=run_id,
+        stage=stage,
+    )
+    register = _require_field(
+        payload,
+        field_name="register",
+        expected_type=str,
+        run_id=run_id,
+        stage=stage,
+    )
+    return VoiceIntentPacket(
+        author_voice_summary=author_voice_summary,
+        tone=tone,
+        register=register,
+        sentence_rhythm=_require_string_list(
+            payload, field_name="sentence_rhythm", run_id=run_id, stage=stage
+        ),
+        connective_tissue=_require_string_list(
+            payload, field_name="connective_tissue", run_id=run_id, stage=stage
+        ),
+        rhetorical_moves=_require_string_list(
+            payload, field_name="rhetorical_moves", run_id=run_id, stage=stage
+        ),
+        humor_signals=_require_string_list(
+            payload, field_name="humor_signals", run_id=run_id, stage=stage
+        ),
+        stance_markers=_require_string_list(
+            payload, field_name="stance_markers", run_id=run_id, stage=stage
+        ),
+        must_preserve=_require_string_list(
+            payload, field_name="must_preserve", run_id=run_id, stage=stage
+        ),
+    )
+
+
+def validate_terminology_policy_output(
+    payload: dict[str, Any], *, run_id: str, stage: str = "terminology_policy"
+) -> TerminologyPolicyPacket:
+    """Validate terminology policy output."""
+
+    return TerminologyPolicyPacket(
+        keep_english=_require_string_list(
+            payload, field_name="keep_english", run_id=run_id, stage=stage
+        ),
+        localize=_require_string_list(
+            payload, field_name="localize", run_id=run_id, stage=stage
+        ),
+        context_sensitive=_require_string_list(
+            payload, field_name="context_sensitive", run_id=run_id, stage=stage
+        ),
+        do_not_translate=_require_string_list(
+            payload, field_name="do_not_translate", run_id=run_id, stage=stage
+        ),
+        consistency_rules=_require_string_list(
+            payload, field_name="consistency_rules", run_id=run_id, stage=stage
+        ),
+        rationale_notes=_require_string_list(
+            payload, field_name="rationale_notes", run_id=run_id, stage=stage
+        ),
+    )
+
+
+def validate_final_review_output(
+    payload: dict[str, Any], *, run_id: str, stage: str = "final_review"
+) -> FinalReviewOutput:
+    """Validate final review stage output."""
+
+    accept = _require_field(
+        payload,
+        field_name="accept",
+        expected_type=bool,
+        run_id=run_id,
+        stage=stage,
+    )
+    publish_ready = _require_field(
+        payload,
+        field_name="publish_ready",
+        expected_type=bool,
+        run_id=run_id,
+        stage=stage,
+    )
+    confidence = _require_field(
+        payload,
+        field_name="confidence",
+        expected_type=(int, float),
+        run_id=run_id,
+        stage=stage,
+    )
+    voice_score = _require_field(
+        payload,
+        field_name="voice_score",
+        expected_type=(int, float),
+        run_id=run_id,
+        stage=stage,
+    )
+    terminology_score = _require_field(
+        payload,
+        field_name="terminology_score",
+        expected_type=(int, float),
+        run_id=run_id,
+        stage=stage,
+    )
+    locale_naturalness_score = _require_field(
+        payload,
+        field_name="locale_naturalness_score",
+        expected_type=(int, float),
+        run_id=run_id,
+        stage=stage,
+    )
+    return FinalReviewOutput(
+        accept=accept,
+        publish_ready=publish_ready,
+        confidence=float(confidence),
+        residual_issues=_require_string_list(
+            payload, field_name="residual_issues", run_id=run_id, stage=stage
+        ),
+        voice_score=float(voice_score),
+        terminology_score=float(terminology_score),
+        locale_naturalness_score=float(locale_naturalness_score),
     )

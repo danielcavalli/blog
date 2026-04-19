@@ -1,14 +1,23 @@
 """Translation v2 contracts and provider interfaces."""
 
 from .contracts import (
+    CritiqueFinding,
     CritiqueOutput,
+    FinalReviewOutput,
     RefinementOutput,
+    RevisionOutput,
     StageResult,
+    TerminologyPolicyPacket,
     TranslationOutput,
     TranslationRequest,
+    VoiceIntentPacket,
     validate_critique_output,
+    validate_final_review_output,
     validate_refinement_output,
+    validate_revision_output,
+    validate_terminology_policy_output,
     validate_translation_output,
+    validate_voice_intent_output,
 )
 from .errors import (
     ContractValidationError,
@@ -42,10 +51,17 @@ from .style_loader import (
     load_writing_style_brief,
 )
 from .orchestrator import TranslationV2PostOrchestrator
+from .pipeline import LocalizationPipeline
 from .run_logging import (
     BuildSummaryCounters,
     TranslationRunEventLogger,
     event_has_required_schema,
+)
+from .voice_profile import (
+    VOICE_PROFILE_PATH,
+    AuthorVoiceProfile,
+    compute_author_voice_fingerprint,
+    load_author_voice_profile,
 )
 from .opencode_runner import (
     DEFAULT_BACKOFF_INITIAL_SECONDS,
@@ -112,7 +128,9 @@ __all__ = [
     "ContractValidationError",
     "BuildSummaryCounters",
     "CRITIQUE_OUTPUT_SCHEMA",
+    "CritiqueFinding",
     "CritiqueOutput",
+    "FinalReviewOutput",
     "CommandExecutionResult",
     "DEFAULT_BACKOFF_INITIAL_SECONDS",
     "DEFAULT_BACKOFF_MULTIPLIER",
@@ -125,14 +143,18 @@ __all__ = [
     "ParseErrorKind",
     "REFINEMENT_PLAN_SCHEMA",
     "RefinementOutput",
+    "RevisionOutput",
     "RubricDecisionInput",
     "RubricThresholds",
     "SCORE_DIMENSION_WEIGHTS",
     "StageResult",
     "TranslationRunArtifacts",
     "TranslationRunEventLogger",
+    "TerminologyPolicyPacket",
     "TranslationOutput",
     "TranslationProvider",
+    "VoiceIntentPacket",
+    "LocalizationPipeline",
     "DeterministicMockTranslationProvider",
     "OpenCodeProviderLoopResult",
     "OpenCodeTranslationProvider",
@@ -150,7 +172,11 @@ __all__ = [
     "RevisionRequest",
     "TranslationRevisionManifest",
     "STYLE_BRIEF_PATH",
+    "VOICE_PROFILE_PATH",
+    "AuthorVoiceProfile",
+    "compute_author_voice_fingerprint",
     "compute_writing_style_fingerprint",
+    "load_author_voice_profile",
     "load_writing_style_brief",
     "TranslationRequest",
     "TranslationV2Error",
@@ -193,6 +219,10 @@ __all__ = [
     "build_request_from_trigger_event",
     "derive_idempotency_key",
     "validate_critique_output",
+    "validate_final_review_output",
     "validate_refinement_output",
+    "validate_revision_output",
+    "validate_terminology_policy_output",
     "validate_translation_output",
+    "validate_voice_intent_output",
 ]

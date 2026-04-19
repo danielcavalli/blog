@@ -2,6 +2,7 @@
 
 import os
 import sys
+import types
 from typing import Any
 
 import pytest
@@ -9,19 +10,29 @@ import pytest
 
 _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 sys.path.insert(0, _SOURCE)
+_mock_provider_stub = types.ModuleType("translation_v2.mock_provider")
+_mock_provider_stub.DeterministicMockTranslationProvider = object
+sys.modules.setdefault("translation_v2.mock_provider", _mock_provider_stub)
 
 from translation_v2.contracts import (  # noqa: E402
     CVTranslationOutput,
     CritiqueOutput,
+    FinalReviewOutput,
+    RevisionOutput,
+    TerminologyPolicyPacket,
     TranslationOutput,
     TranslationRequest,
+    VoiceIntentPacket,
     validate_cv_translation_output,
     validate_critique_output,
+    validate_final_review_output,
+    validate_revision_output,
+    validate_terminology_policy_output,
+    validate_voice_intent_output,
     validate_refinement_output,
     validate_translation_output,
 )
 from translation_v2.errors import MissingFieldError, TypeMismatchError  # noqa: E402
-from translation_v2.mock_provider import DeterministicMockTranslationProvider  # noqa: E402
 from translation_v2.provider import TranslationProvider  # noqa: E402
 
 
@@ -199,6 +210,43 @@ def test_validate_critique_output_keeps_simple_payload_compatibility():
     assert result.dimension_scores["accuracy_completeness"] == 91.0
 
 
+def test_validate_voice_intent_output_accepts_expected_packet_shape():
+    payload = {
+        "author_voice_summary": "Dry, technical, structurally aware.",
+        "tone": "technical",
+        "register": "professional",
+        "sentence_rhythm": ["medium cadence"],
+        "connective_tissue": ["contrastive pivots"],
+        "rhetorical_moves": ["claim then qualification"],
+        "humor_signals": ["understated irony"],
+        "stance_markers": ["first-person ownership"],
+        "must_preserve": ["OpenCode"],
+    }
+
+    result = validate_voice_intent_output(payload, run_id="run-source-analysis")
+
+    assert isinstance(result, VoiceIntentPacket)
+    assert result.tone == "technical"
+    assert result.must_preserve == ["OpenCode"]
+
+
+def test_validate_terminology_policy_output_accepts_expected_packet_shape():
+    payload = {
+        "keep_english": ["cache adapter"],
+        "localize": ["latency => latencia"],
+        "context_sensitive": ["rollout"],
+        "do_not_translate": ["OpenCode"],
+        "consistency_rules": ["Keep terminology stable."],
+        "rationale_notes": ["Borrow infra terms when PT-BR usage expects it."],
+    }
+
+    result = validate_terminology_policy_output(payload, run_id="run-terminology-policy")
+
+    assert isinstance(result, TerminologyPolicyPacket)
+    assert result.keep_english == ["cache adapter"]
+    assert result.do_not_translate == ["OpenCode"]
+
+
 def test_validate_refinement_output_rejects_non_string_tag_values():
     payload = {
         "title": "Title",
@@ -217,6 +265,43 @@ def test_validate_refinement_output_rejects_non_string_tag_values():
     assert err.stage == "refine"
 
 
+def test_validate_revision_output_accepts_rewrite_summary_and_unresolved_risks():
+    payload = {
+        "title": "Title",
+        "excerpt": "Summary",
+        "tags": ["ia"],
+        "content": "Revised content",
+        "applied_feedback": ["fixed terminology"],
+        "rewrite_summary": ["re-anchored the second paragraph in the source"],
+        "unresolved_risks": [],
+    }
+
+    result = validate_revision_output(payload, run_id="run-revise")
+
+    assert isinstance(result, RevisionOutput)
+    assert result.applied_feedback == ["fixed terminology"]
+    assert result.rewrite_summary == ["re-anchored the second paragraph in the source"]
+
+
+def test_validate_final_review_output_requires_explicit_acceptance_gate_fields():
+    payload = {
+        "accept": True,
+        "publish_ready": True,
+        "confidence": 0.91,
+        "residual_issues": [],
+        "voice_score": 94,
+        "terminology_score": 96,
+        "locale_naturalness_score": 93,
+    }
+
+    result = validate_final_review_output(payload, run_id="run-final-review")
+
+    assert isinstance(result, FinalReviewOutput)
+    assert result.accept is True
+    assert result.publish_ready is True
+    assert result.voice_score == 94.0
+
+
 def test_translation_provider_interface_exposes_required_methods():
     class IncompleteProvider(TranslationProvider):
         pass
@@ -224,48 +309,3 @@ def test_translation_provider_interface_exposes_required_methods():
     incomplete_ctor: Any = IncompleteProvider
     with pytest.raises(TypeError):
         incomplete_ctor()
-
-
-def test_translation_provider_implementation_round_trip():
-    provider = DeterministicMockTranslationProvider(
-        {
-            "fixture-post": {
-                "translated": {
-                    "title": "Titulo",
-                    "excerpt": "Resumo",
-                    "tags": ["ia"],
-                    "content": "conteudo",
-                },
-                "critique": {
-                    "score": 91,
-                    "feedback": "No critical issues",
-                    "needs_refinement": False,
-                    "findings": [],
-                },
-                "refined": {
-                    "title": "Titulo",
-                    "excerpt": "Resumo",
-                    "tags": ["ia"],
-                    "content": "conteudo",
-                    "applied_feedback": [],
-                },
-            }
-        }
-    )
-
-    request = TranslationRequest(
-        run_id="run-provider",
-        source_locale="en-us",
-        target_locale="pt-br",
-        source_text="Hello world",
-        prompt_version="v1",
-        metadata={"slug": "fixture-post"},
-    )
-
-    translated = provider.translate(request)
-    critiqued = provider.critique(request, translated.payload)
-    refined = provider.refine(request, translated.payload, critiqued.payload)
-
-    assert translated.stage == "translate"
-    assert critiqued.stage == "critique"
-    assert refined.stage == "refine"

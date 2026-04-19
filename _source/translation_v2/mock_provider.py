@@ -8,13 +8,19 @@ from typing import Any, Mapping
 
 from .contracts import (
     CritiqueOutput,
-    RefinementOutput,
+    FinalReviewOutput,
+    RevisionOutput,
     StageResult,
+    TerminologyPolicyPacket,
     TranslationOutput,
     TranslationRequest,
+    VoiceIntentPacket,
+    validate_final_review_output,
     validate_critique_output,
-    validate_refinement_output,
+    validate_revision_output,
+    validate_terminology_policy_output,
     validate_translation_output,
+    validate_voice_intent_output,
 )
 from .provider import TranslationProvider
 
@@ -58,7 +64,69 @@ class DeterministicMockTranslationProvider(TranslationProvider):
 
         raise KeyError("No fixture found for request metadata slug; provide metadata['slug']")
 
-    def translate(self, request: TranslationRequest) -> StageResult[TranslationOutput]:
+    def source_analysis(self, request: TranslationRequest) -> StageResult[VoiceIntentPacket]:
+        fixture = self._fixture_for_request(request)
+        payload = validate_voice_intent_output(
+            fixture.get(
+                "source_analysis",
+                {
+                    "author_voice_summary": "Pragmatic technical voice",
+                    "tone": "analytical",
+                    "register": "technical blog",
+                    "sentence_rhythm": ["varied"],
+                    "connective_tissue": ["argument-led"],
+                    "rhetorical_moves": ["contrast", "qualification"],
+                    "humor_signals": ["understated"],
+                    "stance_markers": ["opinionated"],
+                    "must_preserve": ["voice", "cadence"],
+                },
+            ),
+            run_id=request.run_id,
+            stage="source_analysis",
+        )
+        return StageResult(
+            run_id=request.run_id,
+            stage="source_analysis",
+            model=self._model,
+            payload=payload,
+            raw_response={"fixture_slug": request.metadata.get("slug", "")},
+        )
+
+    def terminology_policy(
+        self,
+        request: TranslationRequest,
+        source_analysis: VoiceIntentPacket | None = None,  # noqa: ARG002
+    ) -> StageResult[TerminologyPolicyPacket]:
+        fixture = self._fixture_for_request(request)
+        payload = validate_terminology_policy_output(
+            fixture.get(
+                "terminology_policy",
+                {
+                    "keep_english": [],
+                    "localize": [],
+                    "context_sensitive": [],
+                    "do_not_translate": [],
+                    "consistency_rules": ["stay consistent"],
+                    "rationale_notes": [],
+                },
+            ),
+            run_id=request.run_id,
+            stage="terminology_policy",
+        )
+        return StageResult(
+            run_id=request.run_id,
+            stage="terminology_policy",
+            model=self._model,
+            payload=payload,
+            raw_response={"fixture_slug": request.metadata.get("slug", "")},
+        )
+
+    def translate(
+        self,
+        request: TranslationRequest,
+        source_analysis: VoiceIntentPacket | None = None,  # noqa: ARG002
+        terminology_policy: TerminologyPolicyPacket | None = None,  # noqa: ARG002
+    ) -> StageResult[TranslationOutput]:
         fixture = self._fixture_for_request(request)
         translated_payload = validate_translation_output(
             fixture["translated"], run_id=request.run_id, stage="translate"
@@ -72,7 +140,12 @@ class DeterministicMockTranslationProvider(TranslationProvider):
         )
 
     def critique(
-        self, request: TranslationRequest, translated: TranslationOutput
+        self,
+        request: TranslationRequest,
+        translated: TranslationOutput,  # noqa: ARG002
+        *,
+        source_analysis: VoiceIntentPacket | None = None,  # noqa: ARG002
+        terminology_policy: TerminologyPolicyPacket | None = None,  # noqa: ARG002
     ) -> StageResult[CritiqueOutput]:
         fixture = self._fixture_for_request(request)
         critique_payload = validate_critique_output(
@@ -86,21 +159,78 @@ class DeterministicMockTranslationProvider(TranslationProvider):
             raw_response={"fixture_slug": request.metadata.get("slug", "")},
         )
 
-    def refine(
+    def revise(
         self,
         request: TranslationRequest,
-        translated: TranslationOutput,
+        translated: TranslationOutput,  # noqa: ARG002
         critique: CritiqueOutput,
-    ) -> StageResult[RefinementOutput]:
+        *,
+        source_analysis: VoiceIntentPacket | None = None,  # noqa: ARG002
+        terminology_policy: TerminologyPolicyPacket | None = None,  # noqa: ARG002
+    ) -> StageResult[RevisionOutput]:
         fixture = self._fixture_for_request(request)
-        refined_payload = validate_refinement_output(
-            fixture["refined"], run_id=request.run_id, stage="refine"
-        )
-        result: StageResult[RefinementOutput] = StageResult(
+        refined_payload = validate_revision_output(
+            fixture.get("revised", fixture.get("refined", {})),
             run_id=request.run_id,
-            stage="refine",
+            stage="revise",
+        )
+        result: StageResult[RevisionOutput] = StageResult(
+            run_id=request.run_id,
+            stage="revise",
             model=self._model,
             payload=refined_payload,
             raw_response={"fixture_slug": request.metadata.get("slug", "")},
         )
         return result
+
+    def refine(
+        self,
+        request: TranslationRequest,
+        translated: TranslationOutput,
+        critique: CritiqueOutput,
+        *,
+        source_analysis: VoiceIntentPacket | None = None,
+        terminology_policy: TerminologyPolicyPacket | None = None,
+    ) -> StageResult[RevisionOutput]:
+        """Backward-compatible alias for revise."""
+
+        return self.revise(
+            request,
+            translated,
+            critique,
+            source_analysis=source_analysis,
+            terminology_policy=terminology_policy,
+        )
+
+    def final_review(
+        self,
+        request: TranslationRequest,
+        translated: TranslationOutput,  # noqa: ARG002
+        *,
+        source_analysis: VoiceIntentPacket | None = None,  # noqa: ARG002
+        terminology_policy: TerminologyPolicyPacket | None = None,  # noqa: ARG002
+    ) -> StageResult[FinalReviewOutput]:
+        fixture = self._fixture_for_request(request)
+        payload = validate_final_review_output(
+            fixture.get(
+                "final_review",
+                {
+                    "accept": True,
+                    "publish_ready": True,
+                    "confidence": 1.0,
+                    "residual_issues": [],
+                    "voice_score": 95,
+                    "terminology_score": 95,
+                    "locale_naturalness_score": 95,
+                },
+            ),
+            run_id=request.run_id,
+            stage="final_review",
+        )
+        return StageResult(
+            run_id=request.run_id,
+            stage="final_review",
+            model=self._model,
+            payload=payload,
+            raw_response={"fixture_slug": request.metadata.get("slug", "")},
+        )

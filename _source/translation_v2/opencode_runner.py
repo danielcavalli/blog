@@ -14,19 +14,26 @@ from .console import finish_runner_status, start_runner_status
 from .contracts import (
     CVTranslationOutput,
     CritiqueOutput,
-    RefinementOutput,
+    FinalReviewOutput,
     ProviderPayload,
+    RevisionOutput,
     StageResult,
+    TerminologyPolicyPacket,
     TranslationOutput,
     TranslationRequest,
+    VoiceIntentPacket,
+    validate_final_review_output,
     validate_cv_translation_output,
     validate_critique_output,
-    validate_refinement_output,
+    validate_revision_output,
+    validate_terminology_policy_output,
     validate_translation_output,
+    validate_voice_intent_output,
 )
 
 
 DEFAULT_MODEL_ID = "openai/gpt-5.4"
+DEFAULT_REASONING_EFFORT = "high"
 DEFAULT_MAX_ATTEMPTS = 3
 DEFAULT_BACKOFF_INITIAL_SECONDS = 1.0
 DEFAULT_BACKOFF_MULTIPLIER = 2.0
@@ -98,6 +105,7 @@ class OpenCodeHeadlessRunner:
         self,
         *,
         model_id: str = DEFAULT_MODEL_ID,
+        reasoning_effort: str = DEFAULT_REASONING_EFFORT,
         max_attempts: int = DEFAULT_MAX_ATTEMPTS,
         backoff_initial_seconds: float = DEFAULT_BACKOFF_INITIAL_SECONDS,
         backoff_multiplier: float = DEFAULT_BACKOFF_MULTIPLIER,
@@ -112,6 +120,7 @@ class OpenCodeHeadlessRunner:
             raise ValueError("backoff_multiplier must be >= 1")
 
         self._model_id = model_id
+        self._reasoning_effort = reasoning_effort.strip() or DEFAULT_REASONING_EFFORT
         self._max_attempts = max_attempts
         self._backoff_initial_seconds = backoff_initial_seconds
         self._backoff_multiplier = backoff_multiplier
@@ -128,42 +137,18 @@ class OpenCodeHeadlessRunner:
         *,
         request: TranslationRequest,
         post_slug: str,
-        stage: Literal["translate"],
+        stage: str,
         prompt_text: str,
         attach_path: str,
         artifacts: TranslationRunArtifacts,
-    ) -> StageResult[TranslationOutput]: ...
-
-    @overload
-    def run_stage(
-        self,
-        *,
-        request: TranslationRequest,
-        post_slug: str,
-        stage: Literal["critique"],
-        prompt_text: str,
-        attach_path: str,
-        artifacts: TranslationRunArtifacts,
-    ) -> StageResult[CritiqueOutput]: ...
-
-    @overload
-    def run_stage(
-        self,
-        *,
-        request: TranslationRequest,
-        post_slug: str,
-        stage: Literal["refine"],
-        prompt_text: str,
-        attach_path: str,
-        artifacts: TranslationRunArtifacts,
-    ) -> StageResult[RefinementOutput]: ...
+    ) -> StageResult[ProviderPayload]: ...
 
     def run_stage(
         self,
         *,
         request: TranslationRequest,
         post_slug: str,
-        stage: Literal["translate", "critique", "refine"],
+        stage: str,
         prompt_text: str,
         attach_path: str,
         artifacts: TranslationRunArtifacts,
@@ -178,7 +163,7 @@ class OpenCodeHeadlessRunner:
                 stage=stage,
                 attempt=attempt,
                 max_attempts=self._max_attempts,
-                model=self._model_id,
+                model=f"{self._model_id} ({self._reasoning_effort})",
                 attach_path=attach_path,
             )
             execution = self._command_executor(command, prompt_text)
@@ -277,6 +262,8 @@ class OpenCodeHeadlessRunner:
             "run",
             "--model",
             self._model_id,
+            "--variant",
+            self._reasoning_effort,
             "--file",
             attach_path,
             "--format",
@@ -456,7 +443,32 @@ def _extract_stage_payload(root_payload: dict[str, Any], stage: str) -> Any | No
 
 
 def _looks_like_direct_stage_payload(payload: dict[str, Any], stage: str) -> bool:
-    if stage == "translate":
+    if stage == "source_analysis":
+        required_key_sets = (
+            {
+                "author_voice_summary",
+                "tone",
+                "register",
+                "sentence_rhythm",
+                "connective_tissue",
+                "rhetorical_moves",
+                "humor_signals",
+                "stance_markers",
+                "must_preserve",
+            },
+        )
+    elif stage == "terminology_policy":
+        required_key_sets = (
+            {
+                "keep_english",
+                "localize",
+                "context_sensitive",
+                "do_not_translate",
+                "consistency_rules",
+                "rationale_notes",
+            },
+        )
+    elif stage == "translate":
         required_key_sets = (
             {"title", "excerpt", "tags", "content"},
             {
@@ -473,7 +485,7 @@ def _looks_like_direct_stage_payload(payload: dict[str, Any], stage: str) -> boo
         )
     elif stage == "critique":
         required_key_sets = ({"score", "feedback", "needs_refinement"},)
-    elif stage == "refine":
+    elif stage == "revise":
         required_key_sets = (
             {"title", "excerpt", "tags", "content", "applied_feedback"},
             {
@@ -486,6 +498,18 @@ def _looks_like_direct_stage_payload(payload: dict[str, Any], stage: str) -> boo
                 "summary",
                 "experience",
                 "education",
+            },
+        )
+    elif stage == "final_review":
+        required_key_sets = (
+            {
+                "accept",
+                "publish_ready",
+                "confidence",
+                "residual_issues",
+                "voice_score",
+                "terminology_score",
+                "locale_naturalness_score",
             },
         )
     else:
@@ -526,12 +550,24 @@ def classify_command_failure(execution: CommandExecutionResult) -> FailureClass:
 def _stage_result_from_payload(
     *,
     request: TranslationRequest,
-    stage: Literal["translate", "critique", "refine"],
+    stage: str,
     model: str,
     parsed_output: ParsedStageOutput,
 ) -> StageResult[ProviderPayload]:
     artifact_type = str(request.metadata.get("artifact_type", "post")).strip().lower()
-    if stage == "translate":
+    if stage == "source_analysis":
+        payload = validate_voice_intent_output(
+            parsed_output.payload,
+            run_id=request.run_id,
+            stage=stage,
+        )
+    elif stage == "terminology_policy":
+        payload = validate_terminology_policy_output(
+            parsed_output.payload,
+            run_id=request.run_id,
+            stage=stage,
+        )
+    elif stage == "translate":
         if artifact_type == "cv":
             payload = validate_cv_translation_output(
                 parsed_output.payload,
@@ -550,7 +586,7 @@ def _stage_result_from_payload(
             run_id=request.run_id,
             stage=stage,
         )
-    elif stage == "refine":
+    elif stage == "revise":
         if artifact_type == "cv":
             payload = validate_cv_translation_output(
                 parsed_output.payload,
@@ -558,11 +594,17 @@ def _stage_result_from_payload(
                 stage=stage,
             )
         else:
-            payload = validate_refinement_output(
+            payload = validate_revision_output(
                 parsed_output.payload,
                 run_id=request.run_id,
                 stage=stage,
             )
+    elif stage == "final_review":
+        payload = validate_final_review_output(
+            parsed_output.payload,
+            run_id=request.run_id,
+            stage=stage,
+        )
     else:
         raise ValueError(f"Unsupported stage: {stage}")
 

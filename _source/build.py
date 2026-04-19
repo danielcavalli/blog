@@ -386,7 +386,7 @@ def build(
             provider_name=provider_name,
             strict_validation=strict,
             cache_path=TRANSLATION_CACHE,
-            prompt_version=os.getenv("TRANSLATION_V2_PROMPT_VERSION", "v1"),
+            prompt_version=os.getenv("TRANSLATION_V2_PROMPT_VERSION", "v2"),
         )
         _log_translation_v2_debug_context(post_translator)
         log_block(
@@ -394,7 +394,9 @@ def build(
             [
                 ("Provider", provider_name),
                 ("Prompt version", getattr(post_translator, "prompt_version", "unknown")),
-                ("Model", getattr(post_translator, "_model_id", "unknown")),
+                ("Translation model", getattr(post_translator, "_model_id", "unknown")),
+                ("Critique model", getattr(post_translator, "_critique_model_id", "unknown")),
+                ("Revision model", getattr(post_translator, "_revision_model_id", "unknown")),
             ],
         )
         log_blank()
@@ -494,10 +496,11 @@ def build(
             target_lang_key = locale_to_lang_key(target_locale)
 
             posts_by_lang[source_lang_key].append(post_source)
-            log_line(
-                f"Parsed {md_file.name} ({source_locale.upper()} -> {target_locale.upper()})",
-                indent=1,
-            )
+            if verbose:
+                log_line(
+                    f"Parsed {md_file.name} ({source_locale.upper()} -> {target_locale.upper()})",
+                    indent=1,
+                )
 
             if post_translator:
                 translated_post = post_translator.translate_if_needed(
@@ -521,11 +524,12 @@ def build(
                     }
                 )
                 quality_stats["translated"] += 1
-                log_line(
-                    f"Translated {md_file.name} ({target_locale.upper()})",
-                    indent=1,
-                    status="success",
-                )
+                if verbose:
+                    log_line(
+                        f"Translated {md_file.name} ({target_locale.upper()})",
+                        indent=1,
+                        status="success",
+                    )
         except Exception as e:
             log_line(f"Error: {e}", indent=1, status="error")
             return False

@@ -8,10 +8,23 @@ from pathlib import Path
 from typing import Mapping
 
 
-PROMPT_STAGES: tuple[str, str, str] = ("translate", "critique", "refine")
-DEFAULT_PROMPT_VERSION = "v1"
+PROMPT_STAGES_V1: tuple[str, ...] = ("translate", "critique", "refine")
+PROMPT_STAGES_V2: tuple[str, ...] = (
+    "source_analysis",
+    "terminology_policy",
+    "translate",
+    "critique",
+    "revise",
+    "final_review",
+)
+PROMPT_STAGES: tuple[str, ...] = PROMPT_STAGES_V2
+DEFAULT_PROMPT_VERSION = "v2"
 PROMPTS_ROOT = Path(__file__).with_name("prompts")
 _PLACEHOLDER_PATTERN = re.compile(r"\{\{\s*([a-z_][a-z0-9_]*)\s*\}\}")
+_PACK_STAGES_BY_VERSION: dict[str, tuple[str, ...]] = {
+    "v1": PROMPT_STAGES_V1,
+    "v2": PROMPT_STAGES_V2,
+}
 
 
 def prompt_template_path(
@@ -19,8 +32,12 @@ def prompt_template_path(
 ) -> Path:
     """Return the template path for a stage/version pair."""
 
-    _validate_stage(stage)
-    return PROMPTS_ROOT / prompt_version / _template_filename(stage, artifact_type=artifact_type)
+    _validate_stage(stage, prompt_version=prompt_version)
+    return PROMPTS_ROOT / prompt_version / _template_filename(
+        stage,
+        prompt_version=prompt_version,
+        artifact_type=artifact_type,
+    )
 
 
 def load_prompt_template(
@@ -59,15 +76,7 @@ def render_prompt_template(
 
     missing_keys = sorted(placeholders - provided_keys)
     if missing_keys:
-        raise KeyError(
-            "Missing required prompt placeholders: " + ", ".join(missing_keys)
-        )
-
-    extra_keys = sorted(provided_keys - placeholders)
-    if extra_keys:
-        raise ValueError(
-            "Unexpected context keys for prompt template: " + ", ".join(extra_keys)
-        )
+        raise KeyError("Missing required prompt placeholders: " + ", ".join(missing_keys))
 
     rendered = template
     for key in sorted(placeholders):
@@ -84,7 +93,6 @@ def render_prompt_template(
             "Prompt template contains unresolved placeholders after rendering: "
             + ", ".join(unique_unresolved)
         )
-
     return rendered
 
 
@@ -93,13 +101,14 @@ def load_prompt_pack(
 ) -> dict[str, str]:
     """Load all stage templates for a prompt version."""
 
+    stages = _pack_stages_for_version(prompt_version)
     return {
         stage: load_prompt_template(
             stage,
             prompt_version=prompt_version,
             artifact_type=artifact_type,
         )
-        for stage in PROMPT_STAGES
+        for stage in stages
     }
 
 
@@ -126,13 +135,14 @@ def compute_prompt_pack_fingerprint_from_templates(
 ) -> str:
     """Compute fingerprint from in-memory templates for testability."""
 
-    for stage in PROMPT_STAGES:
+    pack_stages = _pack_stages_for_version(prompt_version)
+    for stage in pack_stages:
         if stage not in templates_by_stage:
             raise KeyError(f"Missing template for stage '{stage}'")
 
     digest = hashlib.sha256()
     digest.update(f"prompt-pack:{prompt_version}:{artifact_type}\n".encode("utf-8"))
-    for stage in PROMPT_STAGES:
+    for stage in pack_stages:
         digest.update(f"stage:{stage}\n".encode("utf-8"))
         digest.update(templates_by_stage[stage].encode("utf-8"))
         digest.update(b"\n--template-boundary--\n")
@@ -144,10 +154,7 @@ def build_prompt_cache_key(
 ) -> str:
     """Attach prompt version/fingerprint to a cache key."""
 
-    return (
-        f"{base_key}|prompt_version={prompt_version}|"
-        f"prompt_fingerprint={prompt_fingerprint}"
-    )
+    return f"{base_key}|prompt_version={prompt_version}|prompt_fingerprint={prompt_fingerprint}"
 
 
 def build_prompt_artifact_metadata(
@@ -158,7 +165,7 @@ def build_prompt_artifact_metadata(
 ) -> dict[str, str]:
     """Build prompt metadata that can be attached to run artifacts."""
 
-    _validate_stage(stage)
+    _validate_stage(stage, prompt_version=prompt_version)
     return {
         "stage": stage,
         "prompt_version": prompt_version,
@@ -166,14 +173,26 @@ def build_prompt_artifact_metadata(
     }
 
 
-def _validate_stage(stage: str) -> None:
-    if stage not in PROMPT_STAGES:
+def _validate_stage(stage: str, *, prompt_version: str) -> None:
+    if stage not in _pack_stages_for_version(prompt_version):
         raise ValueError(
-            f"Unsupported prompt stage '{stage}'. Expected one of: {', '.join(PROMPT_STAGES)}"
+            f"Unsupported prompt stage '{stage}' for version '{prompt_version}'. "
+            f"Expected one of: {', '.join(_pack_stages_for_version(prompt_version))}"
         )
 
 
-def _template_filename(stage: str, *, artifact_type: str) -> str:
+def _pack_stages_for_version(prompt_version: str) -> tuple[str, ...]:
+    return _PACK_STAGES_BY_VERSION.get(prompt_version, PROMPT_STAGES)
+
+
+def _template_filename(
+    stage: str,
+    *,
+    prompt_version: str,
+    artifact_type: str,
+) -> str:
     if artifact_type == "cv":
-        return f"cv_{stage}.md"
+        cv_specific = PROMPTS_ROOT / prompt_version / f"cv_{stage}.md"
+        if cv_specific.exists():
+            return f"cv_{stage}.md"
     return f"{stage}.md"

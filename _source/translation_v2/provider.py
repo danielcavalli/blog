@@ -7,38 +7,81 @@ from abc import ABC, abstractmethod
 from .contracts import (
     CVTranslationOutput,
     CritiqueOutput,
-    RefinementOutput,
+    FinalReviewOutput,
+    RevisionOutput,
     StageResult,
+    TerminologyPolicyPacket,
     TranslationOutput,
     TranslationRequest,
+    VoiceIntentPacket,
 )
 
 
 class TranslationProvider(ABC):
-    """Backend interface for translate -> critique -> refine stages."""
+    """Backend interface for localization-focused v2 stage execution."""
+
+    @abstractmethod
+    def source_analysis(self, request: TranslationRequest) -> StageResult[VoiceIntentPacket]:
+        """Analyze source rhetoric and authorial intent."""
+
+    @abstractmethod
+    def terminology_policy(
+        self,
+        request: TranslationRequest,
+        source_analysis: VoiceIntentPacket,
+    ) -> StageResult[TerminologyPolicyPacket]:
+        """Build artifact-wide terminology and borrowing policy."""
 
     @abstractmethod
     def translate(
-        self, request: TranslationRequest
+        self,
+        request: TranslationRequest,
+        source_analysis: VoiceIntentPacket,
+        terminology_policy: TerminologyPolicyPacket,
     ) -> StageResult[TranslationOutput | CVTranslationOutput]:
-        """Run translation stage and return structured output."""
+        """Run localized draft generation."""
 
     @abstractmethod
     def critique(
         self,
         request: TranslationRequest,
         translated: TranslationOutput | CVTranslationOutput,
+        *,
+        source_analysis: VoiceIntentPacket | None = None,
+        terminology_policy: TerminologyPolicyPacket | None = None,
     ) -> StageResult[CritiqueOutput]:
-        """Run critique stage and return structured critique payload."""
+        """Run editorial critique over a localized draft."""
 
     @abstractmethod
-    def refine(
+    def revise(
         self,
         request: TranslationRequest,
         translated: TranslationOutput | CVTranslationOutput,
         critique: CritiqueOutput,
-    ) -> StageResult[RefinementOutput | CVTranslationOutput]:
-        """Run refinement stage and return structured refinement payload."""
+        *,
+        source_analysis: VoiceIntentPacket | None = None,
+        terminology_policy: TerminologyPolicyPacket | None = None,
+    ) -> StageResult[RevisionOutput | CVTranslationOutput]:
+        """Run revision stage and return structured revised output."""
+
+    @abstractmethod
+    def final_review(
+        self,
+        request: TranslationRequest,
+        translated: TranslationOutput | CVTranslationOutput,
+        *,
+        source_analysis: VoiceIntentPacket | None = None,
+        terminology_policy: TerminologyPolicyPacket | None = None,
+    ) -> StageResult[FinalReviewOutput]:
+        """Run final review and acceptance decision."""
 
 
-ProviderPayload = TranslationOutput | CVTranslationOutput | CritiqueOutput | RefinementOutput
+ProviderPayload = (
+    VoiceIntentPacket
+    | TerminologyPolicyPacket
+    | TranslationOutput
+    | CVTranslationOutput
+    | CritiqueOutput
+    | RevisionOutput
+    | FinalReviewOutput
+)

@@ -23,6 +23,7 @@ from .console import (
     fail_artifact_status,
     finish_artifact_status,
     log_block,
+    record_translation_event,
     start_artifact_status,
 )
 from .contracts import (
@@ -30,10 +31,13 @@ from .contracts import (
     CVExperienceEntry,
     CVTranslationOutput,
     CritiqueOutput,
-    RefinementOutput,
+    FinalReviewOutput,
+    RevisionOutput,
     StageResult,
     TranslationOutput,
     TranslationRequest,
+    TerminologyPolicyPacket,
+    VoiceIntentPacket,
 )
 from .mock_provider import DeterministicMockTranslationProvider
 from .opencode_runner import OpenCodeHeadlessRunner
@@ -46,6 +50,10 @@ from .style_loader import (
     compute_writing_style_fingerprint,
     load_writing_style_brief,
 )
+from .voice_profile import (
+    compute_author_voice_fingerprint,
+    load_author_voice_profile,
+)
 from .trigger import (
     build_post_finished_trigger_event,
     build_request_from_trigger_event,
@@ -53,11 +61,23 @@ from .trigger import (
 
 
 def _to_dict(
-    payload: TranslationOutput | CVTranslationOutput | CritiqueOutput | RefinementOutput | dict[str, Any],
+    payload: ProviderPayloadLike,
 ) -> dict[str, Any]:
     if isinstance(payload, dict):
         return payload
     return asdict(payload)
+
+
+ProviderPayloadLike = (
+    TranslationOutput
+    | CVTranslationOutput
+    | CritiqueOutput
+    | RevisionOutput
+    | FinalReviewOutput
+    | VoiceIntentPacket
+    | TerminologyPolicyPacket
+    | dict[str, Any]
+)
 
 
 class TranslationV2PostOrchestrator:
@@ -69,7 +89,7 @@ class TranslationV2PostOrchestrator:
         provider_name: str,
         strict_validation: bool,
         cache_path: str | Path,
-        prompt_version: str = "v1",
+        prompt_version: str = "v2",
         mock_fixture_path: str | Path | None = None,
         run_id: str | None = None,
         correlation_id: str | None = None,
@@ -84,6 +104,10 @@ class TranslationV2PostOrchestrator:
         self.writing_style_brief = load_writing_style_brief()
         self.writing_style_fingerprint = compute_writing_style_fingerprint(
             self.writing_style_brief
+        )
+        self.author_voice_profile = load_author_voice_profile()
+        self.author_voice_fingerprint = compute_author_voice_fingerprint(
+            self.author_voice_profile
         )
         self._prompt_fingerprint_cache: dict[str, str] = {}
         self.artifact_base_dir = Path(
@@ -115,15 +139,40 @@ class TranslationV2PostOrchestrator:
             return
 
         if self.provider_name == "opencode":
-            model_id = os.getenv("TRANSLATION_V2_MODEL", "openai/gpt-5.4").strip()
+            translation_model_id = os.getenv("TRANSLATION_V2_TRANSLATION_MODEL", "openai/gpt-5.4").strip()
+            critique_model_id = os.getenv("TRANSLATION_V2_CRITIQUE_MODEL", "openai/gpt-5.2").strip()
+            revision_model_id = os.getenv("TRANSLATION_V2_REVISION_MODEL", translation_model_id).strip()
             attach_path = os.getenv("TRANSLATION_V2_ATTACH_PATH", "_source/posts")
-            runner = OpenCodeHeadlessRunner(model_id=model_id)
+            analysis_runner = OpenCodeHeadlessRunner(
+                model_id=translation_model_id,
+                reasoning_effort="high",
+            )
+            translation_runner = OpenCodeHeadlessRunner(
+                model_id=translation_model_id,
+                reasoning_effort="high",
+            )
+            critique_runner = OpenCodeHeadlessRunner(
+                model_id=critique_model_id,
+                reasoning_effort="medium",
+            )
+            revision_runner = OpenCodeHeadlessRunner(
+                model_id=revision_model_id,
+                reasoning_effort="high",
+            )
             self.provider = OpenCodeTranslationProvider(
-                runner=runner,
+                runner=translation_runner,
+                analysis_runner=analysis_runner,
+                terminology_runner=analysis_runner,
+                critique_runner=critique_runner,
+                revision_runner=revision_runner,
+                final_review_runner=critique_runner,
                 artifacts=self.artifacts,
                 default_attach_path=attach_path,
+                voice_profile=self.author_voice_profile,
             )
-            self._model_id = model_id
+            self._model_id = translation_model_id
+            self._critique_model_id = critique_model_id
+            self._revision_model_id = revision_model_id
             return
 
         raise ValueError(
@@ -235,6 +284,8 @@ class TranslationV2PostOrchestrator:
         request.metadata["artifact_type"] = artifact_type
         request.metadata["writing_style_brief"] = self.writing_style_brief
         request.metadata["writing_style_fingerprint"] = self.writing_style_fingerprint
+        request.metadata["author_voice_profile"] = self.author_voice_profile.brief
+        request.metadata["author_voice_fingerprint"] = self.author_voice_fingerprint
         request.metadata["prompt_fingerprint"] = prompt_fingerprint
         if do_not_translate_entities:
             request.metadata["do_not_translate_entities"] = list(do_not_translate_entities)
@@ -252,14 +303,9 @@ class TranslationV2PostOrchestrator:
         )
 
         if cached_record is not None and not should_revise:
-            log_block(
-                f"translation_v2 {artifact_type}:{trigger_event.slug}",
-                [
-                    ("Cache", "hit"),
-                    ("Action", "reuse cached translation"),
-                    ("Result", "cache_hit"),
-                ],
-                indent=1,
+            record_translation_event(
+                f"{artifact_type}:{trigger_event.slug} cache hit",
+                status="success",
             )
             translation = dict(cached_record.translation)
             outcome = "cache_hit"
@@ -374,6 +420,7 @@ class TranslationV2PostOrchestrator:
             + f"|{source_locale.lower()}|{target_locale.lower()}|artifact={artifact_type}"
             + f"|prompt_fingerprint={prompt_fingerprint}"
             + f"|writing_style_fingerprint={self.writing_style_fingerprint}"
+            + f"|author_voice_fingerprint={self.author_voice_fingerprint}"
         )
 
     def _prompt_fingerprint(self, artifact_type: str) -> str:
@@ -388,24 +435,66 @@ class TranslationV2PostOrchestrator:
 
     def _run_pipeline(self, request: TranslationRequest, *, artifact_type: str) -> dict[str, Any]:
         if isinstance(self.provider, OpenCodeTranslationProvider):
-            loop_result = self.provider.run_translation_loop(request)
+            loop_result = self.provider.run_translation_pipeline(request)
             return _to_dict(loop_result.final_translation)
 
-        translated_stage = self.provider.translate(request)
-        translated_payload = translated_stage.payload
-        if not isinstance(translated_payload, (TranslationOutput, CVTranslationOutput)):
-            raise TypeError("translate stage did not return a supported translation payload")
+        if not hasattr(self.provider, "source_analysis"):
+            translated_stage = self.provider.translate(request)  # type: ignore[call-arg]
+            translated_payload = translated_stage.payload
+            if not isinstance(translated_payload, (TranslationOutput, CVTranslationOutput)):
+                raise TypeError("translate stage did not return a supported translation payload")
 
-        critique_stage = self.provider.critique(request, translated_payload)
-        critique_payload = critique_stage.payload
-        if not isinstance(critique_payload, CritiqueOutput):
-            raise TypeError("critique stage did not return CritiqueOutput")
+            critique_stage = self.provider.critique(request, translated_payload)  # type: ignore[call-arg]
+            critique_payload = critique_stage.payload
+            if not isinstance(critique_payload, CritiqueOutput):
+                raise TypeError("critique stage did not return CritiqueOutput")
 
-        if not critique_payload.needs_refinement:
-            return _to_dict(translated_payload)
+            if not critique_payload.needs_refinement:
+                return _to_dict(translated_payload)
 
-        refined_stage = self.provider.refine(request, translated_payload, critique_payload)
-        return _to_dict(refined_stage.payload)
+            refined_stage = self.provider.refine(  # type: ignore[attr-defined,call-arg]
+                request,
+                translated_payload,
+                critique_payload,
+            )
+            return _to_dict(refined_stage.payload)
+
+        source_analysis_stage = self.provider.source_analysis(request)
+        terminology_stage = self.provider.terminology_policy(
+            request,
+            source_analysis_stage.payload,
+        )
+        translated_stage = self.provider.translate(
+            request,
+            source_analysis_stage.payload,
+            terminology_stage.payload,
+        )
+        critique_stage = self.provider.critique(
+            request,
+            translated_stage.payload,
+            source_analysis=source_analysis_stage.payload,
+            terminology_policy=terminology_stage.payload,
+        )
+        revised_stage = self.provider.revise(
+            request,
+            translated_stage.payload,
+            critique_stage.payload,
+            source_analysis=source_analysis_stage.payload,
+            terminology_policy=terminology_stage.payload,
+        )
+        revised_payload = revised_stage.payload
+        if isinstance(revised_payload, CVTranslationOutput):
+            return _to_dict(revised_payload)
+        if isinstance(revised_payload, RevisionOutput):
+            return _to_dict(
+                TranslationOutput(
+                    title=revised_payload.title,
+                    excerpt=revised_payload.excerpt,
+                    tags=revised_payload.tags,
+                    content=revised_payload.content,
+                )
+            )
+        return _to_dict(revised_payload)
 
     def _revise_translation(
         self,
@@ -454,18 +543,55 @@ class TranslationV2PostOrchestrator:
             )
 
         if isinstance(self.provider, OpenCodeTranslationProvider):
-            loop_result = self.provider.run_revision_loop(request, existing_output)
+            loop_result = self.provider.run_translation_pipeline(
+                request,
+                existing_translation=existing_output,
+            )
             return _to_dict(loop_result.final_translation)
 
-        critique_stage = self.provider.critique(request, existing_output)
-        critique_payload = critique_stage.payload
-        if not isinstance(critique_payload, CritiqueOutput):
-            raise TypeError("critique stage did not return CritiqueOutput")
-        if not critique_payload.needs_refinement:
-            return _to_dict(existing_output)
+        if not hasattr(self.provider, "source_analysis"):
+            critique_stage = self.provider.critique(request, existing_output)  # type: ignore[call-arg]
+            critique_payload = critique_stage.payload
+            if not isinstance(critique_payload, CritiqueOutput):
+                raise TypeError("critique stage did not return CritiqueOutput")
+            if not critique_payload.needs_refinement:
+                return _to_dict(existing_output)
 
-        refined_stage = self.provider.refine(request, existing_output, critique_payload)
-        return _to_dict(refined_stage.payload)
+            refined_stage = self.provider.refine(  # type: ignore[attr-defined,call-arg]
+                request,
+                existing_output,
+                critique_payload,
+            )
+            return _to_dict(refined_stage.payload)
+
+        source_analysis_stage = self.provider.source_analysis(request)
+        terminology_stage = self.provider.terminology_policy(
+            request,
+            source_analysis_stage.payload,
+        )
+        critique_stage = self.provider.critique(
+            request,
+            existing_output,
+            source_analysis=source_analysis_stage.payload,
+            terminology_policy=terminology_stage.payload,
+        )
+        revised_stage = self.provider.revise(
+            request,
+            existing_output,
+            critique_stage.payload,
+            source_analysis=source_analysis_stage.payload,
+            terminology_policy=terminology_stage.payload,
+        )
+        if isinstance(revised_stage.payload, RevisionOutput):
+            return _to_dict(
+                TranslationOutput(
+                    title=revised_stage.payload.title,
+                    excerpt=revised_stage.payload.excerpt,
+                    tags=revised_stage.payload.tags,
+                    content=revised_stage.payload.content,
+                )
+            )
+        return _to_dict(revised_stage.payload)
 
     def _should_revise(
         self,
@@ -495,6 +621,7 @@ class TranslationV2PostOrchestrator:
         metadata: dict[str, Any] = {
             "workflow": workflow,
             "writing_style_fingerprint": self.writing_style_fingerprint,
+            "author_voice_fingerprint": self.author_voice_fingerprint,
             "artifact_type": artifact_type,
             "prompt_fingerprint": prompt_fingerprint,
         }
