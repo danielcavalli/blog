@@ -179,7 +179,15 @@ def render_head(
     if scripts_head is None:
         scripts_head = [f"{BASE_PATH}/static/js/theme.js"]
     if scripts_defer is None:
-        scripts_defer = [f"{BASE_PATH}/static/js/transitions.js"]
+        # Non-landing pages share the same SPA lifecycle. Keep sitewide
+        # interaction scripts available everywhere so page-type features like
+        # filters and post annotations are ready on first transition, not only
+        # after a hard refresh.
+        scripts_defer = [
+            f"{BASE_PATH}/static/js/transitions.js",
+            f"{BASE_PATH}/static/js/filter.js",
+            f"{BASE_PATH}/static/js/annotations.js",
+        ]
 
     # Build versioned stylesheet links (content-hash per file)
     css_links = "\n    ".join(
@@ -385,10 +393,6 @@ def generate_post_html(post, post_number, lang="en"):
         other_url=other_url,
         extra_meta=extra_meta,
         stylesheets=[f"{BASE_PATH}/static/css/styles.css", f"{BASE_PATH}/static/css/post.css"],
-        scripts_defer=[
-            f"{BASE_PATH}/static/js/transitions.js",
-            f"{BASE_PATH}/static/js/annotations.js",
-        ],
     )
 
     nav = render_nav(lang, "blog", lang_toggle_html)
@@ -609,7 +613,6 @@ def generate_index_html(posts, lang="en"):
         other_url=other_url,
         extra_meta=extra_meta,
         stylesheets=[f"{BASE_PATH}/static/css/styles.css"],
-        scripts_defer=[f"{BASE_PATH}/static/js/transitions.js", f"{BASE_PATH}/static/js/filter.js"],
     )
 
     nav = render_nav(lang, "blog", lang_toggle_html)
