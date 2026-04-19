@@ -8,7 +8,15 @@ There are several established approaches to bilingual content. Manual bilingual 
 
 A critical constraint is content integrity. The build system must treat source Markdown files as read-only inputs. Earlier iterations of the build stored derived metadata such as content hashes and timestamps directly in YAML frontmatter, which meant the build would write back into the files it was reading. This created a class of bugs where a build failure could leave frontmatter in an inconsistent state, and it muddied the git history with automated metadata churn alongside genuine editorial changes. Any bilingual architecture must respect the principle that the build reads from source files and writes only to output directories and cache artifacts.
 
-## Decision
+## Status
+
+Superseded by:
+
+- [ADR 11](011-opencode-translation-v2-architecture.md)
+- [ADR 12](012-source-first-build-and-artifact-commit-semantics.md)
+- [ADR 13](013-locale-aware-localization-policy.md)
+
+## Historical Decision
 
 We will author all content exclusively in English Markdown with YAML frontmatter. The frontmatter carries only editorial fields that the author controls: title, date, excerpt, tags, and optionally slug, canonical, and updated. The build will never write to these source files.
 
@@ -17,10 +25,6 @@ We will translate content to Brazilian Portuguese at build time using the Gemini
 We will use SHA-256 content hashing for cache invalidation across two independent caching layers. The first layer is the sidecar metadata manifest at _cache/post-metadata.json, managed by content_loader.py. This manifest stores the content hash, first-seen timestamp, and last-change timestamp for each post slug, keyed by the SHA-256 digest computed by calculate_content_hash in helpers.py. When a post's content hash matches the stored value, the build knows the content has not changed since the last run. The second layer is the translation cache at _cache/translation-cache.json, managed by the TranslationCache class in translator.py. Each entry stores the SHA-256 hash alongside the translated output. When the hash matches, the cached translation is returned without an API call. When the hash differs, the post is re-translated and the cache entry is replaced. Both cache files live under _cache/, which is git-ignored per .gitignore, so build-time state never contaminates the repository.
 
 We will store all derived build metadata in the sidecar manifest rather than in frontmatter. The manifest is loaded once at the start of the build, passed by reference through all parse_markdown_post calls, mutated in-place as posts are processed, and persisted once at the end via save_post_metadata. This atomic-write pattern, using a temporary file renamed into place, ensures that a failed build never corrupts the manifest. Legacy frontmatter fields from earlier builds are migrated into the manifest on first encounter and then ignored.
-
-## Status
-
-Accepted.
 
 ## Consequences
 

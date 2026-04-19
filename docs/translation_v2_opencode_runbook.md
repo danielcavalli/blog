@@ -4,6 +4,7 @@ This runbook is the operational reference for the current translation runtime in
 
 ## Scope and current routing
 
+- Source-language outputs are committed before translation starts.
 - Build translation runtime is OpenCode-only.
 - The full translation pipeline is always active during builds.
 - There is no build-time translate-only toggle.
@@ -72,6 +73,19 @@ Behavior:
 - If critique finds fixable issues, the build refines the existing translation.
 - If revision cannot converge cleanly, the build falls back to the full translation loop.
 - A satisfied revision marker is remembered in cache metadata, so the build does not re-run revision on every subsequent build unless the source or manifest entry changes.
+
+## Current stage graph
+
+The active localization graph is:
+
+1. `source_analysis`
+2. `terminology_policy`
+3. `translate`
+4. `critique`
+5. `revise`
+6. `final_review`
+
+This is separate from the build-side deterministic validation pass that runs after translation output is returned to `build.py`.
 
 ### One-file CI lane (regression test command)
 

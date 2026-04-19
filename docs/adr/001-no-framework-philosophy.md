@@ -6,9 +6,9 @@ The dan.rio blog is a bilingual personal site built as a custom Python static si
 
 Modern web development offers a rich ecosystem of frameworks at every layer: static site generators like Astro, Hugo, and Eleventy for build orchestration; frontend frameworks like React, Vue, and Svelte for UI composition; CSS tooling like Tailwind and Sass for styling; and template engines like Jinja2 for HTML generation. Each of these tools solves real problems and has a large community behind it. Adopting any of them would bring established conventions, plugin ecosystems, and community support.
 
-However, each framework also brings a dependency chain, a learning curve for its abstractions, an upgrade treadmill as major versions ship, and opinions about project structure that may not align with the project's needs. The blog has a single author, a handful of page types, and no interactive application state beyond a theme toggle and post filters. Its most complex subsystem is a Gemini-powered translation pipeline that no framework would provide out of the box.
+However, each framework also brings a dependency chain, a learning curve for its abstractions, an upgrade treadmill as major versions ship, and opinions about project structure that may not align with the project's needs. The blog has a single author, a handful of page types, and no interactive application state beyond a theme toggle and post filters. Its most complex subsystem is a custom localization runtime that no framework would provide out of the box.
 
-The project's design philosophy, documented in skill.md and the .github design documents, is rooted in native web standards. The motion system uses the View Transitions API and the FLIP animation technique rather than animation libraries. The constraints in skill.md are explicit: "Don't add Node.js/npm," "Don't add a template engine," "Don't use CSS preprocessors," "Don't add JS frameworks."
+The project's design philosophy, documented in `AGENTS.md`, `WRITING_STYLE.md`, and the `.github` design documents, is rooted in native web standards. The motion system uses the View Transitions API and the FLIP animation technique rather than animation libraries. The constraints are explicit: no Node.js build stack, no template engine, no CSS preprocessor, and no JavaScript framework.
 
 ## Decision
 
