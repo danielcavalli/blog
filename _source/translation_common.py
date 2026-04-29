@@ -100,6 +100,7 @@ _INVARIANT_HEADING_PATTERNS = (
         re.IGNORECASE,
     ),
 )
+_REFERENCE_ENTRY_PREFIX = re.compile(r"^\s*(?:\[\d+\]|\d+\.|;\s*)")
 
 _RE_SCRIPT_TAG = re.compile(r"<\s*script[\s>].*?<\s*/\s*script\s*>", re.IGNORECASE | re.DOTALL)
 _RE_SCRIPT_OPEN = re.compile(r"<\s*script[\s>]", re.IGNORECASE)
@@ -165,6 +166,8 @@ def validate_translation(
                 source_para
             ):
                 continue
+            if _is_reference_entry(source_para) or _is_reference_entry(target_para):
+                continue
             source_filtered = _remove_glossary_terms(source_para.lower())
             target_filtered = _remove_glossary_terms(target_para.lower())
             source_words = _word_set(source_filtered)
@@ -186,6 +189,9 @@ def validate_translation(
 
         consecutive = 0
         for source_sentence, target_sentence in zip(source_sentences, target_sentences):
+            if _is_reference_entry(source_sentence) or _is_reference_entry(target_sentence):
+                consecutive = 0
+                continue
             if source_sentence.strip() == target_sentence.strip():
                 if _is_allowed_invariant_heading(source_sentence):
                     consecutive = 0
@@ -279,6 +285,13 @@ def _is_allowed_invariant_heading(text: str) -> bool:
     if not candidate:
         return False
     return any(pattern.match(candidate) for pattern in _INVARIANT_HEADING_PATTERNS)
+
+
+def _is_reference_entry(text: str) -> bool:
+    candidate = text.strip()
+    if not candidate:
+        return False
+    return bool(_REFERENCE_ENTRY_PREFIX.match(candidate))
 
 
 def _word_set(text: str) -> set[str]:

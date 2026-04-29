@@ -525,6 +525,7 @@
                     
                     if (currentLangToggle && newLangToggle) {
                         currentLangToggle.href = newLangToggle.href;
+                        delete currentLangToggle.dataset.baseHref;
                         const newAriaLabel = newLangToggle.getAttribute('aria-label');
                         const newCurrentLang = newLangToggle.getAttribute('data-current-lang');
                         if (newAriaLabel) currentLangToggle.setAttribute('aria-label', newAriaLabel);

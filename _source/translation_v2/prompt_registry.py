@@ -191,8 +191,7 @@ def _template_filename(
     prompt_version: str,
     artifact_type: str,
 ) -> str:
-    if artifact_type == "cv":
-        cv_specific = PROMPTS_ROOT / prompt_version / f"cv_{stage}.md"
-        if cv_specific.exists():
-            return f"cv_{stage}.md"
+    artifact_specific = PROMPTS_ROOT / prompt_version / f"{artifact_type}_{stage}.md"
+    if artifact_specific.exists():
+        return f"{artifact_type}_{stage}.md"
     return f"{stage}.md"

@@ -22,6 +22,7 @@ sys.modules["dotenv"].load_dotenv = lambda *a, **kw: None  # type: ignore[attr-d
 
 sys.modules.pop("translator", None)
 translator = importlib.import_module("translator")
+translation_common = importlib.import_module("translation_common")
 
 
 def test_validate_translation_allows_known_invariant_headings_without_errors():
@@ -66,6 +67,49 @@ def test_validate_translation_still_flags_non_invariant_identical_block():
 
     assert is_valid is False
     assert any("appears untranslated" in issue for issue in issues)
+
+
+def test_validate_translation_allows_reference_entries_with_invariant_titles():
+    original = "\n\n".join(
+        [
+            "Paragrafo traduzido sobre politica industrial.",
+            "[10] IBS (International Business Strategies), citado por Handel Jones. "
+            "Dados reportados em: Semiconductor Engineering, *What Will That Chip Cost?*, "
+            "2023.; Andy Lin's Investment Blog.",
+            "[12] ASML detem 100% do mercado. TrendForce, "
+            "*ASML EUV Dominance & China's Semiconductor Equipment Push*, 2025.",
+        ]
+    )
+    translated = "\n\n".join(
+        [
+            "Translated paragraph about industrial policy.",
+            "[10] IBS (International Business Strategies), cited by Handel Jones. "
+            "Data reported in: Semiconductor Engineering, *What Will That Chip Cost?*, "
+            "2023.; Andy Lin's Investment Blog.",
+            "[12] ASML holds 100% of the market. TrendForce, "
+            "*ASML EUV Dominance & China's Semiconductor Equipment Push*, 2025.",
+        ]
+    )
+
+    is_valid, issues = translator.validate_translation(
+        original,
+        translated,
+        source_locale="pt-br",
+        target_locale="en-us",
+    )
+
+    assert is_valid is True
+    assert issues == []
+
+    common_is_valid, common_issues = translation_common.validate_translation(
+        original,
+        translated,
+        source_locale="pt-br",
+        target_locale="en-us",
+    )
+
+    assert common_is_valid is True
+    assert common_issues == []
 
 
 def test_validate_translation_pt_br_to_en_us_accepts_translated_content():
