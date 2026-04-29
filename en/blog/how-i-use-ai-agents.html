@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How I Use AI Agents – Daniel Cavalli | dan.rio</title>
+    <meta name="description" content="What I built, what broke, and what survived.">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://dan.rio/en/blog/how-i-use-ai-agents.html">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://dan.rio/en/blog/how-i-use-ai-agents.html">
+    <meta property="og:title" content="How I Use AI Agents">
+    <meta property="og:description" content="What I built, what broke, and what survived.">
+    <meta property="og:site_name" content="dan.rio">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="pt_BR">
+    <meta property="article:published_time" content="2026-04-30">
+    <meta property="article:modified_time" content="2026-04-30">
+    <meta property="article:author" content="Daniel Cavalli">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="How I Use AI Agents">
+    <meta name="twitter:description" content="What I built, what broke, and what survived.">
+
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "How I Use AI Agents", "description": "What I built, what broke, and what survived.", "url": "https://dan.rio/en/blog/how-i-use-ai-agents.html", "inLanguage": "en", "datePublished": "2026-04-30", "dateModified": "2026-04-30", "author": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "publisher": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "genre": "Presentation", "learningResourceType": "Presentation", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://dan.rio/en/blog/how-i-use-ai-agents.html"}, "keywords": "AI Agents, Workflow, Tools"}</script>
+    
+    <!-- Additional SEO -->
+    <meta name="author" content="Daniel Cavalli">
+    <meta name="robots" content="index, follow">
+    
+    <link rel="alternate" hreflang="x-default" href="https://dan.rio/">
+    <link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/how-i-use-ai-agents.html">
+    <link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/how-i-use-ai-agents.html">
+    
+    <link rel="stylesheet" href="/static/css/styles.css?v=a9e0f4b7">
+    <link rel="stylesheet" href="/static/css/post.css?v=231f41e7">
+    <link rel="stylesheet" href="/static/css/presentation.css?v=4de8a946">
+    <link rel="preload" href="/static/js/theme.js?v=30ebbd0e" as="script">
+    <script src="/static/js/theme.js?v=30ebbd0e"></script>
+    <script src="/static/js/transitions.js?v=ec40089a" defer></script>
+    <script src="/static/js/filter.js?v=c18ff16b" defer></script>
+    <script src="/static/js/annotations.js?v=31123876" defer></script>
+    <script src="/static/js/presentation.js?v=fff59a2c" defer></script>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to content</a>
+    <nav class="nav" style="view-transition-name: site-nav;">
+        <div class="nav-container">
+            <a href="/en/index.html" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="/en/index.html" class="active" style="view-transition-name: nav-blog;">BLOG</a></li>
+                    <li><a href="/en/about.html" style="view-transition-name: nav-about;">ABOUT</a></li>
+                    <li><a href="/en/cv.html" style="view-transition-name: nav-cv;">CV</a></li>
+                </ul>
+                <div style="view-transition-name: lang-toggle;"><a href="/pt/blog/how-i-use-ai-agents.html" class="lang-toggle" aria-label="Switch to Português (currently English)" data-current-lang="en">
+        <svg class="lang-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span class="lang-text">
+            <span class="lang-en active">EN</span>
+            <span class="lang-sep">/</span>
+            <span class="lang-pt">PT</span>
+        </span>
+    </a></div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main-content" class="container presentation-page" data-presentation-page data-slide-count="39">
+        <article class="presentation-post" style="view-transition-name: post-container-1;">
+            <header class="presentation-header">
+                <a href="/en/index.html" class="back-link">Back to blog</a>
+                <h1 class="post-title-large presentation-title" style="view-transition-name: post-title-1;">HOW I USE AI AGENTS</h1>
+                <div class="post-meta">
+                    <time class="post-date" style="view-transition-name: post-date-1;">April 30, 2026</time>
+                    <span class="post-separator">•</span>
+                    <span class="post-reading-time">22 min read</span>
+                </div>
+                <div class="post-tags"><span class="tag-pill">AI Agents</span><span class="tag-pill">Workflow</span><span class="tag-pill">Tools</span></div>
+                <p class="lead presentation-excerpt" style="view-transition-name: post-excerpt-1;">
+                    What I built, what broke, and what survived.
+                </p>
+            </header>
+
+            <section class="presentation-stage"
+                     data-presentation-stage
+                     data-slide-count="39"
+                     aria-label="Presentation slides"
+                     data-progress-template="Slide {current} of {total}"
+                     tabindex="-1">
+                <section id="title"
+                    class="presentation-slide presentation-slide-lead"
+                    data-slide-index="0"
+                    data-slide-number="1"
+                    data-slide-id="title"
+                    data-layout="lead"
+                    data-density="normal"
+                    aria-label="Slide 1 of 39"
+                    aria-hidden="false">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>How I Use AI Agents</h1>
+<h2>What I built, what broke, and what survived</h2>
+<p>Daniel Cavalli | dan.rio</p>
+                    </div>
+                </div>
+            </section>
+<section id="bio-and-agenda"
+                    class="presentation-slide presentation-slide-bio"
+                    data-slide-index="1"
+                    data-slide-number="2"
+                    data-slide-id="bio-and-agenda"
+                    data-layout="bio"
+                    data-density="dense"
+                    aria-label="Slide 2 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Daniel Cavalli</h1>
+<p>Senior Machine Learning Engineer at Nubank</p>
+<p>Graduated in Economics from UFRJ with a focus on Causal Modeling. Nine years of experience working in ML, ranging from building models, AI platforms for multiple companies and, now, playing with AI Agents and Behavioural World Models as a research line.</p>
+<p><img alt="Daniel Cavalli" src="/static/images/presentations/how-i-use-ai-agents/profile-picture.png" /></p>
+<div class="presentation-table-wrap" data-overflow="scroll"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Section</th>
+<th>Claim</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Foundation</td>
+<td>Continuity is engineered</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Agent PM</td>
+<td>Planning beats dispatch</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Knowledge Base</td>
+<td>Memory needs structure</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Distribution</td>
+<td>Copying is not adoption</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Translation Pipeline</td>
+<td>Voice needs process</td>
+</tr>
+</tbody>
+</table></div>
+                    </div>
+                </div>
+            </section>
+<section id="foundation"
+                    class="presentation-slide presentation-slide-divider"
+                    data-slide-index="2"
+                    data-slide-number="3"
+                    data-slide-id="foundation"
+                    data-layout="divider"
+                    data-density="normal"
+                    aria-label="Slide 3 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The Foundation</h1>
+<h2>Continuity is an illusion you engineer, not something the model gives you</h2>
+                    </div>
+                </div>
+            </section>
+<section id="stateless-model"
+                    class="presentation-slide presentation-slide-dark_content"
+                    data-slide-index="3"
+                    data-slide-number="4"
+                    data-slide-id="stateless-model"
+                    data-layout="dark_content"
+                    data-density="dense"
+                    aria-label="Slide 4 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The model is stateless</h1>
+<p>Every time you press Enter, the harness rebuilds the full context from scratch. The model responds. Then it forgets everything.</p>
+<blockquote>
+<p>The continuity you experience is built from context that someone, or something, chose to put back. It is not memory. It is reconstruction.</p>
+</blockquote>
+<div class="presentation-card-grid presentation-block">
+<article class="presentation-card">
+<h3>Sessions accumulate residue</h3>
+<p>Dead ends, mixed goals, stale constraints. The model anchors on what came first, not what came last.</p>
+</article>
+<article class="presentation-card">
+<h3>More context can mean worse output</h3>
+<p>Most people's instinct is to keep more history alive. The model starts hedging, qualifying, trying to reconcile things that no longer matter.</p>
+</article>
+<article class="presentation-card">
+<h3>The real skill is removal</h3>
+<p>Not expanding context. Knowing what to collapse, what to discard, and what to carry forward as a handoff artifact.</p>
+</article>
+</div>
+                    </div>
+                </div>
+            </section>
+<section id="four-rules"
+                    class="presentation-slide presentation-slide-card_grid"
+                    data-slide-index="4"
+                    data-slide-number="5"
+                    data-slide-id="four-rules"
+                    data-layout="card_grid"
+                    data-density="very_dense"
+                    aria-label="Slide 5 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Four Rules</h1>
+<div class="presentation-card-grid presentation-block">
+<article class="presentation-card">
+<h3>1. One session, one task</h3>
+<p>Research sessions produce research notes. Spec sessions produce implementation packets. Implementation starts fresh from the packet. They never share a session.</p>
+</article>
+<article class="presentation-card">
+<h3>2. Curate what the model sees</h3>
+<p>Every tool schema, every MCP instruction, every stale fragment competes for attention. Irrelevant context does not just waste tokens. It actively degrades output.</p>
+</article>
+</div>
+<div class="presentation-card-grid presentation-block">
+<article class="presentation-card">
+<h3>3. Sandbox everything</h3>
+<p>Catch errors outside the context window so they never consume tokens to debug. A hook that formats code on save or validates YAML costs zero tokens and prevents problems the model would otherwise spend dozens of messages fixing.</p>
+</article>
+<article class="presentation-card">
+<h3>4. Multi-agent is the obvious next step</h3>
+<p>Once you accept isolated sessions, the question becomes how to split work across them. Each agent gets only what it needs. Decompose, parallelize, integrate.</p>
+</article>
+</div>
+                    </div>
+                </div>
+            </section>
+<section id="humans-job"
+                    class="presentation-slide presentation-slide-emphasis"
+                    data-slide-index="5"
+                    data-slide-number="6"
+                    data-slide-id="humans-job"
+                    data-layout="emphasis"
+                    data-density="dense"
+                    aria-label="Slide 6 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The Human's Job</h1>
+<blockquote>
+<p>Agents are remarkably good at single-domain work. But the moment you need to pull threads from multiple domains into the same argument, they fall apart.</p>
+</blockquote>
+<p>The human advantage is not "thinking" in general. It is cross-domain synthesis: holding three different contexts in your head, cross-referencing them, knowing which constraints are real and which are inherited from a conversation that no longer applies.</p>
+<p>The agent executes. Your job is deciding what it should execute.</p>
+                    </div>
+                </div>
+            </section>
+<section id="agent-pm"
+                    class="presentation-slide presentation-slide-divider"
+                    data-slide-index="6"
+                    data-slide-number="7"
+                    data-slide-id="agent-pm"
+                    data-layout="divider"
+                    data-density="normal"
+                    aria-label="Slide 7 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Agent PM</h1>
+<h2>Because I have too many ideas and agents made the problem worse</h2>
+                    </div>
+                </div>
+            </section>
+<section id="agent-pm-problem"
+                    class="presentation-slide presentation-slide-split"
+                    data-slide-index="7"
+                    data-slide-number="8"
+                    data-slide-id="agent-pm-problem"
+                    data-layout="split"
+                    data-density="dense"
+                    aria-label="Slide 8 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The Problem</h1>
+<p>I am overly enthusiastic about new ideas, which leads me to explore too many paths at once.</p>
+<p>Before agents, this was bounded by how fast I could type. With agents, the bound disappeared. I could pursue multiple directions simultaneously and check results later.</p>
+<div class="presentation-split presentation-block">
+<section class="presentation-column">
+<h3>What I gained</h3>
+<p>Actual parallel exploration. Multiple hypotheses running at once. Results waiting for me when I checked back.</p>
+</section>
+<section class="presentation-column">
+<h3>What I lost</h3>
+<p>The ability to distinguish priorities from distractions. I needed a system to decompose ideas, dispatch them to agents, and track what came back.</p>
+</section>
+</div>
+
+<p>Agent PM started as a way to manage my own focus. It became an orchestrator because the same principles that made it useful for tracking also made it useful for dispatching.</p>
+                    </div>
+                </div>
+            </section>
+<section id="agent-pm-what-it-is"
+                    class="presentation-slide presentation-slide-split"
+                    data-slide-index="8"
+                    data-slide-number="9"
+                    data-slide-id="agent-pm-what-it-is"
+                    data-layout="split"
+                    data-density="very_dense"
+                    aria-label="Slide 9 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>What It Is</h1>
+<p>Everything is YAML in a <code>.pm/</code> directory, version-controlled alongside code. Ships as a global CLI (<code>pm</code>), an MCP server (14+ tools), and a set of Claude Code slash commands.</p>
+<div class="presentation-split presentation-block">
+<section class="presentation-column">
+
+<pre><code>.pm/
+  project.yaml          # Project definition
+  index.yaml            # Auto-maintained summary
+  epics/
+    E001-auth.yaml      # Epic with embedded stories
+  reports/
+    E001-S001-report.yaml
+  agents/
+    agent-abc.yaml      # Heartbeats + state
+  adrs/
+    ADR-001.yaml        # Decision records
+</code></pre>
+</section>
+<section class="presentation-column">
+
+<pre><code class="language-yaml">stories:
+  - id: S001
+    title: &quot;JWT middleware&quot;
+    acceptance_criteria:
+      - &quot;JWT tokens validated on every request&quot;
+      - &quot;Expired tokens return 401&quot;
+    depends_on: []
+    story_points: 3
+    priority: high
+</code></pre>
+</section>
+</div>
+                    </div>
+                </div>
+            </section>
+<section id="agent-pm-flow"
+                    class="presentation-slide presentation-slide-card_grid"
+                    data-slide-index="9"
+                    data-slide-number="10"
+                    data-slide-id="agent-pm-flow"
+                    data-layout="card_grid"
+                    data-density="very_dense"
+                    aria-label="Slide 10 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The Flow</h1>
+<div class="presentation-card-grid presentation-block">
+<article class="presentation-card">
+<h3>1. Spec</h3>
+<p>I write it. Current state, target state, constraints, pitfalls, exclusions. The spec is the final output of research, not the beginning of it.</p>
+</article>
+<article class="presentation-card">
+<h3>2. Refine</h3>
+<p><code>/pm-refine-epic</code> reads the spec, surveys the codebase. Produces epics and stories with dependencies forming a DAG. Human approves before execution.</p>
+</article>
+<article class="presentation-card">
+<h3>3. Execute</h3>
+<p><code>/pm-work-on-project</code> builds a dependency graph, classifies into tiers, dispatches agents in parallel per tier. Failure context propagates forward.</p>
+</article>
+<article class="presentation-card">
+<h3>4. Monitor</h3>
+<p><code>/supervisor</code> triages: Blocked &gt; Stale &gt; Completed &gt; Running. Batch decisions across agents. Under 3 minutes per round.</p>
+</article>
+</div>
+
+<p>The spec is where all the real thinking happens. Everything downstream depends on how well you did here.</p>
+                    </div>
+                </div>
+            </section>
+<section id="tiered-dispatch"
+                    class="presentation-slide presentation-slide-table"
+                    data-slide-index="10"
+                    data-slide-number="11"
+                    data-slide-id="tiered-dispatch"
+                    data-layout="table"
+                    data-density="dense" data-overflow="scroll"
+                    aria-label="Slide 11 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Tiered Dispatch</h1>
+<p><code>/pm-work-on-project</code> builds the dependency graph and classifies stories:</p>
+<ul>
+<li><strong>Tier 1:</strong> No unmet dependencies. Dispatched in parallel.</li>
+<li><strong>Tier 2:</strong> Dependencies all in Tier 1. Dispatched after Tier 1 completes.</li>
+<li><strong>Tier N:</strong> Dependencies all in tiers &lt; N.</li>
+</ul>
+<p>Each sub-agent runs in isolation. On completion, it files an <strong>execution report</strong> with decisions, assumptions, tradeoffs, and potential conflicts with parallel agents.</p>
+<div class="presentation-table-wrap" data-overflow="scroll"><table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Eligibility</th>
+<th>Dispatch behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tier 1</td>
+<td>No unmet dependencies</td>
+<td>Dispatched in parallel immediately</td>
+</tr>
+<tr>
+<td>Tier 2</td>
+<td>Dependencies all in Tier 1</td>
+<td>Dispatched after Tier 1 completes</td>
+</tr>
+<tr>
+<td>Tier N</td>
+<td>Dependencies all in earlier tiers</td>
+<td>Dispatched after all required earlier tiers complete</td>
+</tr>
+</tbody>
+</table></div>
+                    </div>
+                </div>
+            </section>
+<section id="agent-pm-comparison"
+                    class="presentation-slide presentation-slide-table"
+                    data-slide-index="11"
+                    data-slide-number="12"
+                    data-slide-id="agent-pm-comparison"
+                    data-layout="table"
+                    data-density="dense" data-overflow="scroll"
+                    aria-label="Slide 12 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Agent PM vs. Symphony vs. Agent Teams</h1>
+<div class="presentation-table-wrap" data-overflow="scroll"><table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Agent PM</th>
+<th>OpenAI Symphony</th>
+<th>Anthropic Agent Teams</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Planning layer</td>
+<td>Built-in (<code>/pm-refine-epic</code>)</td>
+<td>None</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Work queue</td>
+<td>Local YAML in <code>.pm/</code></td>
+<td>Linear (external)</td>
+<td>Native to harness</td>
+</tr>
+<tr>
+<td>Dispatch model</td>
+<td>Tier-based: complete N, then N+1</td>
+<td>Poll every 30s, fill open slots</td>
+<td>Session-managed</td>
+</tr>
+<tr>
+<td>Agent identity</td>
+<td>Heterogeneous roles</td>
+<td>Homogeneous (same prompt)</td>
+<td>Homogeneous</td>
+</tr>
+<tr>
+<td>State persistence</td>
+<td>Filesystem (survives crashes)</td>
+<td>In-memory + Linear</td>
+<td>Session-bound</td>
+</tr>
+</tbody>
+</table></div>
+<p>Symphony is elegant. Elixir OTP supervision, hot-reloadable WORKFLOW.md, Linear as the control plane. But it is a dispatcher, not a planner. Agent Teams is deeply integrated but less customizable. Agent PM includes the planning step.</p>
+                    </div>
+                </div>
+            </section>
+<section id="agent-pm-lessons"
+                    class="presentation-slide presentation-slide-split"
+                    data-slide-index="12"
+                    data-slide-number="13"
+                    data-slide-id="agent-pm-lessons"
+                    data-layout="split"
+                    data-density="dense"
+                    aria-label="Slide 13 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>What I Learned</h1>
+<p>Both times, the custom solution worked. Both times, it proved the concept. Both times, it was obsolete within weeks.</p>
+<div class="presentation-split presentation-block">
+<section class="presentation-column">
+<h3>Agent PM vs. Agent Teams</h3>
+<p>Agent PM existed for two months before Anthropic released Agent Teams (March 2026). Native multi-agent orchestration with deeper integration.</p>
+</section>
+<section class="presentation-column">
+<h3>Custom IPC vs. Shared Memory</h3>
+<p>I built escalation and shared context via Agent PM's task infrastructure. Anthropic shipped session-shared memories with hooks. The native solution replaced mine.</p>
+</section>
+</div>
+
+<blockquote>
+<p>The lesson is not "don't build." It is that anything you build on a platform this fast-moving is a proof of concept, whether you intended it to be or not.</p>
+</blockquote>
+                    </div>
+                </div>
+            </section>
+<section id="knowledge-base"
+                    class="presentation-slide presentation-slide-divider"
+                    data-slide-index="13"
+                    data-slide-number="14"
+                    data-slide-id="knowledge-base"
+                    data-layout="divider"
+                    data-density="normal"
+                    aria-label="Slide 14 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The Knowledge Base</h1>
+<h2>Because agents kept forgetting what other agents learned</h2>
+                    </div>
+                </div>
+            </section>
+<section id="knowledge-base-problem"
+                    class="presentation-slide presentation-slide-card_grid"
+                    data-slide-index="14"
+                    data-slide-number="15"
+                    data-slide-id="knowledge-base-problem"
+                    data-layout="card_grid"
+                    data-density="dense"
+                    aria-label="Slide 15 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The Problem</h1>
+<p>Once Agent PM grew into a full orchestrator, knowledge created in one session had no way to survive into the next.</p>
+<div class="presentation-card-grid presentation-block">
+<article class="presentation-card">
+<h3>First attempt: worker packets</h3>
+<p>Comments on stories, managed by the orchestrator after each run. Worked for simple handoffs.</p>
+</article>
+<article class="presentation-card">
+<h3>Where it broke</h3>
+<p>Research agents needed a source of truth. Two agents investigating the same question would reach different conclusions because neither could see the other's work.</p>
+</article>
+<article class="presentation-card">
+<h3>What it became</h3>
+<p>A shared knowledge base. Simple grep over markdown stopped scaling past 50 notes, once the relationships between them started to matter.</p>
+</article>
+</div>
+                    </div>
+                </div>
+            </section>
+<section id="note-structure"
+                    class="presentation-slide presentation-slide-split"
+                    data-slide-index="15"
+                    data-slide-number="16"
+                    data-slide-id="note-structure"
+                    data-layout="split"
+                    data-density="very_dense"
+                    aria-label="Slide 16 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>What a Note Looks Like</h1>
+<p>Every note is a markdown file with structured frontmatter. Agents write through the MCP server (which validates schemas, resolves tags, and updates backlinks); humans read in Obsidian.</p>
+<div class="presentation-split presentation-block">
+<section class="presentation-column">
+
+<pre><code class="language-yaml">---
+title: AI Native Software Distribution
+type: concept
+project: kb-system
+tags: [kb-system, architecture, open-source]
+status: active
+confidence:
+  source_type: specification
+  verified: false
+depends_on:
+  - kb-system-installer-ux-findings
+aliases:
+  - ai-native-distribution
+---
+</code></pre>
+</section>
+<section class="presentation-column">
+<h3>6 note types</h3>
+<p><strong>plans</strong>, <strong>research</strong>, <strong>concepts</strong>, <strong>insights</strong>, <strong>decisions</strong>, <strong>references</strong></p>
+<h3>Relationships are explicit</h3>
+<p><code>depends_on</code>, <code>parent</code>, <code>implements</code>, <code>supersedes</code> in frontmatter. <code>[[wikilinks]]</code> in the body. Shared tags as weak connections.</p>
+<h3>80+ notes across 7 projects</h3>
+<p>The MCP server runs as a shared HTTP process, so all Claude Code sessions share one index.</p>
+</section>
+</div>
+                    </div>
+                </div>
+            </section>
+<section id="knowledge-base-search"
+                    class="presentation-slide presentation-slide-card_grid"
+                    data-slide-index="16"
+                    data-slide-number="17"
+                    data-slide-id="knowledge-base-search"
+                    data-layout="card_grid"
+                    data-density="dense"
+                    aria-label="Slide 17 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>How Search Works</h1>
+<p>Embedding-based retrieval (RAG) flattens relationships: two notes about the same topic get similar embeddings regardless of whether one supersedes the other. The KB instead combines three signals via Reciprocal Rank Fusion.</p>
+<div class="presentation-card-grid presentation-block">
+<article class="presentation-card">
+<h3>BM25 (FTS5)</h3>
+<p>Full-text search with porter stemming. Finds notes by what they say.</p>
+</article>
+<article class="presentation-card">
+<h3>Personalized PageRank</h3>
+<p>Walks the note graph seeded from text hits. Finds notes by what they connect to.</p>
+</article>
+<article class="presentation-card">
+<h3>Trust adjustments</h3>
+<p>Verified notes rank higher. Notes whose dependencies have been updated rank lower until reviewed.</p>
+</article>
+</div>
+
+<p>No embeddings means no model dependency, no drift, and every result explains why it was ranked where it is.</p>
+                    </div>
+                </div>
+            </section>
+<section id="consolidation-pipeline"
+                    class="presentation-slide presentation-slide-card_grid"
+                    data-slide-index="17"
+                    data-slide-number="18"
+                    data-slide-id="consolidation-pipeline"
+                    data-layout="card_grid"
+                    data-density="dense"
+                    aria-label="Slide 18 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The Consolidation Pipeline</h1>
+<p>An overnight agent system (<code>/consolidate</code>) that turns the day's scattered work into durable knowledge entries.</p>
+<div class="presentation-card-grid presentation-block">
+<article class="presentation-card">
+<h3>Phase 0: Structure</h3>
+<p>3 parallel agents fix link integrity, triage inbox, repair broken references</p>
+</article>
+<article class="presentation-card">
+<h3>Phase 1: Harvest</h3>
+<p>4 parallel agents extract from session logs, PRs, calendar, Slack</p>
+</article>
+<article class="presentation-card">
+<h3>Phase 2: Synthesize</h3>
+<p>Opus analyzes read-only, Sonnet agents execute edits, Opus reviews the diff</p>
+</article>
+</div>
+
+<p>The pipeline feeds from <code>kb_stale</code>: a tool that flags notes for dependency drift, broken links, age, or community orphaning. Notes that need attention surface automatically.</p>
+                    </div>
+                </div>
+            </section>
+<section id="distribution"
+                    class="presentation-slide presentation-slide-divider"
+                    data-slide-index="18"
+                    data-slide-number="19"
+                    data-slide-id="distribution"
+                    data-layout="divider"
+                    data-density="normal"
+                    aria-label="Slide 19 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Distribution</h1>
+<h2>Building the KB installer changed how I think about sharing software</h2>
+                    </div>
+                </div>
+            </section>
+<section id="copying-caveat"
+                    class="presentation-slide presentation-slide-emphasis"
+                    data-slide-index="19"
+                    data-slide-number="20"
+                    data-slide-id="copying-caveat"
+                    data-layout="emphasis"
+                    data-density="normal"
+                    aria-label="Slide 20 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>A Caveat</h1>
+<blockquote>
+<p>Everything I've shown you today is built for how I think. These are my tools, shaped by my problems, my habits, and my tolerance for overengineering.</p>
+</blockquote>
+<p>The point is not to copy them. It is to show what becomes possible when you build for your own workflow instead of adopting someone else's solution to someone else's problem.</p>
+                    </div>
+                </div>
+            </section>
+<section id="problem-with-copying"
+                    class="presentation-slide presentation-slide-content"
+                    data-slide-index="20"
+                    data-slide-number="21"
+                    data-slide-id="problem-with-copying"
+                    data-layout="content"
+                    data-density="dense"
+                    aria-label="Slide 21 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The Problem with Copying</h1>
+<p>There are 44,000+ skills on distribution platforms and 36,900+ stars on awesome-cursorrules. People share configuration files, copy them, and run them unchanged.</p>
+<p>We are so different from one another in how we structure our work that this will only produce suboptimal workflows. Everything can be made custom, and AI makes this trivially easy. So instead of looking for the right template, take the idea and rebuild it until it fits the way you think.</p>
+<p>But that raises a question: if copying is wrong, how <em>should</em> we distribute AI-native software?</p>
+                    </div>
+                </div>
+            </section>
+<section id="dry-run-core-setup"
+                    class="presentation-slide presentation-slide-code"
+                    data-slide-index="21"
+                    data-slide-number="22"
+                    data-slide-id="dry-run-core-setup"
+                    data-layout="code"
+                    data-density="dense"
+                    aria-label="Slide 22 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Dry Run: Phase A - Core Setup</h1>
+<p><em>The installer asks one question at a time. No batching.</em></p>
+<pre><code>KB System Installer
+===================
+
+This will set up a personal knowledge base with some or all of:
+- A structured markdown vault (Obsidian-compatible)
+- A /kb skill for filing content from any AI coding session
+- An overnight consolidation pipeline
+- An MCP server for ranked search and write validation
+
+I'll walk you through the components, research your tools, then install everything.
+
+What should I call you?
+&gt; Sarah
+
+Where would you like your knowledge base? (full path)
+&gt; ~/dev/kb
+
+  I'll create a new vault at ~/dev/kb.
+
+What sources of information would you like the system to harvest?
+For example: code changes (GitHub), messaging (Slack), calendar, documents.
+&gt; GitHub, Slack, and Google Calendar
+</code></pre>
+                    </div>
+                </div>
+            </section>
+<section id="dry-run-components"
+                    class="presentation-slide presentation-slide-code"
+                    data-slide-index="22"
+                    data-slide-number="23"
+                    data-slide-id="dry-run-components"
+                    data-layout="code"
+                    data-density="dense"
+                    aria-label="Slide 23 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Dry Run: Phase B - Components</h1>
+<p><em>Each component is presented with what it does and what you lose without it.</em></p>
+<pre><code>The foundation is a structured markdown vault with frontmatter-based notes,
+wikilinks, an index, and a log. This is always installed.
+
+The /kb skill lets any Claude Code session file content to your KB as a
+background task. You'd use it like /kb &lt;content&gt; or /kb context save &lt;project&gt;.
+Without it, you'd write notes manually.
+
+  Include the /kb skill? (recommended)
+  &gt; Yes
+
+The consolidation pipeline runs on a schedule, harvesting GitHub, Slack, and
+Google Calendar into the KB. Without it, only what you explicitly file gets in.
+
+  Include the consolidation pipeline? (recommended)
+  &gt; Yes
+
+  Detected Python 3.12.8
+
+The MCP server provides ranked search (BM25 + graph signals), write validation,
+and staleness detection. Without it, agents use Glob/Grep with no ranking.
+
+  Include the MCP server? (recommended)
+  &gt; Yes
+</code></pre>
+                    </div>
+                </div>
+            </section>
+<section id="dry-run-research"
+                    class="presentation-slide presentation-slide-code"
+                    data-slide-index="23"
+                    data-slide-number="24"
+                    data-slide-id="dry-run-research"
+                    data-layout="code"
+                    data-density="normal"
+                    aria-label="Slide 24 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Dry Run: Phase C - Research</h1>
+<p><em>This is where a traditional installer cannot follow. One parallel agent per source, all running simultaneously.</em></p>
+<pre><code>Researching integrations for your 3 sources...
+
+  [Agent 1] Searching: &quot;GitHub MCP server&quot; + &quot;GitHub Claude Code integration&quot;
+  [Agent 2] Searching: &quot;Slack MCP server&quot; + &quot;Slack Claude Code integration&quot;
+  [Agent 3] Searching: &quot;Google Calendar MCP server&quot; + &quot;Google Calendar integration&quot;
+
+  All 3 research agents completed.
+</code></pre>
+<p>Each agent searches for MCP servers, CLI tools, and REST APIs. For each option found, it checks: is it from a trusted source? What permissions does it require? Is it actively maintained? Are there known security concerns?</p>
+                    </div>
+                </div>
+            </section>
+<section id="dry-run-findings"
+                    class="presentation-slide presentation-slide-code"
+                    data-slide-index="24"
+                    data-slide-number="25"
+                    data-slide-id="dry-run-findings"
+                    data-layout="code"
+                    data-density="dense"
+                    aria-label="Slide 25 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Dry Run: Phase D - Findings</h1>
+<p><em>The installer presents what it found, checks what is already installed, and runs smoke tests.</em></p>
+<pre><code>Source: GitHub
+  Approach: gh CLI (official, already installed)
+  Smoke test: gh api user → PASS
+  Status: Ready
+
+Source: Slack
+  Approach: @anthropic/slack-mcp (official Anthropic MCP)
+  Status: Not installed
+  &quot;Want me to help set this up, or skip for now?&quot;
+  &gt; Set it up
+
+Source: Google Calendar
+  Approach: google-workspace MCP (already configured)
+  Smoke test: calendar_listEvents → PASS
+  Status: Ready
+</code></pre>
+                    </div>
+                </div>
+            </section>
+<section id="dry-run-source-configuration"
+                    class="presentation-slide presentation-slide-code"
+                    data-slide-index="25"
+                    data-slide-number="26"
+                    data-slide-id="dry-run-source-configuration"
+                    data-layout="code"
+                    data-density="dense"
+                    aria-label="Slide 26 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Dry Run: Phase E - Source Configuration</h1>
+<p><em>Targeted questions per source, adapted to the tools the research phase found.</em></p>
+<pre><code>For GitHub: Which repositories matter most?
+&gt; All repos under my-org/
+
+For Slack: Which channels should consolidation scan?
+&gt; #engineering, #incidents, and any DM with my name
+
+For Calendar: Which calendar?
+&gt; Primary. Meeting notes live in Google Docs.
+
+
+Here's what we have so far:
+  - Vault at ~/dev/kb with note types: plan, research, concept,
+    insight, decision, reference
+  - /kb skill, consolidation, MCP server all enabled
+  - Sources: GitHub (gh), Slack (MCP), Calendar (MCP)
+
+Is there anything you'd like to customize?
+</code></pre>
+                    </div>
+                </div>
+            </section>
+<section id="dry-run-customization"
+                    class="presentation-slide presentation-slide-code"
+                    data-slide-index="26"
+                    data-slide-number="27"
+                    data-slide-id="dry-run-customization"
+                    data-layout="code"
+                    data-density="dense"
+                    aria-label="Slide 27 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Dry Run: Phase F - Customization</h1>
+<p><em>This is where the installer stops being a form. The user can request features, and the installer checks feasibility against the actual codebase.</em></p>
+<pre><code>&gt; I want an ADR note type for architecture decisions. And I'd like
+  the consolidation to tag notes by project automatically.
+
+  ADR note type: I'll add notes/adrs/ to the vault structure and
+  register &quot;adr&quot; as a note type with fields for status, context,
+  decision, and consequences.
+
+  Auto-tagging by project: let me check if the server supports this.
+
+  [Evaluator agent spawned → reading kb-server codebase...]
+
+  Assessment: config-only change. The server already infers project
+  from vault path. Adding tag inference requires a new config
+  section in kb-server.yaml. No code changes needed.
+
+  Both customizations will be included. Anything else?
+&gt; That's it.
+</code></pre>
+                    </div>
+                </div>
+            </section>
+<section id="dry-run-finalize-generate"
+                    class="presentation-slide presentation-slide-split"
+                    data-slide-index="27"
+                    data-slide-number="28"
+                    data-slide-id="dry-run-finalize-generate"
+                    data-layout="split"
+                    data-density="very_dense"
+                    aria-label="Slide 28 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Dry Run: Phase G-J - Finalize and Generate</h1>
+<div class="presentation-split presentation-block">
+<section class="presentation-column">
+
+<pre><code>Which model for analysis agents?
+  (default: claude-opus-4-6)
+&gt; Default is fine
+
+Which model for execution agents?
+  (default: claude-sonnet-4-6)
+&gt; Default
+
+When should consolidation run?
+&gt; 2 AM, weekdays only
+
+Proceed with installation?
+&gt; Yes
+</code></pre>
+</section>
+<section class="presentation-column">
+
+<pre><code>Installation Summary
+====================
+
+Components: vault, /kb skill,
+  consolidation, MCP server
+Sources: GitHub (gh), Slack (MCP),
+  Calendar (MCP)
+Custom: ADR note type,
+  auto-tagging by project
+Models: opus/sonnet
+Schedule: 02:00 weekdays
+
+Generating 9 artifacts...
+  ✓ kb-protocol.md
+  ✓ kb/skill.md
+  ✓ consolidate.md
+  ✓ kb-server.yaml
+  ✓ consolidate-gather.sh
+  ✓ com.kb-system.consolidate.plist
+  ✓ intent.yaml
+  ✓ CLAUDE.md injection
+  ✓ installed.json
+
+Done. Vault initialized at ~/dev/kb
+</code></pre>
+</section>
+</div>
+                    </div>
+                </div>
+            </section>
+<section id="installer-reads-history"
+                    class="presentation-slide presentation-slide-card_grid"
+                    data-slide-index="28"
+                    data-slide-number="29"
+                    data-slide-id="installer-reads-history"
+                    data-layout="card_grid"
+                    data-density="dense"
+                    aria-label="Slide 29 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The Installer Reads Your History</h1>
+<p>Before the conversation begins, the installer scans Claude Code session telemetry: session count, tool diversity, sub-agent usage, configured MCP servers, project directories, custom skills and hooks. It uses this to calibrate the conversation without ever disclosing the profiling.</p>
+<div class="presentation-card-grid presentation-block">
+<article class="presentation-card">
+<h3>Depth of explanation</h3>
+<p>An amateur gets full component descriptions with tradeoffs. An experienced user gets a table and a "which of these?" prompt. The information is the same; the delivery adapts.</p>
+</article>
+<article class="presentation-card">
+<h3>Proactive suggestions</h3>
+<p>The installer does not wait for the user to describe their workflow. It already sees 14 projects under ~/dev/, MCPs configured, Python hooks active. It suggests a project registry, MCP-backed harvesting, and tag vocabulary seeded from existing projects.</p>
+</article>
+<article class="presentation-card">
+<h3>Customization surface</h3>
+<p>Power users are offered deeper options (custom intents, note type extensions, consolidation tuning) that would overwhelm a beginner. The options are not hidden; they are surfaced at the right level for the user.</p>
+</article>
+</div>
+                    </div>
+                </div>
+            </section>
+<section id="two-users-same-installer"
+                    class="presentation-slide presentation-slide-split"
+                    data-slide-index="29"
+                    data-slide-number="30"
+                    data-slide-id="two-users-same-installer"
+                    data-layout="split"
+                    data-density="very_dense"
+                    aria-label="Slide 30 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Two Users, Same Installer</h1>
+<div class="presentation-split presentation-block">
+<section class="presentation-column">
+<h3>Someone with 10 sessions</h3>
+<pre><code>The /kb skill lets any Claude Code
+session file content to your KB as a
+background task. You'd use it like
+/kb &lt;content&gt; or /kb context save.
+Without it, you'd write notes
+manually.
+
+Include the /kb skill? (recommended)
+&gt; Yes
+</code></pre>
+<p><em>Full explanation. Concrete usage example. Clear recommendation.</em></p>
+</section>
+<section class="presentation-column">
+<h3>Someone with 500 sessions</h3>
+<pre><code>Components:
+
+| Component      | Requires     |
+|----------------|--------------|
+| Vault          | (always)     |
+| /kb skill      | nothing      |
+| Consolidation  | schedule     |
+| MCP server     | Python 3.12+ |
+
+Which do you want?
+&gt; All of them.
+
+I see you work across 3 Kubernetes
+projects with heavy use of ADRs in
+your git history. Want me to add an
+ADR note type with Nygard-style
+fields and seed the tag vocabulary
+from your existing project names?
+</code></pre>
+<p><em>Same information, different depth. Proactive suggestions drawn from what it found in the user's environment.</em></p>
+</section>
+</div>
+                    </div>
+                </div>
+            </section>
+<section id="three-agents-one-conversation"
+                    class="presentation-slide presentation-slide-card_grid"
+                    data-slide-index="30"
+                    data-slide-number="31"
+                    data-slide-id="three-agents-one-conversation"
+                    data-layout="card_grid"
+                    data-density="dense"
+                    aria-label="Slide 31 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Three Agents, One Conversation</h1>
+<p>The user sees a single conversation. Behind it, three agents with different roles.</p>
+<div class="presentation-card-grid presentation-block">
+<article class="presentation-card">
+<h3>Installer</h3>
+<p>User-facing, long-lived. Owns the conversation, generates standard artifacts, spawns sub-agents when needed. The user never sees the orchestration.</p>
+</article>
+<article class="presentation-card">
+<h3>Evaluator</h3>
+<p>Background, short-lived, spawned per request. Reads the server codebase and assesses feasibility of user requests. Strictly read-only.</p>
+</article>
+<article class="presentation-card">
+<h3>Builder</h3>
+<p>Background, potentially long-lived. Receives a specification co-designed by Installer and user. Plans implementation, writes code, tests, validates.</p>
+</article>
+</div>
+
+<p>The developer builds a legible codebase. The AI reads it, understands it, and reshapes it to fit each user. The "product" is the installation prompt and a codebase clear enough for an AI to navigate.</p>
+                    </div>
+                </div>
+            </section>
+<section id="translation-pipeline"
+                    class="presentation-slide presentation-slide-divider"
+                    data-slide-index="31"
+                    data-slide-number="32"
+                    data-slide-id="translation-pipeline"
+                    data-layout="divider"
+                    data-density="normal"
+                    aria-label="Slide 32 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The Translation Pipeline</h1>
+<h2>Same patterns, different domain</h2>
+                    </div>
+                </div>
+            </section>
+<section id="translation-problem"
+                    class="presentation-slide presentation-slide-content"
+                    data-slide-index="32"
+                    data-slide-number="33"
+                    data-slide-id="translation-problem"
+                    data-layout="content"
+                    data-density="normal"
+                    aria-label="Slide 33 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The Problem</h1>
+<p>My blog (dan.rio) is bilingual. The first version of the translation system worked the obvious way: hand the model a post and ask for a Portuguese version.</p>
+<p>The output was always correct. It was also always flat: the kind of text that communicates without engaging. The meaning crossed over; the voice, the rhythm, the rhetorical texture did not.</p>
+                    </div>
+                </div>
+            </section>
+<section id="translation-insight"
+                    class="presentation-slide presentation-slide-code"
+                    data-slide-index="33"
+                    data-slide-number="34"
+                    data-slide-id="translation-insight"
+                    data-layout="code"
+                    data-density="dense"
+                    aria-label="Slide 34 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The Insight</h1>
+<p>The fix did not come from a better model or a longer prompt. It came from reading what translation institutes actually recommend.</p>
+<p>They do not say "translate better." They say: analyze the source as authored writing before you touch it, settle terminology disputes before drafting, keep the critic independent from the translator, and verify that revisions actually addressed what the critique found.</p>
+<p>Each of those recommendations became a stage in a 7,500-line pipeline, built with Claude Code.</p>
+<pre><code>source_analysis → terminology_policy → translate → [critique → revise] × N → final_review
+</code></pre>
+<p>Stages 1-2 run once and produce binding policy documents that constrain everything downstream. Translation and revision use GPT-5.4 high for generative work. Critique and final review use GPT-5.2 medium: a deliberately different model, to prevent the translator from grading its own homework.</p>
+                    </div>
+                </div>
+            </section>
+<section id="terminology-policy"
+                    class="presentation-slide presentation-slide-code"
+                    data-slide-index="34"
+                    data-slide-number="35"
+                    data-slide-id="terminology-policy"
+                    data-layout="code"
+                    data-density="dense"
+                    aria-label="Slide 35 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>What a Terminology Policy Looks Like</h1>
+<p>Before any translation begins, Stage 2 produces an artifact-wide terminology policy. Every downstream stage receives this document and is bound by its decisions.</p>
+<pre><code class="language-json">{
+  &quot;keep_english&quot;: [&quot;Claude Code&quot;, &quot;MCP&quot;, &quot;API&quot;, &quot;Agent PM&quot;],
+  &quot;localize&quot;: [&quot;knowledge base&quot; → &quot;base de conhecimento&quot;,
+               &quot;pull request&quot; → &quot;pull request&quot;],
+  &quot;resolved_decisions&quot;: [
+    {
+      &quot;source_term&quot;: &quot;AI Platform&quot;,
+      &quot;preferred_rendering&quot;: &quot;AI Platform&quot;,
+      &quot;scope&quot;: &quot;artifact-wide&quot;,
+      &quot;rationale&quot;: &quot;team name, not a generic concept&quot;
+    },
+    {
+      &quot;source_term&quot;: &quot;harness&quot;,
+      &quot;preferred_rendering&quot;: &quot;harness&quot;,
+      &quot;scope&quot;: &quot;artifact-wide&quot;,
+      &quot;rationale&quot;: &quot;technical term used throughout; localizing to 'arnês'
+                    would lose the metaphor&quot;
+    }
+  ]
+}
+</code></pre>
+                    </div>
+                </div>
+            </section>
+<section id="critique-finding"
+                    class="presentation-slide presentation-slide-code"
+                    data-slide-index="35"
+                    data-slide-number="36"
+                    data-slide-id="critique-finding"
+                    data-layout="code"
+                    data-density="dense"
+                    aria-label="Slide 36 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>What a Critique Finding Looks Like</h1>
+<p>The critique stage does not say "the translation is 78% good." It produces span-based findings: here is the source text, here is what you wrote, here is what is wrong with it, and here is how to fix it.</p>
+<pre><code class="language-json">{
+  &quot;severity&quot;: &quot;major&quot;,
+  &quot;category&quot;: &quot;tone_flattening&quot;,
+  &quot;source_span&quot;: &quot;the voice did not survive the trip&quot;,
+  &quot;target_span&quot;: &quot;a voz não sobreviveu&quot;,
+  &quot;description&quot;: &quot;Lost the rhetorical weight of 'the trip' as a metaphor
+                  for the act of translation itself&quot;,
+  &quot;fix_hint&quot;: &quot;Restore the journey metaphor: 'a voz não sobreviveu
+              à travessia'&quot;
+}
+</code></pre>
+<p>The revision stage receives these findings and must address each one. The final review stage then checks whether the revision actually applied the fixes or merely claimed to: verify, do not trust.</p>
+                    </div>
+                </div>
+            </section>
+<section id="quality-gate"
+                    class="presentation-slide presentation-slide-split"
+                    data-slide-index="36"
+                    data-slide-number="37"
+                    data-slide-id="quality-gate"
+                    data-layout="split"
+                    data-density="very_dense"
+                    aria-label="Slide 37 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>The Quality Gate</h1>
+<p>The pipeline does not ask the model whether the translation is good enough. It uses a deterministic rubric with weighted dimensions and hard thresholds.</p>
+<div class="presentation-split presentation-block">
+<section class="presentation-column">
+
+<div class="presentation-table-wrap" data-overflow="scroll"><table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Weight</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Accuracy</td>
+<td>30%</td>
+</tr>
+<tr>
+<td>Terminology</td>
+<td>20%</td>
+</tr>
+<tr>
+<td>Markdown fidelity</td>
+<td>20%</td>
+</tr>
+<tr>
+<td>Linguistic conventions</td>
+<td>10%</td>
+</tr>
+<tr>
+<td>Style and register</td>
+<td>10%</td>
+</tr>
+<tr>
+<td>Locale conventions</td>
+<td>5%</td>
+</tr>
+<tr>
+<td>Audience clarity</td>
+<td>5%</td>
+</tr>
+</tbody>
+</table></div>
+</section>
+<section class="presentation-column">
+<h3>Decision thresholds</h3>
+<p><strong>Accept:</strong> score &gt;= 92, zero major errors<br />
+<strong>Refine:</strong> score 88-92, loop back to critique<br />
+<strong>Escalate:</strong> score 75-88, or stalled for 2 loops<br />
+<strong>Fail:</strong> score &lt; 60, or any critical error</p>
+<h3>Hard gates</h3>
+<p>Accuracy &gt;= 85, terminology &gt;= 80, markdown fidelity &gt;= 95. If any of these fail, the pipeline refines regardless of the overall score.</p>
+</section>
+</div>
+                    </div>
+                </div>
+            </section>
+<section id="where-this-goes-next"
+                    class="presentation-slide presentation-slide-card_grid"
+                    data-slide-index="37"
+                    data-slide-number="38"
+                    data-slide-id="where-this-goes-next"
+                    data-layout="card_grid"
+                    data-density="dense"
+                    aria-label="Slide 38 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Where This Goes Next</h1>
+<p>The pipeline works. The translations read like Portuguese, not like English wearing a Portuguese costume. But there is room to improve.</p>
+<div class="presentation-card-grid presentation-block">
+<article class="presentation-card">
+<h3>GEPA for prompt optimization</h3>
+<p>Early exploration into using GEPA to optimize the stage prompts systematically rather than by hand-tuning. Nothing conclusive yet, but the pipeline's typed contracts make it a good candidate: each stage has measurable inputs and outputs.</p>
+</article>
+<article class="presentation-card">
+<h3>Document-level coherence</h3>
+<p>The pipeline currently translates per-post. Cross-paragraph coherence within a post is handled by the terminology policy, but there is no mechanism for coherence across posts in a series.</p>
+</article>
+<article class="presentation-card">
+<h3>MQM error classification</h3>
+<p>The critique categories are hand-defined. Moving to MQM (Multidimensional Quality Metrics) would align with how professional translation quality is actually measured.</p>
+</article>
+</div>
+                    </div>
+                </div>
+            </section>
+<section id="thanks"
+                    class="presentation-slide presentation-slide-lead"
+                    data-slide-index="38"
+                    data-slide-number="39"
+                    data-slide-id="thanks"
+                    data-layout="lead"
+                    data-density="normal"
+                    aria-label="Slide 39 of 39"
+                    aria-hidden="true">
+                <div class="presentation-slide-inner">
+                    
+                    <div class="presentation-slide-body">
+                        <h1>Thanks</h1>
+<h2>The agent executes. Your job is deciding what it should execute.</h2>
+<p>dan.rio | github.com/danielcavalli</p>
+                    </div>
+                </div>
+            </section>
+            </section>
+
+            <nav class="presentation-controls" aria-label="Presentation controls">
+                <button type="button" class="presentation-control" data-presentation-action="previous" aria-label="Previous slide">
+                    <span aria-hidden="true">&larr;</span>
+                </button>
+                <div class="presentation-progress"
+                     role="progressbar"
+                     aria-label="Presentation progress"
+                     aria-valuemin="1"
+                     aria-valuemax="39"
+                     aria-valuenow="1">
+                    <span class="presentation-progress-text" data-presentation-progress-text aria-live="polite">Slide 1 of 39</span>
+                    <div class="presentation-progress-track">
+                        <div class="presentation-progress-bar"
+                             data-presentation-progress-bar
+                             style="width: 2.56%;"></div>
+                    </div>
+                </div>
+                <form class="presentation-jump" data-presentation-jump-form>
+                    <label class="presentation-jump-label" for="presentation-jump-input">Go to slide</label>
+                    <input id="presentation-jump-input"
+                           class="presentation-jump-input"
+                           data-presentation-slide-input
+                           type="number"
+                           inputmode="numeric"
+                           min="1"
+                           max="39"
+                           value="1"
+                           aria-label="Go to slide">
+                    <button type="submit" class="presentation-jump-submit">Go</button>
+                </form>
+                <button type="button" class="presentation-control" data-presentation-action="next" aria-label="Next slide">
+                    <span aria-hidden="true">&rarr;</span>
+                </button>
+                <button type="button" class="presentation-control presentation-fullscreen-control"
+                        data-presentation-action="fullscreen"
+                        data-label-enter="Fullscreen"
+                        data-label-exit="Exit fullscreen"
+                        aria-label="Fullscreen"
+                        aria-pressed="false">
+                    <span aria-hidden="true">⛶</span>
+                </button>
+            </nav>
+        </article>
+    </main>
+
+    <footer class="footer" style="view-transition-name: site-footer;">
+        <div class="footer-container">
+            <div class="social-links">
+                <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/danielcavalli" target="_blank" rel="noopener" aria-label="GitHub">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/cavallidaniel/" target="_blank" rel="noopener" aria-label="LinkedIn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                </a>
+            </div>
+            <p class="copyright">&copy; 2026 All Rights Reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

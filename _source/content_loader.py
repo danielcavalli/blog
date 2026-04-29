@@ -166,6 +166,7 @@ def parse_markdown_post(filepath, _metadata_store: Optional[dict] = None):
         "month": month,
         "excerpt": post.get("excerpt", ""),
         "slug": slug,
+        "content_type": str(post.get("content_type", "post") or "post").strip().lower(),
         "order": post.get("order", 0),
         "tags": tags,
         "lang": lang,

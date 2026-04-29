@@ -220,18 +220,26 @@ class TranslationV2PostOrchestrator:
         if source_locale.lower() == target_locale.lower():
             return post
 
+        artifact_type = (
+            "presentation"
+            if str(post.get("content_type", "")).strip().lower() == "presentation"
+            else "post"
+        )
         content_to_translate = str(post.get("raw_content", post.get("content", "")))
+        frontmatter = {
+            "title": post.get("title", ""),
+            "excerpt": post.get("excerpt", ""),
+            "tags": post.get("tags", []),
+        }
+        if artifact_type == "presentation":
+            frontmatter["content_type"] = "presentation"
         translation = self.translate_artifact_if_needed(
             slug=str(post.get("slug") or ""),
             source_text=content_to_translate,
             source_locale=source_locale,
             target_locale=target_locale,
-            artifact_type="post",
-            frontmatter={
-                "title": post.get("title", ""),
-                "excerpt": post.get("excerpt", ""),
-                "tags": post.get("tags", []),
-            },
+            artifact_type=artifact_type,
+            frontmatter=frontmatter,
             persist_cache=False,
             force_revision_reason=force_revision_reason,
         )
@@ -257,7 +265,7 @@ class TranslationV2PostOrchestrator:
             )
         )
 
-        if self.strict_validation:
+        if self.strict_validation and artifact_type != "presentation":
             is_valid, issues = validate_translation(
                 content_to_translate,
                 translated_markdown,
@@ -271,7 +279,7 @@ class TranslationV2PostOrchestrator:
         if persist_cache:
             persist_context = self.consume_artifact_persist_context(
                 slug=str(post.get("slug") or ""),
-                artifact_type="post",
+                artifact_type=artifact_type,
             )
             if persist_context.get("outcome") == "cache_hit":
                 return translated_post
@@ -280,12 +288,8 @@ class TranslationV2PostOrchestrator:
                 source_text=content_to_translate,
                 source_locale=source_locale,
                 target_locale=target_locale,
-                artifact_type="post",
-                frontmatter={
-                    "title": post.get("title", ""),
-                    "excerpt": post.get("excerpt", ""),
-                    "tags": post.get("tags", []),
-                },
+                artifact_type=artifact_type,
+                frontmatter=frontmatter,
                 translation=translation,
                 revised_from_cache_source=persist_context.get("revised_from_cache_source"),
             )

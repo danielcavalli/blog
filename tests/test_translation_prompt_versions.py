@@ -40,6 +40,7 @@ PROMPT_CASE_PATH = FIXTURES_DIR / "prompt_policy_regression_case.json"
 def test_prompt_pack_loads_for_all_stages_and_stage_selection_is_valid():
     prompt_pack = load_prompt_pack(prompt_version="v2")
     cv_prompt_pack = load_prompt_pack(prompt_version="v2", artifact_type="cv")
+    presentation_prompt_pack = load_prompt_pack(prompt_version="v2", artifact_type="presentation")
 
     assert tuple(prompt_pack.keys()) == PROMPT_STAGES_V2
     assert PROMPT_STAGES == PROMPT_STAGES_V2
@@ -51,6 +52,16 @@ def test_prompt_pack_loads_for_all_stages_and_stage_selection_is_valid():
         cv_template = load_prompt_template(stage, prompt_version="v2", artifact_type="cv")
         assert cv_template == cv_prompt_pack[stage]
         assert prompt_template_path(stage, prompt_version="v2", artifact_type="cv").exists()
+
+        presentation_template = load_prompt_template(
+            stage,
+            prompt_version="v2",
+            artifact_type="presentation",
+        )
+        assert presentation_template == presentation_prompt_pack[stage]
+        assert (
+            prompt_template_path(stage, prompt_version="v2", artifact_type="presentation").exists()
+        )
 
     with pytest.raises(ValueError):
         load_prompt_template("unknown-stage", prompt_version="v2")
@@ -127,6 +138,34 @@ def test_cv_prompts_explicitly_guard_against_translationese():
     assert "locale_naturalness" in critique_template
     assert "translated span" in critique_template.lower()
     assert "education degree localization policy" in refine_template
+
+
+def test_presentation_prompts_are_artifact_specific():
+    post_translate_template = load_prompt_template("translate", prompt_version="v2")
+    presentation_translate_template = load_prompt_template(
+        "translate",
+        prompt_version="v2",
+        artifact_type="presentation",
+    )
+    presentation_revise_template = load_prompt_template(
+        "revise",
+        prompt_version="v2",
+        artifact_type="presentation",
+    )
+    presentation_critique_template = load_prompt_template(
+        "critique",
+        prompt_version="v2",
+        artifact_type="presentation",
+    )
+
+    assert presentation_translate_template != post_translate_template
+    assert "<!-- presentation:slide ... -->" in presentation_translate_template
+    assert "<!-- /presentation:slide -->" in presentation_translate_template
+    assert "ids, layout, density" in presentation_translate_template
+    assert "image destinations" in presentation_translate_template
+    assert "simulated dialogue/transcript prose" in presentation_translate_template
+    assert "<!-- presentation:slide ... -->" in presentation_revise_template
+    assert presentation_critique_template == load_prompt_template("critique", prompt_version="v2")
 
 
 def test_render_prompt_template_requires_exact_placeholder_set():

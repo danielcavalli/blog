@@ -36,9 +36,10 @@
     <link rel="stylesheet" href="/static/css/styles.css?v=a9e0f4b7">
     <link rel="preload" href="/static/js/theme.js?v=30ebbd0e" as="script">
     <script src="/static/js/theme.js?v=30ebbd0e"></script>
-    <script src="/static/js/transitions.js?v=f220eca7" defer></script>
+    <script src="/static/js/transitions.js?v=ec40089a" defer></script>
     <script src="/static/js/filter.js?v=c18ff16b" defer></script>
     <script src="/static/js/annotations.js?v=31123876" defer></script>
+    <script src="/static/js/presentation.js?v=fff59a2c" defer></script>
 </head>
 <body>
     <a href="#main-content" class="skip-link">Skip to content</a>
@@ -124,205 +125,225 @@
                 <button id="clear-filters" class="filter-clear">Clear Filters</button>
             </div>
             <div class="filter-tags">
-                <button class="filter-tag" data-tag="AI Agents" data-tag-key="ai-agents">AI Agents</button><button class="filter-tag" data-tag="Context Engineering" data-tag-key="context-engineering">Context Engineering</button><button class="filter-tag" data-tag="Gemini AI" data-tag-key="gemini-ai">Gemini AI</button><button class="filter-tag" data-tag="Industrial Economics" data-tag-key="industrial-economics">Industrial Economics</button><button class="filter-tag" data-tag="LLMs" data-tag-key="llms">LLMs</button><button class="filter-tag" data-tag="Machine Learning Engineering" data-tag-key="machine-learning-engineering">Machine Learning Engineering</button><button class="filter-tag" data-tag="Python" data-tag-key="python">Python</button><button class="filter-tag" data-tag="Static Sites" data-tag-key="static-sites">Static Sites</button><button class="filter-tag" data-tag="View Transitions API" data-tag-key="view-transitions-api">View Transitions API</button><button class="filter-tag" data-tag="Web Development" data-tag-key="web-development">Web Development</button><button class="filter-tag" data-tag="Workflows" data-tag-key="workflows">Workflows</button><button class="filter-tag" data-tag="animations" data-tag-key="animations">animations</button><button class="filter-tag" data-tag="brazil" data-tag-key="brazil">brazil</button><button class="filter-tag" data-tag="css" data-tag-key="css">css</button><button class="filter-tag" data-tag="cuda" data-tag-key="cuda">cuda</button><button class="filter-tag" data-tag="economics" data-tag-key="economics">economics</button><button class="filter-tag" data-tag="geopolitics" data-tag-key="geopolitics">geopolitics</button><button class="filter-tag" data-tag="hardware" data-tag-key="hardware">hardware</button><button class="filter-tag" data-tag="home server" data-tag-key="home-server">home server</button><button class="filter-tag" data-tag="learning material" data-tag-key="learning-material">learning material</button><button class="filter-tag" data-tag="llms" data-tag-key="llms">llms</button><button class="filter-tag" data-tag="localization" data-tag-key="localization">localization</button><button class="filter-tag" data-tag="networking" data-tag-key="networking">networking</button><button class="filter-tag" data-tag="performance" data-tag-key="performance">performance</button><button class="filter-tag" data-tag="pt-br" data-tag-key="pt-br">pt-br</button><button class="filter-tag" data-tag="pytorch" data-tag-key="pytorch">pytorch</button><button class="filter-tag" data-tag="semiconductors" data-tag-key="semiconductors">semiconductors</button><button class="filter-tag" data-tag="software architecture" data-tag-key="software-architecture">software architecture</button><button class="filter-tag" data-tag="translation" data-tag-key="translation">translation</button><button class="filter-tag" data-tag="unifi" data-tag-key="unifi">unifi</button><button class="filter-tag" data-tag="web" data-tag-key="web">web</button><button class="filter-tag" data-tag="workstation" data-tag-key="workstation">workstation</button>
+                <button class="filter-tag" data-tag="AI Agents" data-tag-key="ai-agents">AI Agents</button><button class="filter-tag" data-tag="Context Engineering" data-tag-key="context-engineering">Context Engineering</button><button class="filter-tag" data-tag="Gemini AI" data-tag-key="gemini-ai">Gemini AI</button><button class="filter-tag" data-tag="Industrial Economics" data-tag-key="industrial-economics">Industrial Economics</button><button class="filter-tag" data-tag="LLMs" data-tag-key="llms">LLMs</button><button class="filter-tag" data-tag="Machine Learning Engineering" data-tag-key="machine-learning-engineering">Machine Learning Engineering</button><button class="filter-tag" data-tag="Python" data-tag-key="python">Python</button><button class="filter-tag" data-tag="Static Sites" data-tag-key="static-sites">Static Sites</button><button class="filter-tag" data-tag="Tools" data-tag-key="tools">Tools</button><button class="filter-tag" data-tag="View Transitions API" data-tag-key="view-transitions-api">View Transitions API</button><button class="filter-tag" data-tag="Web Development" data-tag-key="web-development">Web Development</button><button class="filter-tag" data-tag="Workflow" data-tag-key="workflow">Workflow</button><button class="filter-tag" data-tag="Workflows" data-tag-key="workflows">Workflows</button><button class="filter-tag" data-tag="animations" data-tag-key="animations">animations</button><button class="filter-tag" data-tag="brazil" data-tag-key="brazil">brazil</button><button class="filter-tag" data-tag="css" data-tag-key="css">css</button><button class="filter-tag" data-tag="cuda" data-tag-key="cuda">cuda</button><button class="filter-tag" data-tag="economics" data-tag-key="economics">economics</button><button class="filter-tag" data-tag="geopolitics" data-tag-key="geopolitics">geopolitics</button><button class="filter-tag" data-tag="hardware" data-tag-key="hardware">hardware</button><button class="filter-tag" data-tag="home server" data-tag-key="home-server">home server</button><button class="filter-tag" data-tag="learning material" data-tag-key="learning-material">learning material</button><button class="filter-tag" data-tag="llms" data-tag-key="llms">llms</button><button class="filter-tag" data-tag="localization" data-tag-key="localization">localization</button><button class="filter-tag" data-tag="networking" data-tag-key="networking">networking</button><button class="filter-tag" data-tag="performance" data-tag-key="performance">performance</button><button class="filter-tag" data-tag="pt-br" data-tag-key="pt-br">pt-br</button><button class="filter-tag" data-tag="pytorch" data-tag-key="pytorch">pytorch</button><button class="filter-tag" data-tag="semiconductors" data-tag-key="semiconductors">semiconductors</button><button class="filter-tag" data-tag="software architecture" data-tag-key="software-architecture">software architecture</button><button class="filter-tag" data-tag="translation" data-tag-key="translation">translation</button><button class="filter-tag" data-tag="unifi" data-tag-key="unifi">unifi</button><button class="filter-tag" data-tag="web" data-tag-key="web">web</button><button class="filter-tag" data-tag="workstation" data-tag-key="workstation">workstation</button>
             </div>
         </div>
 
         <div class="posts-grid">
-            <article class="post-card" 
+            <article class="post-card" data-content-type="presentation"
+                     data-year="2026"
+                     data-month="April"
+                     data-tags="AI Agents,Workflow,Tools"
+                     data-tag-keys="ai-agents,workflow,tools"
+                     data-created="2026-04-30"
+                     data-updated="2026-04-30"
+                     style="view-transition-name: post-container-1;">
+                <a href="/en/blog/how-i-use-ai-agents.html" class="post-link">
+                    <div class="post-content">
+                        <h2 class="post-title" style="view-transition-name: post-title-1;">HOW I USE AI AGENTS</h2>
+                        <time class="post-date" style="view-transition-name: post-date-1;">April 30, 2026</time>
+                        <div class="post-tags"><span class="tag-pill content-type-marker" data-content-type-marker="presentation">Presentation</span><span class="tag-pill">AI Agents</span><span class="tag-pill">Workflow</span><span class="tag-pill">Tools</span></div>
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-1;">
+                            What I built, what broke, and what survived.
+                        </p>
+                    </div>
+                </a>
+            </article>
+
+            <article class="post-card" data-content-type="post"
                      data-year="2026" 
                      data-month="April" 
                      data-tags="translation,localization,llms,software architecture,pt-br"
                      data-tag-keys="translation,localization,llms,software-architecture,pt-br"
                      data-created="2026-04-19"
                      data-updated="2026-04-19"
-                     style="view-transition-name: post-container-1;">
+                     style="view-transition-name: post-container-2;">
                 <a href="/en/blog/how-translation-system-v2-works.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-1;">HOW TRANSLATION SYSTEM V2 WORKS</h2>
-                        <time class="post-date" style="view-transition-name: post-date-1;">April 19, 2026</time>
+                        <h2 class="post-title" style="view-transition-name: post-title-2;">HOW TRANSLATION SYSTEM V2 WORKS</h2>
+                        <time class="post-date" style="view-transition-name: post-date-2;">April 19, 2026</time>
                         <div class="post-tags"><span class="tag-pill">translation</span><span class="tag-pill">localization</span><span class="tag-pill">llms</span><span class="tag-pill">software architecture</span><span class="tag-pill">pt-br</span></div>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-1;">
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-2;">
                             Translation System v2 is the second serious attempt at making this blog bilingual without making the Portuguese read like imported English. It took more than a better model.
                         </p>
                     </div>
                 </a>
             </article>
 
-            <article class="post-card" 
+            <article class="post-card" data-content-type="post"
                      data-year="2026" 
                      data-month="April" 
                      data-tags="AI Agents,Machine Learning Engineering,Industrial Economics"
                      data-tag-keys="ai-agents,machine-learning-engineering,industrial-economics"
                      data-created="2026-04-15"
                      data-updated="2026-04-15"
-                     style="view-transition-name: post-container-2;">
+                     style="view-transition-name: post-container-3;">
                 <a href="/en/blog/dont-outsource-the-thinking.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-2;">DON&#x27;T OUTSOURCE THE THINKING</h2>
-                        <time class="post-date" style="view-transition-name: post-date-2;">April 15, 2026</time>
+                        <h2 class="post-title" style="view-transition-name: post-title-3;">DON&#x27;T OUTSOURCE THE THINKING</h2>
+                        <time class="post-date" style="view-transition-name: post-date-3;">April 15, 2026</time>
                         <div class="post-tags"><span class="tag-pill">AI Agents</span><span class="tag-pill">Machine Learning Engineering</span><span class="tag-pill">Industrial Economics</span></div>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-2;">
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-3;">
                             Nails used to be made by hand. Then machines came along and nail makers became machine operators. If any of this sounds familiar, it should.
                         </p>
                     </div>
                 </a>
             </article>
 
-            <article class="post-card" 
+            <article class="post-card" data-content-type="post"
                      data-year="2026" 
                      data-month="April" 
                      data-tags="AI Agents,LLMs,Context Engineering,Workflows"
                      data-tag-keys="ai-agents,llms,context-engineering,workflows"
                      data-created="2026-04-13"
                      data-updated="2026-04-13"
-                     style="view-transition-name: post-container-3;">
+                     style="view-transition-name: post-container-4;">
                 <a href="/en/blog/ai-agents-and-the-illusion-of-continuity.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-3;">AI AGENTS AND THE ILLUSION OF CONTINUITY</h2>
-                        <time class="post-date" style="view-transition-name: post-date-3;">April 13, 2026</time>
+                        <h2 class="post-title" style="view-transition-name: post-title-4;">AI AGENTS AND THE ILLUSION OF CONTINUITY</h2>
+                        <time class="post-date" style="view-transition-name: post-date-4;">April 13, 2026</time>
                         <div class="post-tags"><span class="tag-pill">AI Agents</span><span class="tag-pill">LLMs</span><span class="tag-pill">Context Engineering</span><span class="tag-pill">Workflows</span></div>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-3;">
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-4;">
                             AI agents feel like they remember. They don&#x27;t. The software around them is just good at faking it. Once you see that, the interesting question stops being about the model and starts being about how you manage information.
                         </p>
                     </div>
                 </a>
             </article>
 
-            <article class="post-card" 
+            <article class="post-card" data-content-type="post"
                      data-year="2026" 
                      data-month="March" 
                      data-tags="semiconductors,economics,geopolitics,brazil"
                      data-tag-keys="semiconductors,economics,geopolitics,brazil"
                      data-created="2026-03-11"
                      data-updated="2026-03-11"
-                     style="view-transition-name: post-container-4;">
+                     style="view-transition-name: post-container-5;">
                 <a href="/en/blog/semiconductors-and-sovereignty.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-4;">THE SEMICONDUCTOR CHAIN, LINK BY LINK, AND WHY TARIFFS DON&#x27;T ADDRESS ANY OF IT</h2>
-                        <time class="post-date" style="view-transition-name: post-date-4;">March 11, 2026</time>
+                        <h2 class="post-title" style="view-transition-name: post-title-5;">THE SEMICONDUCTOR CHAIN, LINK BY LINK, AND WHY TARIFFS DON&#x27;T ADDRESS ANY OF IT</h2>
+                        <time class="post-date" style="view-transition-name: post-date-5;">March 11, 2026</time>
                         <div class="post-tags"><span class="tag-pill">semiconductors</span><span class="tag-pill">economics</span><span class="tag-pill">geopolitics</span><span class="tag-pill">brazil</span></div>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-4;">
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-5;">
                             A technical response to the debate over industrial policy for semiconductors in Brazil
                         </p>
                     </div>
                 </a>
             </article>
 
-            <article class="post-card" 
+            <article class="post-card" data-content-type="post"
                      data-year="2025" 
                      data-month="November" 
                      data-tags="home server,networking,unifi"
                      data-tag-keys="home-server,networking,unifi"
                      data-created="2025-11-05"
                      data-updated="2025-11-05"
-                     style="view-transition-name: post-container-5;">
+                     style="view-transition-name: post-container-6;">
                 <a href="/en/blog/a-network-setup-that-works-for-me.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-5;">BUILDING A NETWORK SETUP THAT WORKS FOR ME</h2>
-                        <time class="post-date" style="view-transition-name: post-date-5;">November 05, 2025</time>
+                        <h2 class="post-title" style="view-transition-name: post-title-6;">BUILDING A NETWORK SETUP THAT WORKS FOR ME</h2>
+                        <time class="post-date" style="view-transition-name: post-date-6;">November 05, 2025</time>
                         <div class="post-tags"><span class="tag-pill">home server</span><span class="tag-pill">networking</span><span class="tag-pill">unifi</span></div>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-5;">
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-6;">
                             A good network shouldn&#x27;t be noticed nor demand attention, that was the main guiding principle of my quest to find the best network setup for my Home Server build.
                         </p>
                     </div>
                 </a>
             </article>
 
-            <article class="post-card" 
+            <article class="post-card" data-content-type="post"
                      data-year="2025" 
                      data-month="October" 
                      data-tags="css,web,animations,performance"
                      data-tag-keys="css,web,animations,performance"
                      data-created="2025-10-23"
                      data-updated="2025-10-23"
-                     style="view-transition-name: post-container-6;">
+                     style="view-transition-name: post-container-7;">
                 <a href="/en/blog/css-animations-guide.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-6;">THE ART OF CSS ANIMATIONS</h2>
-                        <time class="post-date" style="view-transition-name: post-date-6;">October 23, 2025</time>
+                        <h2 class="post-title" style="view-transition-name: post-title-7;">THE ART OF CSS ANIMATIONS</h2>
+                        <time class="post-date" style="view-transition-name: post-date-7;">October 23, 2025</time>
                         <div class="post-tags"><span class="tag-pill">css</span><span class="tag-pill">web</span><span class="tag-pill">animations</span><span class="tag-pill">performance</span></div>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-6;">
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-7;">
                             Creating smooth, performant animations using only CSS. A deep dive into building coherent motion systems for the modern web.
                         </p>
                     </div>
                 </a>
             </article>
 
-            <article class="post-card" 
+            <article class="post-card" data-content-type="post"
                      data-year="2025" 
                      data-month="October" 
                      data-tags="cuda,pytorch,learning material,workstation,hardware"
                      data-tag-keys="cuda,pytorch,learning-material,workstation,hardware"
                      data-created="2025-10-20"
                      data-updated="2025-10-20"
-                     style="view-transition-name: post-container-7;">
+                     style="view-transition-name: post-container-8;">
                 <a href="/en/blog/choosing-the-right-gpu-for-ai-learning.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-7;">CHOOSING THE RIGHT GPU SETUP FOR AI ENGINEERING (AND LEARNING)</h2>
-                        <time class="post-date" style="view-transition-name: post-date-7;">October 20, 2025</time>
+                        <h2 class="post-title" style="view-transition-name: post-title-8;">CHOOSING THE RIGHT GPU SETUP FOR AI ENGINEERING (AND LEARNING)</h2>
+                        <time class="post-date" style="view-transition-name: post-date-8;">October 20, 2025</time>
                         <div class="post-tags"><span class="tag-pill">cuda</span><span class="tag-pill">pytorch</span><span class="tag-pill">learning material</span><span class="tag-pill">workstation</span><span class="tag-pill">hardware</span></div>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-7;">
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-8;">
                             A somewhat technical blog on how GPU choice shapes what you can actually learn about CUDA, distributed training, and training optimization and the realities of running a personal ML workstation.
                         </p>
                     </div>
                 </a>
             </article>
 
-            <article class="post-card" 
+            <article class="post-card" data-content-type="post"
                      data-year="2025" 
                      data-month="October" 
                      data-tags="web,css,performance"
                      data-tag-keys="web,css,performance"
                      data-created="2025-10-20"
                      data-updated="2025-10-20"
-                     style="view-transition-name: post-container-8;">
+                     style="view-transition-name: post-container-9;">
                 <a href="/en/blog/modern-web-development.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-8;">MODERN WEB DEVELOPMENT</h2>
-                        <time class="post-date" style="view-transition-name: post-date-8;">October 20, 2025</time>
+                        <h2 class="post-title" style="view-transition-name: post-title-9;">MODERN WEB DEVELOPMENT</h2>
+                        <time class="post-date" style="view-transition-name: post-date-9;">October 20, 2025</time>
                         <div class="post-tags"><span class="tag-pill">web</span><span class="tag-pill">css</span><span class="tag-pill">performance</span></div>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-8;">
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-9;">
                             Exploring the latest trends and best practices in modern web development, from performance optimization to user experience design.
                         </p>
                     </div>
                 </a>
             </article>
 
-            <article class="post-card" 
+            <article class="post-card" data-content-type="post"
                      data-year="2025" 
                      data-month="January" 
                      data-tags="Web Development,View Transitions API,Static Sites,Python"
                      data-tag-keys="web-development,view-transitions-api,static-sites,python"
                      data-created="2025-01-25"
                      data-updated="2025-01-25"
-                     style="view-transition-name: post-container-9;">
+                     style="view-transition-name: post-container-10;">
                 <a href="/en/blog/the-living-static-system.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-9;">THE LIVING STATIC SYSTEM</h2>
-                        <time class="post-date" style="view-transition-name: post-date-9;">January 25, 2025</time>
+                        <h2 class="post-title" style="view-transition-name: post-title-10;">THE LIVING STATIC SYSTEM</h2>
+                        <time class="post-date" style="view-transition-name: post-date-10;">January 25, 2025</time>
                         <div class="post-tags"><span class="tag-pill">Web Development</span><span class="tag-pill">View Transitions API</span><span class="tag-pill">Static Sites</span><span class="tag-pill">Python</span></div>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-9;">
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-10;">
                             Inside a bilingual static site that moves as one surface: a Python build, a translation pipeline, and native transitions that keep space continuous.
                         </p>
                     </div>
                 </a>
             </article>
 
-            <article class="post-card" 
+            <article class="post-card" data-content-type="post"
                      data-year="2025" 
                      data-month="January" 
                      data-tags="Web Development,View Transitions API,Gemini AI,Static Sites"
                      data-tag-keys="web-development,view-transitions-api,gemini-ai,static-sites"
                      data-created="2025-01-24"
                      data-updated="2025-01-24"
-                     style="view-transition-name: post-container-10;">
+                     style="view-transition-name: post-container-11;">
                 <a href="/en/blog/building-a-bilingual-blog.html" class="post-link">
                     <div class="post-content">
-                        <h2 class="post-title" style="view-transition-name: post-title-10;">BUILDING A BILINGUAL BLOG WITH VIEW TRANSITIONS</h2>
-                        <time class="post-date" style="view-transition-name: post-date-10;">January 24, 2025</time>
+                        <h2 class="post-title" style="view-transition-name: post-title-11;">BUILDING A BILINGUAL BLOG WITH VIEW TRANSITIONS</h2>
+                        <time class="post-date" style="view-transition-name: post-date-11;">January 24, 2025</time>
                         <div class="post-tags"><span class="tag-pill">Web Development</span><span class="tag-pill">View Transitions API</span><span class="tag-pill">Gemini AI</span><span class="tag-pill">Static Sites</span></div>
-                        <p class="post-excerpt" style="view-transition-name: post-excerpt-10;">
+                        <p class="post-excerpt" style="view-transition-name: post-excerpt-11;">
                             How this blog works: Python static generation, automatic Gemini translation, View Transitions API for seamless navigation, and a philosophy of building with native web standards.
                         </p>
                     </div>

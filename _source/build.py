@@ -42,7 +42,10 @@ from renderer import (
     generate_about_html,
     generate_cv_html,
     generate_root_index,
+    generate_presentation_html,
 )
+from presentation_compiler import compile_presentation_markdown, presentation_document_to_dict
+from presentation_translation import compare_presentation_translation_invariants
 from translation_common import validate_translation
 from translation_v2 import TranslationV2PostOrchestrator
 from translation_v2.console import (
@@ -291,6 +294,41 @@ def _sorted_posts(posts: list[dict[str, Any]]) -> list[dict[str, Any]]:
     )
 
 
+def _is_presentation_post(post: dict[str, Any]) -> bool:
+    return str(post.get("content_type", "post")).strip().lower() == "presentation"
+
+
+def validate_presentation_translation(
+    source_markdown: str,
+    translated_markdown: str,
+) -> tuple[bool, list[str]]:
+    issues = compare_presentation_translation_invariants(
+        source_markdown,
+        translated_markdown,
+    )
+    return not issues, [issue.message for issue in issues]
+
+
+def compile_markdown_presentation(markdown: str, *, slug: str = "") -> dict[str, Any]:
+    document = compile_presentation_markdown(markdown)
+    payload = presentation_document_to_dict(document)
+    payload["slug"] = slug
+    return payload
+
+
+def _prepare_presentation_post(post: dict[str, Any]) -> dict[str, Any]:
+    if not _is_presentation_post(post):
+        return post
+    prepared = post.copy()
+    presentation = compile_markdown_presentation(
+        str(post.get("raw_content", "")),
+        slug=str(post.get("slug", "")),
+    )
+    prepared["presentation"] = presentation
+    prepared.update(presentation)
+    return prepared
+
+
 def _write_output_file(relative_path: Path, content: str, staging_dir: Path | None) -> Path:
     output_path = _out(relative_path, staging_dir)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -315,7 +353,10 @@ def _commit_source_post_output(
         for index, candidate in enumerate(sorted_posts, start=1)
         if candidate["slug"] == post["slug"]
     )
-    html = generate_post_html(post, post_number, lang=lang_key)
+    if _is_presentation_post(post):
+        html = generate_presentation_html(post, post_number, lang=lang_key)
+    else:
+        html = generate_post_html(post, post_number, lang=lang_key)
     _write_output_file(
         LANG_DIRS[lang_key] / "blog" / f"{post['slug']}.html",
         html,
@@ -382,7 +423,10 @@ def _commit_translated_post_output(
         for index, post in enumerate(sorted_posts, start=1)
         if post["slug"] == translated_post["slug"]
     )
-    html = generate_post_html(translated_post, post_number, lang=lang_key)
+    if _is_presentation_post(translated_post):
+        html = generate_presentation_html(translated_post, post_number, lang=lang_key)
+    else:
+        html = generate_post_html(translated_post, post_number, lang=lang_key)
     _write_output_file(
         LANG_DIRS[lang_key] / "blog" / f"{translated_post['slug']}.html",
         html,
@@ -597,6 +641,7 @@ def build(
     for md_file in selected_md_files:
         try:
             post_source = parse_markdown_post(md_file, metadata_store)
+            post_source = _prepare_presentation_post(post_source)
             source_locale = post_source.get("lang", "en-us")
             source_lang_key = locale_to_lang_key(source_locale)
             target_locale = get_target_locale(source_locale)
@@ -801,12 +846,32 @@ def build(
             translated_content = str(
                 translated_post.get("raw_content", translated_post.get("content", ""))
             )
-            is_valid, issues = validate_translation(
-                source_content,
-                translated_content,
-                source_locale=normalize_locale(source_locale),
-                target_locale=normalize_locale(target_locale),
-            )
+            if _is_presentation_post(post_source):
+                markers_valid, marker_issues = validate_presentation_translation(
+                    source_content,
+                    translated_content,
+                )
+                if not markers_valid:
+                    quality_stats["failed"] += 1
+                    for issue in marker_issues:
+                        log_line(
+                            f"[presentation] {post_source['slug']}: {issue}",
+                            indent=1,
+                            status="error",
+                        )
+                    raise Exception(
+                        "Presentation marker validation failed for "
+                        f"{post_source['slug']}"
+                    )
+                translated_post = _prepare_presentation_post(translated_post)
+                is_valid, issues = True, []
+            else:
+                is_valid, issues = validate_translation(
+                    source_content,
+                    translated_content,
+                    source_locale=normalize_locale(source_locale),
+                    target_locale=normalize_locale(target_locale),
+                )
 
             if not issues:
                 quality_stats["validated_ok"] += 1
@@ -836,9 +901,16 @@ def build(
 
             persist_context = post_translator.consume_artifact_persist_context(
                 slug=str(post_source.get("slug") or ""),
-                artifact_type="post",
+                artifact_type=str(post_source.get("content_type") or "post"),
             )
             if persist_context.get("outcome") != "cache_hit":
+                persist_frontmatter = {
+                    "title": post_source.get("title", ""),
+                    "excerpt": post_source.get("excerpt", ""),
+                    "tags": post_source.get("tags", []),
+                }
+                if _is_presentation_post(post_source):
+                    persist_frontmatter["content_type"] = "presentation"
                 post_translator.persist_artifact_translation(
                     slug=str(post_source.get("slug") or ""),
                     source_text=str(
@@ -846,12 +918,8 @@ def build(
                     ),
                     source_locale=source_locale,
                     target_locale=target_locale,
-                    artifact_type="post",
-                    frontmatter={
-                        "title": post_source.get("title", ""),
-                        "excerpt": post_source.get("excerpt", ""),
-                        "tags": post_source.get("tags", []),
-                    },
+                    artifact_type=str(post_source.get("content_type") or "post"),
+                    frontmatter=persist_frontmatter,
                     translation={
                         "title": translated_post["title"],
                         "excerpt": translated_post["excerpt"],

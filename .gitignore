@@ -50,5 +50,6 @@ docs/*
 !docs/translation-v2/
 !docs/translation-v2/**
 !docs/translation_v2_opencode_runbook.md
+!docs/mapr-presentation-port-plan.md
 
 # Note: Generated HTML files (index.html, en/, pt/) are tracked for GitHub Pages

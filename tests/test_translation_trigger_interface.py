@@ -18,7 +18,7 @@ _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 if _SOURCE not in sys.path:
     sys.path.insert(0, _SOURCE)
 _mock_provider_stub = types.ModuleType("translation_v2.mock_provider")
-_mock_provider_stub.DeterministicMockTranslationProvider = object
+setattr(_mock_provider_stub, "DeterministicMockTranslationProvider", object)
 sys.modules.setdefault("translation_v2.mock_provider", _mock_provider_stub)
 
 from translation_v2.orchestrator import TranslationV2PostOrchestrator  # noqa: E402
@@ -138,7 +138,7 @@ def test_trigger_interface_propagates_revision_and_voice_packet_metadata(monkeyp
         cache_path=tmp_path / "translation-cache.json",
         run_id="build-v2-revision-001",
     )
-    orchestrator.revision_manifest = type(
+    cast(Any, orchestrator).revision_manifest = type(
         "_Manifest",
         (),
         {
@@ -194,3 +194,53 @@ def test_trigger_interface_propagates_revision_and_voice_packet_metadata(monkeyp
     assert stage_event["outcome"] == "cache_miss"
     assert stage_event["metadata"]["revision_requested"] is True
     assert stage_event["metadata"]["revision_marker"] == "revision-marker-001"
+
+
+def test_strict_validation_skips_generic_post_validator_for_presentations(
+    monkeypatch,
+    tmp_path,
+):
+    def _fake_run_pipeline(self, request, *, artifact_type):  # noqa: ARG001
+        return {
+            "title": "Deck traduzido",
+            "excerpt": "Resumo",
+            "tags": ["slides"],
+            "content": '<!-- presentation:slide id="intro" layout="lead" density="normal" -->\n'
+            "# Daniel Cavalli\n\n"
+            "<content>literal transcript text\n"
+            "<!-- /presentation:slide -->",
+        }
+
+    def _fail_generic_validation(*_args, **_kwargs):
+        raise AssertionError("generic validator should not run for presentation artifacts")
+
+    monkeypatch.setattr(TranslationV2PostOrchestrator, "_run_pipeline", _fake_run_pipeline)
+    monkeypatch.setattr("translation_v2.orchestrator.validate_translation", _fail_generic_validation)
+
+    orchestrator = TranslationV2PostOrchestrator(
+        provider_name="opencode",
+        strict_validation=True,
+        cache_path=tmp_path / "translation-cache.json",
+        run_id="build-v2-presentation-strict-001",
+    )
+
+    translated = orchestrator.translate_if_needed(
+        {
+            "slug": "deck",
+            "lang": "en-us",
+            "title": "Deck",
+            "excerpt": "Deck excerpt",
+            "tags": ["slides"],
+            "content_type": "presentation",
+            "raw_content": '<!-- presentation:slide id="intro" layout="lead" density="normal" -->\n'
+            "# Daniel Cavalli\n\n"
+            "<content>literal transcript text\n"
+            "<!-- /presentation:slide -->",
+            "content": "<p>Deck</p>",
+        },
+        target_locale="pt-br",
+    )
+
+    assert translated is not None
+    assert translated["content_type"] == "presentation"
+    assert translated["lang"] == "pt-br"
