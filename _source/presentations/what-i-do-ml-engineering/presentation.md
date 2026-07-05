@@ -239,13 +239,13 @@ Daniel Cavalli | dan.rio
     <p class="bio-detail">9 years in ML. Studied economics. Writes at dan.rio</p>
     <div style="margin-top: 28px;">
       <table>
-        <tr><th></th><th>Section</th><th>The question it answers</th></tr>
-        <tr><td>1</td><td>The Job Nobody Can Name</td><td>What is an ML Engineer, really</td></tr>
-        <tr><td>2</td><td>What a Model Actually Is</td><td>The thing, without the mystique</td></tr>
-        <tr><td>3</td><td>The Platform</td><td>What I build for a living</td></tr>
-        <tr><td>4</td><td>Making Training Fast</td><td>Why waiting is the enemy</td></tr>
-        <tr><td>5</td><td>Why Models Rot</td><td>The part nobody warns you about</td></tr>
-        <tr><td>6</td><td>How I Got Here</td><td>An economics degree and a plan that didn't exist</td></tr>
+        <tr><th></th><th>Section</th><th>What you'll actually get</th></tr>
+        <tr><td>1</td><td>The Job Nobody Can Name</td><td>"So, what is it you do again?"</td></tr>
+        <tr><td>2</td><td>What a Model Actually Is</td><td>The thing, minus the mystery</td></tr>
+        <tr><td>3</td><td>The Platform</td><td>What I'm doing while you text me</td></tr>
+        <tr><td>4</td><td>Making Training Fast</td><td>Why I'm obsessed with waiting less</td></tr>
+        <tr><td>5</td><td>Why Models Rot</td><td>Why the job never actually ends</td></tr>
+        <tr><td>6</td><td>How I Got Here</td><td>How an economics kid wound up here</td></tr>
       </table>
     </div>
   </div>
@@ -265,15 +265,15 @@ Daniel Cavalli | dan.rio
 
 ---
 
-# When people ask what I do
+# When you ask what I do
 
-I say "Machine Learning Engineer." They hear "AI." They picture a robot, or ChatGPT, or someone in a dark room quietly training Skynet.
+I say "Machine Learning Engineer." You hear "AI." You picture a robot, or ChatGPT, or me in a dark room quietly training Skynet. Then you nod politely and we talk about something else.
 
-That instinct is fair. For most of the last decade the only people talking about this work were selling something, so the vocabulary got weird before it got useful. But the honest version of my job is less cinematic and more interesting than the marketing.
+That is completely fair, because for years the only people explaining this stuff were trying to sell you something, so the words got strange before they got useful. Here is the version I would actually tell you over a beer.
 
-> I build the machinery that lets other people's models survive contact with reality.
+> You know the AI everyone talks about? I build the boring, invisible machinery that keeps it from falling over the second a real person uses it.
 
-The model is the famous part. The machinery is the part that decides whether the model is ever more than a demo.
+The clever model is the famous part. The machinery is the part that decides whether that model ever leaves someone's laptop.
 
 ---
 
@@ -281,19 +281,19 @@ The model is the famous part. The machinery is the part that decides whether the
 
 <div class="split">
   <div>
-    <h3>Data Scientist</h3>
-    <p>Asks: <em>what should this model learn, and is it any good?</em> Works with data, statistics, and experiments. Invents the recipe. Their output is a model that works once, on their machine, on a good day.</p>
+    <h3>The Data Scientist</h3>
+    <p>Their question: <em>what should this thing learn, and is it any good?</em> They invent the recipe. What they hand over is something that worked once, on their laptop, on a good day.</p>
   </div>
   <div>
-    <h3>Machine Learning Engineer</h3>
-    <p>Asks: <em>how does this run a million times a day, cheaply, reliably, and what happens at 3am when it breaks?</em> Their output is a system that keeps the recipe working forever, for everyone, without them in the room.</p>
+    <h3>The ML Engineer (me)</h3>
+    <p>My question: <em>okay, but how does this run millions of times a day without breaking, and who gets the 3am phone call when it does?</em> I keep the recipe working forever, for everyone, with nobody watching over it.</p>
   </div>
 </div>
 
 <div class="card-row">
   <div class="card">
-    <h3>The kitchen analogy</h3>
-    <p>The data scientist is the chef who invents a dish. I build the restaurant kitchen that serves that dish ten thousand times a night, at the same quality, without burning down. Inventing the recipe and running the kitchen are different skills. People assume they are the same job because both involve food.</p>
+    <h3>The restaurant, basically</h3>
+    <p>The data scientist is the chef who dreams up a dish. I build the kitchen that cooks that same dish ten thousand times a night, tasting the same every time, without setting the place on fire. Inventing a recipe and running a kitchen are just different jobs. People mix them up because both involve food.</p>
   </div>
 </div>
 
@@ -303,11 +303,11 @@ The model is the famous part. The machinery is the part that decides whether the
 
 # The line that explains everything
 
-> A model in a notebook is a science project. A model in production is a promise you have to keep every second of every day.
+> A model on someone's laptop is a cool science-fair project. The same model out in the real world is a promise you have to keep every single second of every day.
 
-The gap between those two sentences is the entire trade. Almost anyone can get a model working once. Keeping it working, for real users, while the world changes around it, is a different kind of problem, and it is mostly an engineering problem, not a maths one.
+The whole trade lives in the gap between those two sentences. Getting something to work once is the easy, fun part almost anyone can do. Keeping it working, for real people, while the world keeps changing underneath it, is the hard part. And it turns out that hard part is mostly plumbing, not maths.
 
-That gap is where I live.
+That gap is where I spend my days.
 
 ---
 
@@ -320,13 +320,13 @@ That gap is where I live.
 
 ---
 
-# A model is a function that learned its own rules
+# A model teaches itself the rules
 
-Normal software works like a recipe a human wrote. Someone sits down and types the rules: *if the income is above this and the age is below that, decline the loan.* Every rule is visible, chosen by a person, and blamed on a person when it is wrong.
+Normal software is just a list of rules a person wrote down by hand: *if the customer earns more than this and is younger than that, say no to the loan.* Every rule was typed by a human, and when it gets something wrong, you can point at the human who typed it.
 
-A model works backwards. You do not write the rules. You show it millions of past examples, good outcomes and bad ones, and it finds the rules itself. It ends up making decisions no human explicitly wrote down, which is exactly why it is powerful and exactly why it is unsettling.
+A model flips that around. Nobody writes the rules. You show it millions of past examples, the good and the bad, and it works out its own rules from the patterns. Think of how you can spot a friend's face in a crowd without being able to explain exactly how. It ends up making calls that no person ever spelled out, which is the whole reason it is so powerful and also faintly unsettling.
 
-> You are not programming the answer. You are programming the thing that figures out the answer. And then you have to trust a system whose reasoning you cannot fully read back.
+> You are not writing down the answer. You are building the thing that comes up with the answer. And then you have to trust something whose reasoning you cannot fully read back.
 
 ---
 
@@ -334,16 +334,16 @@ A model works backwards. You do not write the rules. You show it millions of pas
 
 <div class="card-row">
   <div class="card">
-    <h3>Training</h3>
-    <p>Teaching the model from historical data. Enormously expensive, done relatively rarely. This is where the fleet of GPUs lives, where a single run can take days, and where most of the electricity bill goes.</p>
+    <h3>Training (the studying)</h3>
+    <p>The model sits down with mountains of past examples and slowly learns. This is the expensive, slow part: rooms full of special chips running for days, quietly burning through an electricity bill that would make you wince. You do it rarely.</p>
   </div>
   <div class="card">
-    <h3>Inference</h3>
-    <p>Using the trained model to answer one real question, right now. Has to be fast, cheap, and constant. A fraud model might do this tens of thousands of times a minute, and each answer has to come back before the customer notices.</p>
+    <h3>Using it (the exam)</h3>
+    <p>Once it has studied, you ask it one real question and it answers on the spot. This has to be instant and cheap, because it might happen tens of thousands of times a minute, and each answer has to land before anyone notices they waited.</p>
   </div>
   <div class="card card-dark">
     <h3>Where I come in</h3>
-    <p>Both phases are infrastructure problems dressed up as science problems. Someone has to make training fast enough to be usable and inference reliable enough to be trusted. That someone is the ML Engineer.</p>
+    <p>Both parts are really plumbing problems wearing a lab coat. Someone has to make the studying fast enough to bother with and the answering reliable enough to trust. That someone is me.</p>
   </div>
 </div>
 
@@ -361,8 +361,8 @@ A model works backwards. You do not write the rules. You show it millions of pas
     <p>Where the data scientist mostly lives. Turn data into a model that works.</p>
   </div>
   <div class="card" style="text-align: center;">
-    <h3>Deploy</h3>
-    <p>Get it out of the notebook and into the real product, serving real people.</p>
+    <h3>Ship it</h3>
+    <p>Get it off the laptop and into the actual app that real people use.</p>
   </div>
   <div class="card" style="text-align: center;">
     <h3>Monitor</h3>
@@ -374,7 +374,7 @@ A model works backwards. You do not write the rules. You show it millions of pas
   </div>
 </div>
 
-<p style="margin-top: 20px;">The data scientist owns one box in that diagram. I own the arrows between all of them, and the fact that the loop keeps turning without anyone babysitting it.</p>
+<p style="margin-top: 20px;">The data scientist mostly owns one of those boxes. I own the arrows between all of them, and the fact that this whole circle keeps spinning on its own while everyone sleeps.</p>
 
 ---
 
@@ -387,22 +387,22 @@ A model works backwards. You do not write the rules. You show it millions of pas
 
 ---
 
-# I build tools for the people who build the models
+# I make the tools for the people who make the AI
 
-Most engineers build software for the public. I build software for other engineers and scientists, the ones whose full-time job is inventing models. My work is the ground they stand on.
+Most apps are built for regular people like you. I build tools for the people who build the AI, the folks whose entire job is dreaming up new models. I am the ground they stand on, which mostly means they only notice me when the ground shakes.
 
 <div class="split">
   <div>
-    <h3>The scale of it</h3>
-    <p>A whole organisation's worth of data scientists and ML engineers, with a lot of models running in production at any moment. Each of them wants to train, ship, and monitor without becoming an infrastructure expert first.</p>
+    <h3>Who I'm building for</h3>
+    <p>A whole company's worth of these model-builders, with piles of models running live at any given moment. Every one of them wants to build and ship without first having to become a plumbing expert. My job is to spare them that.</p>
   </div>
   <div>
-    <h3>The product is a platform</h3>
-    <p>A shared foundation so that not every person has to reinvent how training runs, how deployment happens, how monitoring works. They bring the idea. The platform handles everything underneath it.</p>
+    <h3>What I'm actually building</h3>
+    <p>A shared foundation, so nobody has to reinvent the boring machinery from scratch every single time. They bring the clever idea. The platform quietly handles everything underneath it.</p>
   </div>
 </div>
 
-> If I do the job well, none of them ever think about me. If I do it badly, nothing ships. Being invisible is the goal, which is a strange thing to optimise a career around.
+> Do it well and nobody ever thinks about me. Do it badly and nothing works. My whole job is to be invisible, which is a genuinely weird thing to build a career around.
 
 ---
 
@@ -410,20 +410,20 @@ Most engineers build software for the public. I build software for other enginee
 
 <div class="card-row">
   <div class="card">
-    <h3>Training infrastructure</h3>
-    <p>The compute, the GPUs, the pipelines that turn "run this experiment" into a result without the scientist ever touching a server.</p>
+    <h3>A place to train</h3>
+    <p>All the heavy computers and chips, wired up so someone can say "run my experiment" and just get an answer back, without ever wrestling with a server themselves.</p>
   </div>
   <div class="card">
-    <h3>Deployment pipelines</h3>
-    <p>The paved road from a model that works on a laptop to a model answering live requests, with safety rails so a bad version cannot quietly reach real users.</p>
+    <h3>A safe way to ship</h3>
+    <p>A paved road from "works on my laptop" to "live for everyone," with guardrails so a broken version can't quietly sneak out to real people.</p>
   </div>
   <div class="card">
-    <h3>Serving and monitoring</h3>
-    <p>Keeping models fast and healthy in production, and raising a hand the moment one starts drifting away from reality.</p>
+    <h3>A way to keep watch</h3>
+    <p>Keeping the live models quick and healthy, and tapping me on the shoulder the moment one starts drifting away from reality.</p>
   </div>
   <div class="card">
-    <h3>Expansion</h3>
-    <p>Designing it so the same platform works in a new country without rebuilding it from scratch. Growth should be a config change, not a rewrite.</p>
+    <h3>Room to grow</h3>
+    <p>Building it so the same setup works in a new country without tearing it all down and starting over. Growing should be a small tweak, not a full rebuild.</p>
   </div>
 </div>
 
@@ -438,20 +438,20 @@ Most engineers build software for the public. I build software for other enginee
 
 ---
 
-# One GPU is never enough
+# One computer is never enough
 
-A large model trained on a single GPU can take weeks. A big part of my work is turning that kind of wait into something measured in days instead, so that training a model stops being a monthly event and becomes a normal Tuesday.
+Teaching a big model on a single machine can take weeks. A lot of my job is turning "weeks" into "a few days," so that training a model stops being a rare event you plan your month around and becomes a normal Tuesday.
 
-You would think you just add more GPUs and it goes faster, and that is where most people's intuition stops. It is a reasonable intuition. It is also where the actual problem begins, because GPUs do not naturally cooperate.
+You would think you just add more computers and it goes faster. That is exactly where most people's guess stops, and it is a perfectly sensible guess. It is also where the real problem starts, because computers, like people, are terrible at working together without a lot of help.
 
 <div class="split">
   <div>
-    <h3>The coordination problem</h3>
-    <p>To use many GPUs at once you have to split the work: slice the model across them, or the data, or both. Then they all have to constantly compare notes and stay in sync. Get that coordination wrong and eight GPUs run slower than one.</p>
+    <h3>The group-project problem</h3>
+    <p>Picture a group project where everyone has to end up on the same page, constantly. You split the work up, but now they all have to stop and compare notes over and over. Coordinate it badly and eight people somehow finish slower than one. Computers are exactly like this.</p>
   </div>
   <div>
-    <h3>Where the real work is</h3>
-    <p>Most of the engineering is not "buy more hardware." It is making the hardware talk to itself efficiently: who holds which piece, when they synchronise, how to overlap the talking with the calculating so nothing sits idle.</p>
+    <h3>Where my actual work is</h3>
+    <p>So the job is almost never "buy more machines." It is getting them to talk to each other without tripping over their own feet: who does which piece, when they check in, and how to keep everyone busy instead of standing around waiting.</p>
   </div>
 </div>
 
@@ -465,7 +465,7 @@ You would think you just add more GPUs and it goes faster, and that is where mos
 
 That sounds like a convenience. It is actually a change in how people think. When feedback takes many minutes, you get careful and cautious, you batch up your guesses, you stop experimenting because each try costs real time. When it takes seconds, you just try things.
 
-Fast feedback does not make people work faster. It makes them braver. That is the real product I am selling, and almost nobody outside the field would guess that developer patience is the metric a whole platform gets built around.
+Quick feedback does not just make people work faster. It makes them braver. That is the real thing I am selling, and almost nobody outside this world would guess that a whole platform gets built around something as human as how long people are willing to wait.
 
 ---
 
@@ -490,22 +490,22 @@ So the job is never "ship it and move on." It is watch it, catch the drift, retr
 
 ---
 
-# MLOps: keeping the promise at scale
+# Doing all of that, for a lot of models at once
 
-Everything from the last slide, done for hundreds of models at once without an army of people manually babysitting each one. The industry calls this MLOps. It is mostly the discipline of making the boring parts automatic and trustworthy.
+Now imagine everything on the last slide, but for hundreds of models at the same time, and without an army of people hand-holding each one. My corner of the field has an unlovely name for this, "MLOps," but really it just means making the boring, repetitive parts automatic and trustworthy.
 
 <div class="card-row">
   <div class="card">
-    <h3>Pipelines</h3>
-    <p>Automated assembly lines that retrain, test, and redeploy models on their own, so a human is deciding what should happen, not clicking the buttons to make it happen.</p>
+    <h3>Assembly lines</h3>
+    <p>Instead of a person clicking through every update by hand, the boring steps run themselves on a schedule. A human decides what should happen; the machine handles the tedious business of making it happen.</p>
   </div>
   <div class="card">
-    <h3>Infrastructure as code</h3>
-    <p>The entire platform written down as code, not assembled by hand. It can be rebuilt, reviewed, and reasoned about, instead of living in one person's memory and a folder of fragile scripts.</p>
+    <h3>A written-down recipe</h3>
+    <p>The whole setup is written down step by step, like flat-pack furniture instructions, so anyone can rebuild it or spot a mistake. The alternative is it living only in one person's head and a folder of fragile scripts that break if you look at them wrong.</p>
   </div>
   <div class="card">
     <h3>Rebuilding mid-flight</h3>
-    <p>A large part of my recent work is replacing the platform's foundations while hundreds of people keep using it every day. Changing the engine without landing the plane.</p>
+    <p>A lot of my recent work is replacing the foundations while hundreds of people keep using the thing every day. It is a bit like changing a plane's engine without landing the plane.</p>
   </div>
 </div>
 
@@ -557,12 +557,12 @@ There are two graphics cards humming in my apartment right now, doing nothing an
 
 <div class="split">
   <div>
-    <h3>Not for speed</h3>
-    <p>It will never win a benchmark, and that was never the goal. It exists so I can watch distributed training happen on hardware I fully control, and actually see why it is slow instead of reading that it is.</p>
+    <h3>Not to be fast</h3>
+    <p>It will never win any speed contest, and that was never the point. It is there so I can watch two chips try to learn one thing together, right in front of me, and actually see why it gets slow instead of just reading that it does.</p>
   </div>
   <div>
-    <h3>For understanding</h3>
-    <p>The trade rewards curiosity far more than credentials. You learn how the big pipes work by building small pipes you understand completely, breaking them, and fixing them. The learning never really stops, which is the best and worst part.</p>
+    <h3>To actually get it</h3>
+    <p>This job rewards curiosity way more than any diploma. You learn how the giant version works by building a tiny version you fully understand, breaking it on purpose, and fixing it. The learning genuinely never stops, which is the best and the most exhausting part.</p>
   </div>
 </div>
 
