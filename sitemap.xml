@@ -66,6 +66,24 @@
         <priority>0.8</priority>
     </url>
     <url>
+        <loc>https://dan.rio/en/blog/what-i-do-ml-engineering.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/what-i-do-ml-engineering.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/what-i-do-ml-engineering.html"/>
+        <lastmod>2026-07-05</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/pt/blog/what-i-do-ml-engineering.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/what-i-do-ml-engineering.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/what-i-do-ml-engineering.html"/>
+        <lastmod>2026-07-05</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
         <loc>https://dan.rio/en/blog/how-i-use-ai-agents.html</loc>
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/how-i-use-ai-agents.html"/>
