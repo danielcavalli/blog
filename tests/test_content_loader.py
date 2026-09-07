@@ -1,127 +1,43 @@
-"""Unit tests for content loader."""
+"""Read real Markdown without hidden metadata or filesystem writes."""
 
-import os
-import sys
-import tempfile
-from unittest import mock
-import frontmatter
+import pytest
+import html5lib
 
-_SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
-sys.path.insert(0, _SOURCE)
-
-import content_loader  # noqa: E402  # imported after sys.path adjustment
+from content_loader import parse_markdown_post
 
 
-class TestParseMarkdownPost:
-    def test_default_language(self):
-        """Test that default language is en-us if omitted."""
-        with tempfile.NamedTemporaryFile(suffix=".md", delete=False, mode="w") as f:
-            f.write("---\ntitle: Test\n---\nContent")
-            f.flush()
-            filepath = f.name
+@pytest.mark.parametrize(
+    "language_field,locale",
+    [("", "en-us"), ("lang: pt-br\n", "pt-br"), ("source_language: es-es\n", "es-es")],
+)
+def test_authored_frontmatter_and_heading_anchors(tmp_path, language_field, locale):
+    path = tmp_path / "example.md"
+    original = (
+        "---\ntitle: Example\ndate: 2026-05-01\nupdated: 2026-05-02\n"
+        + language_field + "tags: [writing]\n---\n## Topic\n\nOriginal text.\n"
+    )
+    path.write_text(original)
+    post = parse_markdown_post(path)
+    assert post["lang"] == locale
+    assert post["slug"] == "example"
+    assert post["published_date"] == "2026-05-01"
+    assert post["updated_fm_date"] == "2026-05-02"
+    assert post["tags"] == ["writing"]
+    document = html5lib.parseFragment(post["content"], namespaceHTMLElements=False)
+    heading = document.find(".//h2[@id='topic']")
+    assert heading is not None and heading.text == "Topic"
+    assert parse_markdown_post(path) == post
+    assert path.read_text() == original
+    assert list(tmp_path.iterdir()) == [path]
 
-        try:
-            # We use a dummy metadata store to avoid writing sidecar metadata
-            store = {}
-            with mock.patch("content_loader.frontmatter.load") as mock_load:
-                post = frontmatter.Post("Content", title="Test")
-                mock_load.return_value = post
 
-                # We need to mock calculate_content_hash, which is from helpers
-                with mock.patch("content_loader.calculate_content_hash", return_value="hash"):
-                    # And mock markdown rendering
-                    with mock.patch(
-                        "content_loader.render_markdown_with_internal_refs",
-                        return_value="<p>Content</p>",
-                    ):
-                        import pathlib
-
-                        p = pathlib.Path(filepath)
-                        result = content_loader.parse_markdown_post(p, _metadata_store=store)
-
-            assert result["lang"] == "en-us"
-        finally:
-            os.remove(filepath)
-
-    def test_lang_field(self):
-        """Test that lang field is correctly extracted."""
-        with tempfile.NamedTemporaryFile(suffix=".md", delete=False, mode="w") as f:
-            f.write("---\ntitle: Test\nlang: pt-br\n---\nContent")
-            f.flush()
-            filepath = f.name
-
-        try:
-            store = {}
-            with mock.patch("content_loader.frontmatter.load") as mock_load:
-                post = frontmatter.Post("Content", title="Test", lang="pt-br")
-                mock_load.return_value = post
-
-                with mock.patch("content_loader.calculate_content_hash", return_value="hash"):
-                    with mock.patch(
-                        "content_loader.render_markdown_with_internal_refs",
-                        return_value="<p>Content</p>",
-                    ):
-                        import pathlib
-
-                        p = pathlib.Path(filepath)
-                        result = content_loader.parse_markdown_post(p, _metadata_store=store)
-
-            assert result["lang"] == "pt-br"
-        finally:
-            os.remove(filepath)
-
-    def test_source_language_field(self):
-        """Test that source_language field is correctly extracted if lang is not present."""
-        with tempfile.NamedTemporaryFile(suffix=".md", delete=False, mode="w") as f:
-            f.write("---\ntitle: Test\nsource_language: es-es\n---\nContent")
-            f.flush()
-            filepath = f.name
-
-        try:
-            store = {}
-            with mock.patch("content_loader.frontmatter.load") as mock_load:
-                post = frontmatter.Post("Content", title="Test", source_language="es-es")
-                mock_load.return_value = post
-
-                with mock.patch("content_loader.calculate_content_hash", return_value="hash"):
-                    with mock.patch(
-                        "content_loader.render_markdown_with_internal_refs",
-                        return_value="<p>Content</p>",
-                    ):
-                        import pathlib
-
-                        p = pathlib.Path(filepath)
-                        result = content_loader.parse_markdown_post(p, _metadata_store=store)
-
-            assert result["lang"] == "es-es"
-        finally:
-            os.remove(filepath)
-
-    def test_render_markdown_receives_source_markdown_for_anchor_canonicalization(self):
-        with tempfile.NamedTemporaryFile(suffix=".md", delete=False, mode="w") as f:
-            f.write("---\ntitle: Test\n---\n## Topic\n\nContent")
-            f.flush()
-            filepath = f.name
-
-        try:
-            store = {}
-            with mock.patch("content_loader.frontmatter.load") as mock_load:
-                post = frontmatter.Post("## Topic\n\nContent", title="Test")
-                mock_load.return_value = post
-
-                with mock.patch("content_loader.calculate_content_hash", return_value="hash"):
-                    with mock.patch(
-                        "content_loader.render_markdown_with_internal_refs",
-                        return_value="<h2 id='topic'>Topic</h2><p>Content</p>",
-                    ) as mock_render:
-                        import pathlib
-
-                        p = pathlib.Path(filepath)
-                        content_loader.parse_markdown_post(p, _metadata_store=store)
-
-            mock_render.assert_called_once_with(
-                "## Topic\n\nContent",
-                source_markdown="## Topic\n\nContent",
-            )
-        finally:
-            os.remove(filepath)
+def test_legacy_build_timestamps_do_not_replace_editorial_dates(tmp_path):
+    path = tmp_path / "example.md"
+    path.write_text(
+        "---\ntitle: Example\ndate: 2025-01-01\ncreated_at: 2026-02-01\n"
+        "updated_at: 2026-03-01\ncontent_hash: obsolete\n---\nText.\n"
+    )
+    post = parse_markdown_post(path)
+    assert post["published_date"] == "2025-01-01"
+    assert post["updated_fm_date"] == ""
+    assert not {"created_date", "updated_date", "content_hash"} & post.keys()

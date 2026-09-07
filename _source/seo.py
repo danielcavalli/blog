@@ -5,7 +5,6 @@ sitemap XML) and depend only on config constants.
 """
 
 import json
-from datetime import datetime
 
 from config import SITE_URL, AUTHOR, SOCIAL_LINKS, LANGUAGES, get_language_codes
 
@@ -92,7 +91,6 @@ def generate_sitemap(posts_en, posts_pt):
     Returns:
         str: Complete sitemap.xml content.
     """
-    today = datetime.now().strftime('%Y-%m-%d')
     lang_codes = get_language_codes()
 
     urls = []
@@ -101,7 +99,6 @@ def generate_sitemap(posts_en, posts_pt):
     urls.append(f"""    <url>
         <loc>{SITE_URL}/</loc>
         {_sitemap_hreflang_links('index.html')}
-        <lastmod>{today}</lastmod>
         <changefreq>monthly</changefreq>
         <priority>1.0</priority>
     </url>""")
@@ -113,7 +110,6 @@ def generate_sitemap(posts_en, posts_pt):
             urls.append(f"""    <url>
         <loc>{SITE_URL}/{lang_dir}/{page}</loc>
         {_sitemap_hreflang_links(page)}
-        <lastmod>{today}</lastmod>
         <changefreq>{freq}</changefreq>
         <priority>{priority}</priority>
     </url>""")
@@ -122,17 +118,19 @@ def generate_sitemap(posts_en, posts_pt):
     for post in posts_en:
         slug = post['slug']
         # lastmod: prefer frontmatter 'updated' field (author-controlled),
-        # fall back to frontmatter 'date', then today as last resort.
+        # fall back to frontmatter 'date'. Omit unknown dates: running a build
+        # does not mean the content changed.
         lastmod = (
             post.get('updated_fm_date')
             or post.get('published_date')
             or post.get('date')
-            or today
+            or ''
         )
         # Normalize to YYYY-MM-DD (strip time component if present)
         if 'T' in str(lastmod):
             lastmod = str(lastmod).split('T')[0]
         lastmod = str(lastmod)
+        lastmod_element = f'<lastmod>{lastmod}</lastmod>' if lastmod else ''
 
         blog_page = f'blog/{slug}.html'
         for lang in lang_codes:
@@ -140,7 +138,7 @@ def generate_sitemap(posts_en, posts_pt):
             urls.append(f"""    <url>
         <loc>{SITE_URL}/{lang_dir}/blog/{slug}.html</loc>
         {_sitemap_hreflang_links(blog_page)}
-        <lastmod>{lastmod}</lastmod>
+        {lastmod_element}
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>""")

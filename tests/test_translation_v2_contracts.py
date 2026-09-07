@@ -2,7 +2,6 @@
 
 import os
 import sys
-import types
 from typing import Any
 
 import pytest
@@ -10,9 +9,6 @@ import pytest
 
 _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 sys.path.insert(0, _SOURCE)
-_mock_provider_stub = types.ModuleType("translation_v2.mock_provider")
-_mock_provider_stub.DeterministicMockTranslationProvider = object
-sys.modules.setdefault("translation_v2.mock_provider", _mock_provider_stub)
 
 from translation_v2.contracts import (  # noqa: E402
     CVTranslationOutput,

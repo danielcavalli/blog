@@ -12,7 +12,6 @@ sys.path.insert(0, _SOURCE)
 
 from translation_v2.artifacts import TranslationRunArtifacts  # noqa: E402
 from translation_v2.run_logging import (  # noqa: E402
-    BuildSummaryCounters,
     TranslationRunEventLogger,
     event_has_required_schema,
 )
@@ -25,7 +24,7 @@ def test_run_event_logger_writes_required_jsonl_schema(tmp_path):
         post_slug="my-post",
         stage="translate",
         attempt=1,
-        model="opencode/gpt-5.4",
+        model="opencode/gpt-5.5",
         duration_ms=1210,
         outcome="success",
     )
@@ -41,7 +40,7 @@ def test_run_event_logger_writes_required_jsonl_schema(tmp_path):
     assert loaded["post_slug"] == "my-post"
     assert loaded["stage"] == "translate"
     assert loaded["attempt"] == 1
-    assert loaded["model"] == "opencode/gpt-5.4"
+    assert loaded["model"] == "opencode/gpt-5.5"
     assert loaded["duration_ms"] == 1210
     assert loaded["outcome"] == "success"
 
@@ -79,25 +78,3 @@ def test_run_artifacts_persist_prompt_response_error_and_runner_logs(tmp_path):
     response_payload = json.loads(response_path.read_text(encoding="utf-8"))
     assert response_payload["token"] == "[REDACTED]"
     assert response_payload["nested"]["api_key"] == "[REDACTED]"
-
-
-def test_build_summary_counters_expose_concise_metrics():
-    counters = BuildSummaryCounters()
-    counters.increment_cache_hit()
-    counters.increment_cache_miss()
-    counters.increment_retries(2)
-    counters.increment_failures()
-
-    as_dict = counters.as_dict()
-    assert as_dict == {
-        "cache_hit": 1,
-        "cache_miss": 1,
-        "retries": 2,
-        "failures": 1,
-    }
-
-    line = counters.to_summary_line()
-    assert "cache_hit=1" in line
-    assert "cache_miss=1" in line
-    assert "retries=2" in line
-    assert "failures=1" in line

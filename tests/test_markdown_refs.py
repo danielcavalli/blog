@@ -3,24 +3,45 @@
 import os
 import sys
 
+import html5lib
+import pytest
 
 _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 sys.path.insert(0, _SOURCE)
 
 from markdown_refs import (  # noqa: E402
     extract_heading_anchor_specs,
-    preprocess_numeric_internal_references,
     render_markdown_with_internal_refs,
 )
 
 
-def test_preprocess_rewrites_numeric_reference_citation_and_anchor():
-    md = "It is [updated frequently][7].\n\n[7] Reference item"
+@pytest.mark.parametrize("code", [
+    "`[7]`", "``[label][7]``", "`multi\n[7]`",
+    "~~~text\n[7]\n~~~", "````text\n```\n[7]\n````",
+    "    [7]", "    [label][7]",
+])
+def test_numeric_references_never_rewrite_authored_code(code):
+    import markdown
 
-    processed = preprocess_numeric_internal_references(md)
+    text = f"{code}\n\nActual citation [7].\n\n[7] Evidence."
+    expected = html5lib.parseFragment(markdown.markdown(text, extensions=["fenced_code"]), namespaceHTMLElements=False)
+    actual = html5lib.parseFragment(render_markdown_with_internal_refs(text), namespaceHTMLElements=False)
+    assert [e.text for e in actual.iter("code")] == [e.text for e in expected.iter("code")]
+    assert len([a for a in actual.iter("a") if a.get("href") == "#ref-7"]) == 1
 
-    assert "updated frequently[[7]](#ref-7)" in processed
-    assert '<span id="ref-7"></span>[7] Reference item' in processed
+
+def test_numeric_references_preserve_escapes_and_link_destinations():
+    text = r"Literal \[7]. [Link](https://example.com/[7]) and [real][7]." + "\n\n[7] Evidence."
+    actual = html5lib.parseFragment(render_markdown_with_internal_refs(text), namespaceHTMLElements=False)
+    assert [a.get("href") for a in actual.iter("a")] == ["https://example.com/[7]", "#ref-7"]
+
+
+def test_setext_and_atx_headings_share_source_anchors_across_locales():
+    source = "First\n=====\n\n~~~markdown\n# Code heading\n~~~\n\n## Second {#stable}"
+    translated = "Primeiro\n========\n\n~~~markdown\n# Code heading\n~~~\n\n## Segundo {#stable}"
+    assert [s.anchor_id for s in extract_heading_anchor_specs(source)] == ["first", "stable"]
+    actual = html5lib.parseFragment(render_markdown_with_internal_refs(translated, source_markdown=source), namespaceHTMLElements=False)
+    assert [e.get("id") for e in actual.iter() if e.tag in {"h1", "h2"}] == ["first", "stable"]
 
 
 def test_render_outputs_clickable_numeric_citation_and_reference_target():
@@ -44,40 +65,32 @@ def test_external_links_are_unchanged():
 def test_unknown_numeric_reference_is_not_rewritten():
     md = "Text [unknown citation][99].\n\n[7] Reference item"
 
-    processed = preprocess_numeric_internal_references(md)
     html = render_markdown_with_internal_refs(md)
 
-    assert "[unknown citation][99]" in processed
     assert "[unknown citation][99]" in html
 
 
 def test_non_numeric_reference_label_is_not_rewritten():
     md = "Text [named citation][abc].\n\n[7] Reference item"
 
-    processed = preprocess_numeric_internal_references(md)
     html = render_markdown_with_internal_refs(md)
 
-    assert "[named citation][abc]" in processed
     assert "[named citation][abc]" in html
 
 
 def test_bare_numeric_citation_is_rewritten_to_internal_anchor_link():
     md = "Context continuity is rebuilt [7].\n\n[7] Reference item"
 
-    processed = preprocess_numeric_internal_references(md)
     html = render_markdown_with_internal_refs(md)
 
-    assert "[[7]](#ref-7)" in processed
     assert '<a href="#ref-7">[7]</a>' in html
 
 
 def test_unknown_bare_numeric_citation_is_not_rewritten():
     md = "Context continuity is rebuilt [7]."
 
-    processed = preprocess_numeric_internal_references(md)
     html = render_markdown_with_internal_refs(md)
 
-    assert "[7]" in processed
     assert '<a href="#ref-7">[7]</a>' not in html
 
 
@@ -140,3 +153,37 @@ def test_render_does_not_inject_block_permalink_into_paragraph_wrapping_code_blo
     assert '<p class="linkable-block" data-block-id="block-002" id="block-002"><pre>' not in html
     assert '<pre class="linkable-block" data-block-id="block-002" id="block-002">' in html
     assert 'class="permalink-anchor block-anchor"' not in html
+
+
+def test_native_theme_figure_keeps_attributes_and_valid_block_structure() -> None:
+    md = '''Intro.
+
+<figure class="post-figure theme-media" id="hub-view">
+  <picture data-theme-variant="light">
+    <source media="(max-width: 560px)" srcset="/day-mobile.svg" width="400" height="900">
+    <img src="/day.svg" alt="Day view" width="960" height="660">
+  </picture>
+  <picture data-theme-variant="dark"><img src="/night.svg" alt="Night view"></picture>
+  <figcaption>A &amp; B.</figcaption>
+</figure>
+
+After the figure.
+'''
+    rendered = render_markdown_with_internal_refs(md)
+    parser = html5lib.HTMLParser(namespaceHTMLElements=False)
+    fragment = parser.parseFragment(rendered)
+    assert not parser.errors
+    figure = fragment.find("figure")
+    assert figure is not None
+    assert figure.get("id") == "hub-view"
+    assert figure.get("data-block-id") == "hub-view"
+    assert set(figure.get("class", "").split()) == {
+        "post-figure", "theme-media", "linkable-block"
+    }
+    assert [p.get("data-theme-variant") for p in figure.findall("picture")] == ["light", "dark"]
+    source = figure.find("picture/source")
+    assert source is not None
+    assert source.get("srcset") == "/day-mobile.svg"
+    assert source.get("width") == "400"
+    assert figure.findtext("figcaption") == "A & B."
+    assert len(fragment.findall("p")) == 2

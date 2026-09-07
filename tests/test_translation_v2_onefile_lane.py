@@ -8,23 +8,21 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import time
 
 from translation_v2.contracts import validate_translation_output
 
 from tests.translation_v2_onefile_lane_helper import (
-    CANONICAL_ONEFILE_LANE_COMMAND,
     CONTRACT_REGRESSION_FIXTURE_PATH,
     DEFAULT_ONEFILE_RUNTIME_CEILING_SECONDS,
     MOCK_FIXTURE_PATH,
     configure_onefile_build,
-    ensure_runtime_stubs,
+    ensure_source_imports,
     make_source_post,
 )
 
 
-ensure_runtime_stubs()
+ensure_source_imports()
 import build  # noqa: E402  # isort: skip
 
 
@@ -35,7 +33,7 @@ def _runtime_ceiling_seconds() -> float:
     return float(raw)
 
 
-def test_onefile_lane_runs_end_to_end_with_debuggable_logs(
+def test_focused_build_reports_rendering_without_translation_runs(
     monkeypatch,
     tmp_path,
     capsys,
@@ -47,7 +45,6 @@ def test_onefile_lane_runs_end_to_end_with_debuggable_logs(
     started = time.monotonic()
     ok = build.build(
         strict=False,
-        use_staging=False,
         post_selector=source_post["slug"],
         skip_about_cv_translation=True,
     )
@@ -60,18 +57,9 @@ def test_onefile_lane_runs_end_to_end_with_debuggable_logs(
     assert "Markdown discovery" in captured
     assert "Selected" in captured
     assert source_post["slug"] in captured
-    assert "translation_v2 runtime" in captured
-    assert "Run ID" in captured
-    assert "Artifacts" in captured
-    assert CANONICAL_ONEFILE_LANE_COMMAND.endswith("tests/test_translation_v2_onefile_lane.py -q")
-
-    run_match = re.search(r"test-run|build-v2-[0-9]+", captured)
-    assert run_match is not None
-
-    run_id = run_match.group(0)
-    artifact_dir = tmp_path / "_cache" / "translation-runs" / run_id
-    assert artifact_dir.exists()
-    assert artifact_dir.name == run_id
+    assert "Rendering source and accepted translations" in captured
+    assert "Run ID" not in captured
+    assert not (tmp_path / "_cache" / "translation-runs").exists()
     assert (tmp_path / "pt" / "blog" / "deterministic-mock-post.html").exists()
 
 

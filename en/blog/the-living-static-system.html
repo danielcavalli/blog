@@ -37,13 +37,15 @@
     <link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/the-living-static-system.html">
     
     <link rel="stylesheet" href="/static/css/styles.css?v=a9e0f4b7">
-    <link rel="stylesheet" href="/static/css/post.css?v=231f41e7">
+    <link rel="stylesheet" href="/static/css/post.css?v=b1fe0cd4">
     <link rel="preload" href="/static/js/theme.js?v=30ebbd0e" as="script">
     <script src="/static/js/theme.js?v=30ebbd0e"></script>
     <script src="/static/js/transitions.js?v=ec40089a" defer></script>
     <script src="/static/js/filter.js?v=c18ff16b" defer></script>
     <script src="/static/js/annotations.js?v=31123876" defer></script>
     <script src="/static/js/presentation.js?v=fff59a2c" defer></script>
+    <script src="/static/js/diagrams.js?v=bc8a594d" defer></script>
+    <script src="/static/js/reading.js?v=6c9b14d6" defer></script>
 </head>
 <body
     data-copy-section-link="Copy section link"
@@ -91,22 +93,24 @@
         </div>
     </nav>
 
-    <main id="main-content" class="container">
-        <article class="post" style="view-transition-name: post-container-9;">
+    <main id="main-content" class="container article-container">
+        <article class="post post--reading" style="view-transition-name: post-container-12;">
             <header class="post-header">
                 <a href="/en/index.html" class="back-link">← Back to Blog</a>
-                
-                <h1 class="post-title-large" style="view-transition-name: post-title-9;">THE LIVING STATIC SYSTEM</h1>
+
+                <h1 class="post-title-large" style="view-transition-name: post-title-12;">THE LIVING STATIC SYSTEM</h1>
                 <div class="post-meta">
-                    <time class="post-date" style="view-transition-name: post-date-9;">January 25, 2025</time>
+                    <time class="post-date" style="view-transition-name: post-date-12;">January 25, 2025</time>
                     <span class="post-separator">•</span>
                     <span class="post-reading-time">11 min read</span>
                 </div>
                 <div class="post-tags"><span class="tag-pill">Web Development</span><span class="tag-pill">View Transitions API</span><span class="tag-pill">Static Sites</span><span class="tag-pill">Python</span></div>
             </header>
 
+            <div class="article-layout">
+            <nav class="article-outline" aria-label="On this page"><details open><summary>On this page</summary><ol class="outline-list"><li><a href="#the-build-pipeline">The Build Pipeline</a></li><li><a href="#translation-as-a-mirror">Translation as a Mirror</a></li><li><a href="#navigation-as-continuous-space">Navigation as Continuous Space</a></li><li><a href="#filtering-without-surprise">Filtering Without Surprise</a></li><li><a href="#language-switching-as-translation-overlay">Language Switching as Translation Overlay</a></li><li><a href="#customization-without-scaffolding">Customization Without Scaffolding</a></li><li><a href="#why-no-framework">Why No Framework</a></li><li><a href="#the-philosophy-of-motion">The Philosophy of Motion</a></li><li><a href="#the-contract-with-the-reader">The Contract with the Reader</a></li><li><a href="#what-the-system-knows">What the System Knows</a></li></ol></details></nav>
             <div class="post-body">
-                <p class="lead" style="view-transition-name: post-excerpt-9;">
+                <p class="lead" style="view-transition-name: post-excerpt-12;">
                     Inside a bilingual static site that moves as one surface: a Python build, a translation pipeline, and native transitions that keep space continuous.
                 </p>
                 <p class="linkable-block" data-block-id="block-001" id="block-001">The system began as a question: how little does a blog need to feel alive. Not animated for its own sake, but alive in the way a tide advances: inevitable, continuous, without edges. What emerged is a static generator that writes two mirrors of itself, one in English and one in Portuguese, and a thin layer of motion that never breaks the surface. Pages do not switch. Space reorganizes.</p>
@@ -219,6 +223,8 @@ cards.forEach(card =&gt; {
 <p class="linkable-block" data-block-id="block-039" id="block-039">This is not a demonstration. It is the simplest version of a living document I could make without lying about what the web can already do. On most nights I write with the windows open in Copacabana and the sound of the avenue folding into the sea. The system learns that rhythm and keeps it. Things flow not because they are fast, but because they do not get in their own way.</p>
 <p class="linkable-block" data-block-id="block-040" id="block-040">The cache remembers what has not changed. The translator preserves what should not be translated. The navigation maintains where you were looking when the language switched. The motion system encodes how long things should take and refuses to argue about it. Every decision the system makes is in service of a single idea: the document is continuous. When you move through it, the space reorganizes, but it never breaks.</p>
 <p class="linkable-block" data-block-id="block-041" id="block-041">That is what it means for a static site to feel alive.</p>
+            </div>
+
             </div>
         </article>
     </main>

@@ -7,7 +7,6 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/index.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/index.html"/>
-        <lastmod>2026-04-29</lastmod>
         <changefreq>monthly</changefreq>
         <priority>1.0</priority>
     </url>
@@ -16,7 +15,6 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/index.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/index.html"/>
-        <lastmod>2026-04-29</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
@@ -25,7 +23,6 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/index.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/index.html"/>
-        <lastmod>2026-04-29</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
@@ -34,7 +31,6 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/about.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/about.html"/>
-        <lastmod>2026-04-29</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>
@@ -43,7 +39,6 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/about.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/about.html"/>
-        <lastmod>2026-04-29</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>
@@ -52,7 +47,6 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/cv.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/cv.html"/>
-        <lastmod>2026-04-29</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -61,7 +55,42 @@
         <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/cv.html"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/cv.html"/>
-        <lastmod>2026-04-29</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/en/blog/mare-rio-and-mare-hub.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/mare-rio-and-mare-hub.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/mare-rio-and-mare-hub.html"/>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/pt/blog/mare-rio-and-mare-hub.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/mare-rio-and-mare-hub.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/mare-rio-and-mare-hub.html"/>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/en/blog/adding-an-agent-to-a-mare-app.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/adding-an-agent-to-a-mare-app.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/adding-an-agent-to-a-mare-app.html"/>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://dan.rio/pt/blog/adding-an-agent-to-a-mare-app.html</loc>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://dan.rio/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/adding-an-agent-to-a-mare-app.html"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/adding-an-agent-to-a-mare-app.html"/>
+        <lastmod>2026-09-05</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>

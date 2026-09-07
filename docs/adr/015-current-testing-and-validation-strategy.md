@@ -21,13 +21,15 @@ The test strategy is split across:
 - translation runtime contract tests
 - cache/revision boundary tests
 - locale-policy and prompt-policy tests
-- one-file lane regression tests
+- accepted-content build and publication recovery tests
+- browser checks of reading behavior and all current source posts
 
 CI does not run live provider calls. Instead, it relies on:
 
 - mock provider coverage
 - structured fixture coverage
-- focused integration tests that exercise build orchestration without network dependency
+- real accepted-content builds that exercise publication without model access
+- complete rebuilds from committed acceptance, followed by HTML and link validation
 
 Validation also includes focused non-pytest commands where appropriate:
 

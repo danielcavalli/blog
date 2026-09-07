@@ -13,19 +13,17 @@ import re
 import unicodedata
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
+from html import escape
+from html.parser import HTMLParser
 
 import markdown
 from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
+from markdown.inlinepatterns import InlineProcessor
+from markdown.util import AtomicString
 
 
 _REFERENCE_LINE_RE = re.compile(r"^\[(\d+)\]\s+")
-_NUMERIC_CITATION_RE = re.compile(r"\[([^\]\n]+?)\]\[(\d+)\]")
-_BARE_NUMERIC_CITATION_RE = re.compile(r"(?<!\[)\[(\d+)\](?![\]\(:])")
-_FENCE_RE = re.compile(r"^\s*```")
-_ATX_HEADING_RE = re.compile(r"^(#{1,6})[ \t]+(.+?)\s*$")
-_EXPLICIT_ANCHOR_SUFFIX_RE = re.compile(r"\s+\{#([A-Za-z][\w:.-]*)\}\s*$")
-_TRAILING_CLOSING_HASHES_RE = re.compile(r"[ \t]+#+[ \t]*$")
 _INLINE_LINK_RE = re.compile(r"!?\[([^\]]+)\]\([^)]+\)")
 _INLINE_REFERENCE_RE = re.compile(r"\[([^\]]+)\]\[[^\]]+\]")
 _INLINE_HTML_RE = re.compile(r"<[^>]+>")
@@ -33,30 +31,11 @@ _INLINE_MARKER_RE = re.compile(r"[*_~`]")
 _HEADING_TAGS = {"h1", "h2", "h3", "h4", "h5", "h6"}
 _BLOCK_TAGS = {"p", "li", "blockquote", "pre", "table"}
 _SCROLL_TARGET_TAGS = _HEADING_TAGS | _BLOCK_TAGS
-_UNWRAPPABLE_BLOCK_TAGS = {"pre", "table", "blockquote", "ul", "ol"}
+_UNWRAPPABLE_BLOCK_TAGS = {"pre", "table", "blockquote", "ul", "ol", "figure"}
 _WRAPPED_BLOCK_HTML_RE = re.compile(
-    r"<p(?P<attrs>[^>]*)>\s*(?P<block><(?P<tag>pre|table|blockquote|ul|ol)\b.*?</(?P=tag)>)\s*</p>",
+    r"<p(?P<attrs>[^>]*)>\s*(?P<block><(?P<tag>pre|table|blockquote|ul|ol|figure)\b.*?</(?P=tag)>)\s*</p>",
     re.DOTALL,
 )
-
-
-def _collect_reference_numbers(lines: list[str]) -> set[str]:
-    """Collect numeric reference ids from ``[N] ...`` lines."""
-    in_fence = False
-    refs: set[str] = set()
-
-    for line in lines:
-        if _FENCE_RE.match(line):
-            in_fence = not in_fence
-            continue
-        if in_fence:
-            continue
-
-        match = _REFERENCE_LINE_RE.match(line)
-        if match:
-            refs.add(match.group(1))
-
-    return refs
 
 
 @dataclass(frozen=True)
@@ -74,16 +53,6 @@ def _append_class(element: ET.Element, class_name: str) -> None:
         classes.append(class_name)
     if classes:
         element.set("class", " ".join(classes))
-
-
-def _normalize_heading_text(raw_text: str) -> tuple[str, str | None]:
-    text = _TRAILING_CLOSING_HASHES_RE.sub("", raw_text).strip()
-    explicit_match = _EXPLICIT_ANCHOR_SUFFIX_RE.search(text)
-    explicit_anchor = None
-    if explicit_match:
-        explicit_anchor = explicit_match.group(1).strip()
-        text = text[: explicit_match.start()].rstrip()
-    return text, explicit_anchor
 
 
 def _plain_text_for_slug(text: str) -> str:
@@ -113,15 +82,43 @@ def _dedupe_id(candidate: str, used: set[str]) -> str:
     return deduped
 
 
+class _TagAttributes(HTMLParser):
+    """Read an opening HTML tag without treating HTML attributes as XML."""
+
+    def __init__(self, opening_tag: str) -> None:
+        super().__init__(convert_charrefs=True)
+        self.attributes: dict[str, str | None] = {}
+        self.feed(opening_tag)
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self.attributes = dict(attrs)
+
+
 def _normalize_wrapped_block_html(html: str) -> str:
     def _replace(match: re.Match[str]) -> str:
         attrs = match.group("attrs").strip()
         block_html = match.group("block")
         if not attrs:
             return block_html
+
+        def merge_attributes(block_match: re.Match[str]) -> str:
+            wrapper = _TagAttributes(f"<p {attrs}>").attributes
+            original = _TagAttributes(block_match.group(0)).attributes
+            merged = {**wrapper, **original}
+            classes = [*(original.get("class") or "").split(), *(wrapper.get("class") or "").split()]
+            if classes:
+                merged["class"] = " ".join(dict.fromkeys(classes))
+            if "data-block-id" in wrapper and original.get("id"):
+                merged["data-block-id"] = original["id"]
+            rendered = "".join(
+                f' {key}="{escape(value, quote=True)}"' if value is not None else f" {key}"
+                for key, value in merged.items()
+            )
+            return f"<{block_match.group(1)}{rendered}>"
+
         return re.sub(
             r"^<([a-z0-9]+)([^>]*)>",
-            lambda block_match: f"<{block_match.group(1)}{block_match.group(2)} {attrs}>",
+            merge_attributes,
             block_html,
             count=1,
         )
@@ -130,34 +127,12 @@ def _normalize_wrapped_block_html(html: str) -> str:
 
 
 def extract_heading_anchor_specs(markdown_text: str) -> list[HeadingAnchorSpec]:
-    """Return deterministic heading anchors from markdown source text."""
-    in_fence = False
-    specs: list[HeadingAnchorSpec] = []
-    used_ids: set[str] = set()
-
-    for line in markdown_text.splitlines():
-        if _FENCE_RE.match(line):
-            in_fence = not in_fence
-            continue
-        if in_fence:
-            continue
-
-        match = _ATX_HEADING_RE.match(line)
-        if not match:
-            continue
-
-        level = len(match.group(1))
-        heading_text, explicit_anchor = _normalize_heading_text(match.group(2))
-        candidate_id = explicit_anchor or _slugify_anchor(heading_text)
-        specs.append(
-            HeadingAnchorSpec(
-                level=level,
-                text=heading_text,
-                anchor_id=_dedupe_id(candidate_id, used_ids),
-            )
-        )
-
-    return specs
+    """Use Markdown's parser for source anchors, including Setext headings and code."""
+    renderer = _markdown_renderer([])
+    renderer.convert(markdown_text)
+    processor = renderer.treeprocessors["post-anchor-treeprocessor"]
+    assert isinstance(processor, _PostAnchorTreeprocessor)
+    return processor.headings
 
 
 class _PostAnchorTreeprocessor(Treeprocessor):
@@ -166,11 +141,13 @@ class _PostAnchorTreeprocessor(Treeprocessor):
     def __init__(self, md: markdown.Markdown, heading_specs: list[HeadingAnchorSpec]) -> None:
         super().__init__(md)
         self._heading_specs = heading_specs
+        self.headings: list[HeadingAnchorSpec] = []
 
     def run(self, root: ET.Element) -> ET.Element:
         self._unwrap_block_wrappers(root)
 
-        used_ids: set[str] = set()
+        used_ids = {e.attrib["id"] for e in root.iter() if e.get("id") and e.tag not in _HEADING_TAGS}
+        self.headings.clear()
         heading_index = 0
         block_index = 1
 
@@ -181,9 +158,10 @@ class _PostAnchorTreeprocessor(Treeprocessor):
                 if heading_index < len(self._heading_specs):
                     candidate = self._heading_specs[heading_index].anchor_id
                 else:
-                    candidate = _slugify_anchor("".join(element.itertext()))
+                    candidate = element.get("id") or _slugify_anchor("".join(element.itertext()))
                 heading_index += 1
                 anchor_id = _dedupe_id(candidate, used_ids)
+                self.headings.append(HeadingAnchorSpec(int(tag[1]), "".join(element.itertext()), anchor_id))
                 element.set("id", anchor_id)
                 _append_class(element, "section-heading")
                 self._append_permalink(
@@ -279,58 +257,70 @@ class _PostAnchorExtension(Extension):
         md.treeprocessors.register(
             _PostAnchorTreeprocessor(md, self._heading_specs),
             "post-anchor-treeprocessor",
-            priority=15,
+            priority=5,
         )
 
 
-def preprocess_numeric_internal_references(markdown_text: str) -> str:
-    """Rewrite numeric internal citations and add reference anchors.
+class _NumericReferenceDefinitions(Treeprocessor):
+    def __init__(self, md, references: set[str]):
+        super().__init__(md)
+        self.references = references
 
-    Transformations:
-    - ``[label][7]`` -> ``label[[7]](#ref-7)`` (only when ``[7] ...`` exists)
-    - ``[7] ...`` -> ``<span id="ref-7"></span>[7] ...``
-    """
-    lines = markdown_text.splitlines()
-    reference_numbers = _collect_reference_numbers(lines)
+    def run(self, root):
+        for paragraph in root.iter("p"):
+            match = _REFERENCE_LINE_RE.match(paragraph.text or "")
+            if not match:
+                continue
+            number = match[1]
+            self.references.add(number)
+            marker = ET.Element("span", {"id": f"ref-{number}"})
+            marker.text = AtomicString(f"[{number}]")
+            marker.tail = (paragraph.text or "")[len(number) + 2:]
+            paragraph.text = None
+            paragraph.insert(0, marker)
 
-    in_fence = False
-    processed_lines: list[str] = []
 
-    for line in lines:
-        if _FENCE_RE.match(line):
-            in_fence = not in_fence
-            processed_lines.append(line)
-            continue
+class _NumericCitation(InlineProcessor):
+    # Markdown handles escapes, code, HTML and link destinations first.
+    ANCESTOR_EXCLUDES = ("a", "code", "pre")
 
-        if in_fence:
-            processed_lines.append(line)
-            continue
+    def __init__(self, pattern, references, *, labeled=False):
+        super().__init__(pattern)
+        self.references = references
+        self.labeled = labeled
 
-        ref_match = _REFERENCE_LINE_RE.match(line)
-        if ref_match:
-            ref_number = ref_match.group(1)
-            line = f'<span id="ref-{ref_number}"></span>{line}'
-            processed_lines.append(line)
-            continue
+    def handleMatch(self, match, data):  # noqa: N802
+        number = match[2] if self.labeled else match[1]
+        if number not in self.references:
+            return None, None, None
+        anchor = ET.Element("a", {"href": f"#ref-{number}"})
+        anchor.text = AtomicString(f"[{number}]")
+        result = anchor
+        if self.labeled:
+            result = ET.Element("span")
+            result.text = match[1]
+            result.append(anchor)
+        return result, match.start(0), match.end(0)
 
-        def _replace_citation(match: re.Match[str]) -> str:
-            label = match.group(1)
-            ref_number = match.group(2)
-            if ref_number in reference_numbers:
-                return f"{label}[[{ref_number}]](#ref-{ref_number})"
-            return match.group(0)
 
-        line = _NUMERIC_CITATION_RE.sub(_replace_citation, line)
+class _NumericReferenceExtension(Extension):
+    def extendMarkdown(self, md):  # noqa: N802
+        references: set[str] = set()
+        md.treeprocessors.register(_NumericReferenceDefinitions(md, references), "numeric-definitions", 25)
+        md.inlinePatterns.register(
+            _NumericCitation(r"\[([^\]\n]+?)\]\[(\d+)\]", references, labeled=True),
+            "numeric-citation", 145,
+        )
+        md.inlinePatterns.register(
+            _NumericCitation(r"(?<!\[)\[(\d+)\](?![\]\(:])", references), "bare-numeric-citation", 144,
+        )
 
-        def _replace_bare_citation(match: re.Match[str]) -> str:
-            ref_number = match.group(1)
-            if ref_number in reference_numbers:
-                return f"[[{ref_number}]](#ref-{ref_number})"
-            return match.group(0)
 
-        processed_lines.append(_BARE_NUMERIC_CITATION_RE.sub(_replace_bare_citation, line))
-
-    return "\n".join(processed_lines)
+def _markdown_renderer(heading_specs: list[HeadingAnchorSpec]) -> markdown.Markdown:
+    return markdown.Markdown(extensions=[
+        "fenced_code", "tables", "nl2br", "attr_list", "footnotes",
+        _NumericReferenceExtension(), _PostAnchorExtension(heading_specs=heading_specs),
+    ])
 
 
 def render_markdown_with_internal_refs(
@@ -339,16 +329,5 @@ def render_markdown_with_internal_refs(
     source_markdown: str | None = None,
 ) -> str:
     """Render Markdown with support for post-local anchors and numeric references."""
-    processed = preprocess_numeric_internal_references(markdown_text)
-    anchor_source = source_markdown if source_markdown is not None else markdown_text
-    heading_specs = extract_heading_anchor_specs(anchor_source)
-    renderer = markdown.Markdown(
-        extensions=[
-            "fenced_code",
-            "tables",
-            "nl2br",
-            "attr_list",
-            _PostAnchorExtension(heading_specs=heading_specs),
-        ]
-    )
-    return _normalize_wrapped_block_html(renderer.convert(processed))
+    heading_specs = extract_heading_anchor_specs(source_markdown) if source_markdown is not None else []
+    return _normalize_wrapped_block_html(_markdown_renderer(heading_specs).convert(markdown_text))

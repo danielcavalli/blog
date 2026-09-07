@@ -73,11 +73,11 @@ class TranslationRevisionManifest:
             return {"posts": {}}
         try:
             payload = yaml.safe_load(self.path.read_text(encoding="utf-8"))
-        except (yaml.YAMLError, OSError):
-            return {"posts": {}}
+        except (yaml.YAMLError, OSError) as exc:
+            raise RuntimeError(f"Cannot read revision instructions: {self.path}") from exc
         if isinstance(payload, dict):
             return payload
-        return {"posts": {}}
+        raise RuntimeError(f"Revision instructions must be a mapping: {self.path}")
 
 
 def _normalize_revision_entry(raw_entry: Any, *, target_locale: str) -> dict[str, Any] | None:

@@ -8,6 +8,58 @@
     view-transition-class: post-morph;
 }
 
+/* The prose keeps its existing measure; supporting material gets its own margins. */
+.article-container { max-width: 1440px; }
+.post--reading { max-width: none; }
+.post--reading > .post-header,
+.post--reading .article-layout { max-width: 720px; margin-left: auto; margin-right: auto; }
+.post--reading .post-body { min-width: 0; }
+.article-outline { margin-bottom: 2rem; font-size: 0.82rem; line-height: 1.5; }
+.article-outline summary { color: var(--color-text-secondary); cursor: pointer; padding: 0.6rem 0; }
+.article-outline ol { list-style: none; padding: 0; margin: 0; }
+.article-outline ol ol { padding-left: 1rem; }
+.article-outline li { margin: 0.4rem 0; }
+.article-outline a { display: block; color: var(--color-text-secondary); text-decoration: none; padding: 0.25rem 0.6rem; border-left: 2px solid transparent; }
+.article-outline a:hover,
+.article-outline a[aria-current="location"] { color: var(--color-text); border-left-color: var(--accent-color); }
+.article-outline a:focus-visible,
+.note-reference:focus-visible,
+.sidenote a:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 3px; }
+.post--reading .section-heading { scroll-margin-top: 7rem; }
+.article-notes { margin-top: 3rem; }
+.notes-heading { font-size: 1rem; margin-bottom: 1rem; }
+.sidenote { position: relative; padding: 0.8rem 0 0.8rem 1.2rem; margin: 0 0 1rem; border-left: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 0.85rem; line-height: 1.55; overflow-wrap: anywhere; scroll-margin-top: 7rem; }
+.sidenote-label { display: block; font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-color); margin-bottom: 0.45rem; }
+.sidenote p, .post-body .sidenote p,
+.sidenote li, .post-body .sidenote li { font-size: inherit; line-height: inherit; color: inherit; margin: 0 0 0.65rem; }
+.sidenote p:last-child { margin-bottom: 0; }
+.sidenote a { color: inherit; text-underline-offset: 0.18em; }
+.post-body .note-reference { white-space: nowrap; color: var(--accent-color); font-family: var(--font-mono); font-size: 0.75em; text-decoration: none; vertical-align: super; line-height: 0; padding: 0.15em; }
+.post-body sup:has(.note-reference) { vertical-align: baseline; }
+.note-reference { scroll-margin-top: 7rem; }
+.sidenote.is-current-note { border-left-color: var(--accent-color); }
+.post--reading[data-reading-mode="inline"] .article-notes { display: none; }
+.post-body .sidenote { margin: 0.4rem 0 1.6rem; }
+
+@media (min-width: 1280px) {
+    .post--reading .article-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 720px) minmax(0, 1fr); gap: 0 2rem; max-width: none; align-items: start; }
+    .post--reading .post-body { grid-column: 2; grid-row: 1; }
+    .article-outline { grid-column: 1; grid-row: 1; position: sticky; top: 7rem; max-height: calc(100dvh - 9rem); overflow-y: auto; overscroll-behavior: contain; margin: 0; width: 100%; max-width: 240px; justify-self: end; scrollbar-width: thin; }
+    .article-outline summary { display: none; }
+    .article-notes { grid-column: 2; grid-row: 2; }
+    .post--reading[data-reading-mode="margin"] .article-notes { grid-column: 3; grid-row: 1; position: relative; margin: 0; width: 100%; }
+    .post--reading[data-reading-mode="margin"] .notes-heading { display: none; }
+    .post--reading[data-reading-mode="margin"] .sidenote { position: absolute; left: 0; width: 100%; max-width: 250px; box-sizing: border-box; margin: 0; padding-top: 0; padding-bottom: 0; }
+}
+
+@media print {
+    .post--reading .article-layout { display: block; max-width: none; }
+    .article-outline { display: none; }
+    .post--reading[data-reading-mode] .article-notes { display: block; min-height: 0 !important; margin-top: 2rem; }
+    .post--reading[data-reading-mode] .sidenote { display: block !important; position: static; max-width: none; break-inside: avoid; margin-bottom: 1rem; }
+    .post-body .note-reference::after { display: none; }
+}
+
 /* Ensure smooth transitions for post elements */
 .post-header,
 .post-body,
@@ -184,11 +236,105 @@
     color: inherit;
 }
 
+/* Mermaid uses the article's font and palette; narrow diagrams remain at their
+   natural size instead of stretching across the reading column. */
+.post-body pre.mermaid-diagram {
+    padding: 1rem 0;
+    margin: 2.6rem 0 0.85rem;
+    background: transparent;
+    color: var(--color-text);
+    border-radius: 0;
+    line-height: normal;
+    white-space: normal;
+    text-align: center;
+}
+
+.post-body .mermaid-diagram > svg {
+    display: block;
+    margin: 0 auto;
+    height: auto;
+    max-width: 100%;
+}
+
+.post-body .diagram-caption {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: 2.6rem;
+}
+
 .post-body img {
     max-width: 100%;
     height: auto;
     border-radius: 10px;
     margin: 2rem 0;
+}
+
+/* Theme variants follow the blog's chosen theme, including an explicit override
+   of the operating system. Native picture sources may vary the layout by width. */
+.post-body .post-figure {
+    margin: 2.6rem 0;
+}
+
+.post-body .post-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    border: 1px solid var(--color-border);
+}
+
+.post-body .post-figure figcaption {
+    margin-top: 0.85rem;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+.theme-media [data-theme-variant="light"] {
+    display: block;
+}
+
+.theme-media [data-theme-variant="dark"] {
+    display: none;
+}
+
+:root[data-theme="dark"] .theme-media [data-theme-variant="light"] {
+    display: none;
+}
+
+:root[data-theme="dark"] .theme-media [data-theme-variant="dark"] {
+    display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .theme-media [data-theme-variant="light"] {
+        display: none;
+    }
+
+    :root:not([data-theme="light"]) .theme-media [data-theme-variant="dark"] {
+        display: block;
+    }
+}
+
+@media print {
+    :root[data-theme] .theme-media [data-theme-variant="light"],
+    :root:not([data-theme]) .theme-media [data-theme-variant="light"] {
+        display: block;
+    }
+
+    :root[data-theme] .theme-media [data-theme-variant="dark"],
+    :root:not([data-theme]) .theme-media [data-theme-variant="dark"] {
+        display: none;
+    }
+
+    .post-body .post-figure {
+        break-inside: avoid;
+    }
+
+    .post-body .post-figure a::after {
+        content: none;
+    }
 }
 
 .post-body a {

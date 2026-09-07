@@ -7,34 +7,16 @@ Run with:
 import json
 import sys
 import os
-import types
 from pathlib import Path
-from unittest import mock
 
 # Make _source importable without installing the package
 _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 sys.path.insert(0, _SOURCE)
 
-# Stub heavy optional dependencies before importing build so that tests can run
-# without a Gemini API key or google-genai installed.
-_google_stub = types.ModuleType("google")
-_genai_stub = types.ModuleType("google.genai")
-sys.modules.setdefault("google", _google_stub)
-sys.modules.setdefault("google.genai", _genai_stub)
-sys.modules.setdefault("dotenv", types.ModuleType("dotenv"))
-# Provide a no-op load_dotenv so translator.py doesn't crash at import time.
-sys.modules["dotenv"].load_dotenv = lambda *a, **kw: None  # type: ignore[attr-defined]
-
-# translator.MultiAgentTranslator and validate_translation are imported at build
-# module level; stub them out.
-_translator_stub = types.ModuleType("translator")
-_translator_stub.MultiAgentTranslator = mock.MagicMock()  # type: ignore[attr-defined]
-_translator_stub.validate_translation = mock.MagicMock(return_value=(True, []))  # type: ignore[attr-defined]
-_translator_stub.sanitize_translation_html = lambda html: html  # type: ignore[attr-defined]
-_translator_stub.sanitize_translation_text = lambda text: text  # type: ignore[attr-defined]
-sys.modules["translator"] = _translator_stub
-
-import build  # noqa: E402  # imported after dependency stubs by design
+import helpers  # noqa: E402
+import renderer  # noqa: E402
+import seo  # noqa: E402
+import build  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -44,38 +26,38 @@ import build  # noqa: E402  # imported after dependency stubs by design
 
 class TestTagToSlug:
     def test_single_word(self):
-        assert build.tag_to_slug("web") == "web"
+        assert helpers.tag_to_slug("web") == "web"
 
     def test_two_words_with_space(self):
-        assert build.tag_to_slug("home server") == "home-server"
+        assert helpers.tag_to_slug("home server") == "home-server"
 
     def test_mixed_case(self):
-        assert build.tag_to_slug("View Transitions API") == "view-transitions-api"
+        assert helpers.tag_to_slug("View Transitions API") == "view-transitions-api"
 
     def test_already_lowercase(self):
-        assert build.tag_to_slug("mlops") == "mlops"
+        assert helpers.tag_to_slug("mlops") == "mlops"
 
     def test_special_characters_collapsed(self):
         # Multiple non-alphanumeric chars collapse to a single hyphen
-        assert build.tag_to_slug("C++ programming") == "c-programming"
+        assert helpers.tag_to_slug("C++ programming") == "c-programming"
 
     def test_leading_trailing_stripped(self):
-        assert build.tag_to_slug("  spaces  ") == "spaces"
+        assert helpers.tag_to_slug("  spaces  ") == "spaces"
 
     def test_numbers_preserved(self):
-        assert build.tag_to_slug("cuda 12") == "cuda-12"
+        assert helpers.tag_to_slug("cuda 12") == "cuda-12"
 
     def test_unicode_lowercased(self):
         # Non-ASCII chars become hyphens (regex [^a-z0-9])
-        result = build.tag_to_slug("São Paulo")
+        result = helpers.tag_to_slug("São Paulo")
         assert result == "s-o-paulo"
 
     def test_hyphen_input(self):
-        assert build.tag_to_slug("machine-learning") == "machine-learning"
+        assert helpers.tag_to_slug("machine-learning") == "machine-learning"
 
     def test_empty_string(self):
         # Edge case: empty string after strip should return empty
-        assert build.tag_to_slug("") == ""
+        assert helpers.tag_to_slug("") == ""
 
 
 # ---------------------------------------------------------------------------
@@ -85,31 +67,31 @@ class TestTagToSlug:
 
 class TestCalculateReadingTime:
     def test_empty_content_is_one_minute(self):
-        assert build.calculate_reading_time("") == 1
+        assert helpers.calculate_reading_time("") == 1
 
     def test_single_word_is_one_minute(self):
-        assert build.calculate_reading_time("hello") == 1
+        assert helpers.calculate_reading_time("hello") == 1
 
     def test_exactly_200_words(self):
         content = " ".join(["word"] * 200)
-        assert build.calculate_reading_time(content) == 1
+        assert helpers.calculate_reading_time(content) == 1
 
     def test_201_words_rounds_to_one(self):
         content = " ".join(["word"] * 201)
         # 201/200 = 1.005, rounds to 1
-        assert build.calculate_reading_time(content) == 1
+        assert helpers.calculate_reading_time(content) == 1
 
     def test_400_words_is_two_minutes(self):
         content = " ".join(["word"] * 400)
-        assert build.calculate_reading_time(content) == 2
+        assert helpers.calculate_reading_time(content) == 2
 
     def test_1000_words_is_five_minutes(self):
         content = " ".join(["word"] * 1000)
-        assert build.calculate_reading_time(content) == 5
+        assert helpers.calculate_reading_time(content) == 5
 
     def test_minimum_is_one(self):
         # Even for very short content, minimum is 1
-        assert build.calculate_reading_time("hi") >= 1
+        assert helpers.calculate_reading_time("hi") >= 1
 
 
 # ---------------------------------------------------------------------------
@@ -119,20 +101,20 @@ class TestCalculateReadingTime:
 
 class TestFormatReadingTime:
     def test_english_singular(self):
-        result = build.format_reading_time(1, "en")
+        result = helpers.format_reading_time(1, "en")
         assert result == "1 min read"
 
     def test_english_plural(self):
-        result = build.format_reading_time(5, "en")
+        result = helpers.format_reading_time(5, "en")
         assert result == "5 min read"
 
     def test_portuguese(self):
-        result = build.format_reading_time(3, "pt")
+        result = helpers.format_reading_time(3, "pt")
         assert result == "3 min de leitura"
 
     def test_zero_minutes(self):
         # format_reading_time doesn't enforce minimum; just formats what it gets
-        result = build.format_reading_time(0, "en")
+        result = helpers.format_reading_time(0, "en")
         assert result == "0 min read"
 
 
@@ -143,26 +125,26 @@ class TestFormatReadingTime:
 
 class TestFormatDate:
     def test_english_january(self):
-        assert build.format_date("2024-01-15", "en") == "January 15, 2024"
+        assert helpers.format_date("2024-01-15", "en") == "January 15, 2024"
 
     def test_english_december(self):
-        assert build.format_date("2023-12-01", "en") == "December 01, 2023"
+        assert helpers.format_date("2023-12-01", "en") == "December 01, 2023"
 
     def test_portuguese_january(self):
-        assert build.format_date("2024-01-15", "pt") == "15 de Janeiro de 2024"
+        assert helpers.format_date("2024-01-15", "pt") == "15 de Janeiro de 2024"
 
     def test_portuguese_july(self):
-        assert build.format_date("2024-07-04", "pt") == "04 de Julho de 2024"
+        assert helpers.format_date("2024-07-04", "pt") == "04 de Julho de 2024"
 
     def test_invalid_date_returns_original(self):
-        assert build.format_date("not-a-date", "en") == "not-a-date"
+        assert helpers.format_date("not-a-date", "en") == "not-a-date"
 
     def test_none_returns_string_none(self):
-        assert build.format_date(None, "en") == "None"
+        assert helpers.format_date(None, "en") == "None"
 
     def test_day_zero_padded(self):
         # Day 5 should be formatted as "05"
-        result = build.format_date("2024-03-05", "en")
+        result = helpers.format_date("2024-03-05", "en")
         assert result == "March 05, 2024"
 
 
@@ -173,17 +155,17 @@ class TestFormatDate:
 
 class TestFormatIsoDate:
     def test_basic_iso(self):
-        assert build.format_iso_date("2024-01-15T10:30:00") == "January 15, 2024"
+        assert helpers.format_iso_date("2024-01-15T10:30:00") == "January 15, 2024"
 
     def test_date_only(self):
         # datetime.fromisoformat handles date-only strings in Python 3.7+
-        assert build.format_iso_date("2024-06-20") == "June 20, 2024"
+        assert helpers.format_iso_date("2024-06-20") == "June 20, 2024"
 
     def test_invalid_returns_original(self):
-        assert build.format_iso_date("garbage") == "garbage"
+        assert helpers.format_iso_date("garbage") == "garbage"
 
     def test_none_returns_string_none(self):
-        assert build.format_iso_date(None) == "None"
+        assert helpers.format_iso_date(None) == "None"
 
 
 # ---------------------------------------------------------------------------
@@ -191,21 +173,6 @@ class TestFormatIsoDate:
 # ---------------------------------------------------------------------------
 
 
-class TestCalculateContentHash:
-    def test_returns_hex_string(self):
-        result = build.calculate_content_hash("hello")
-        assert isinstance(result, str)
-        assert len(result) == 64  # SHA-256 produces 64 hex chars
-
-    def test_deterministic(self):
-        assert build.calculate_content_hash("abc") == build.calculate_content_hash("abc")
-
-    def test_different_content_different_hash(self):
-        assert build.calculate_content_hash("abc") != build.calculate_content_hash("xyz")
-
-    def test_empty_string(self):
-        result = build.calculate_content_hash("")
-        assert len(result) == 64
 
 
 # ---------------------------------------------------------------------------
@@ -215,16 +182,16 @@ class TestCalculateContentHash:
 
 class TestGetLangPath:
     def test_english_path(self):
-        result = build.get_lang_path("en", "index.html")
+        result = helpers.get_lang_path("en", "index.html")
         assert result.endswith("en/index.html")
 
     def test_portuguese_path(self):
-        result = build.get_lang_path("pt", "blog/post.html")
+        result = helpers.get_lang_path("pt", "blog/post.html")
         assert result.endswith("pt/blog/post.html")
 
     def test_empty_path(self):
         # When path is empty, returns the language root without trailing slash
-        result = build.get_lang_path("en", "")
+        result = helpers.get_lang_path("en", "")
         assert result.endswith("/en")
 
 
@@ -235,14 +202,14 @@ class TestGetLangPath:
 
 class TestGetAlternateLang:
     def test_en_returns_pt(self):
-        assert build.get_alternate_lang("en") == "pt"
+        assert helpers.get_alternate_lang("en") == "pt"
 
     def test_pt_returns_en(self):
-        assert build.get_alternate_lang("pt") == "en"
+        assert helpers.get_alternate_lang("pt") == "en"
 
     def test_unknown_returns_en(self):
         # Anything that isn't 'en' falls through to 'en'
-        assert build.get_alternate_lang("fr") == "en"
+        assert helpers.get_alternate_lang("fr") == "en"
 
 
 # ---------------------------------------------------------------------------
@@ -276,15 +243,6 @@ class TestLocaleRoutingHelpers:
 
 
 class TestBuildFlagHelpers:
-    def test_resolve_translation_provider_defaults_to_opencode(self):
-        with mock.patch.dict(os.environ, {}, clear=False):
-            os.environ.pop("TRANSLATION_PROVIDER", None)
-            assert build.resolve_translation_provider() == "opencode"
-
-    def test_resolve_translation_provider_ignores_env_override(self):
-        with mock.patch.dict(os.environ, {"TRANSLATION_PROVIDER": "unknown"}):
-            assert build.resolve_translation_provider() == "opencode"
-
     def test_select_markdown_files_matches_slug_or_filename(self):
         files = [
             Path("/tmp/first-post.md"),
@@ -296,6 +254,12 @@ class TestBuildFlagHelpers:
         assert by_slug == [Path("/tmp/second-post.md")]
         assert by_file == [Path("/tmp/first-post.md")]
 
+    def test_select_markdown_files_uses_public_slug_and_exact_path_components(self, tmp_path):
+        source = tmp_path / "old-filename.md"
+        source.write_text("---\nslug: public-article\n---\n\nArticle")
+        assert build.select_markdown_files([source], "public-article") == [source]
+        assert build.select_markdown_files([source], "filename.md") == []
+
 
 # ---------------------------------------------------------------------------
 # render_theme_toggle_svg
@@ -304,19 +268,19 @@ class TestBuildFlagHelpers:
 
 class TestRenderThemeToggleSvg:
     def test_returns_string(self):
-        result = build.render_theme_toggle_svg()
+        result = renderer.render_theme_toggle_svg()
         assert isinstance(result, str)
 
     def test_contains_sun_icon(self):
-        result = build.render_theme_toggle_svg()
+        result = renderer.render_theme_toggle_svg()
         assert 'class="sun-icon"' in result
 
     def test_contains_moon_icon(self):
-        result = build.render_theme_toggle_svg()
+        result = renderer.render_theme_toggle_svg()
         assert 'class="moon-icon"' in result
 
     def test_deterministic(self):
-        assert build.render_theme_toggle_svg() == build.render_theme_toggle_svg()
+        assert renderer.render_theme_toggle_svg() == renderer.render_theme_toggle_svg()
 
 
 # ---------------------------------------------------------------------------
@@ -326,13 +290,13 @@ class TestRenderThemeToggleSvg:
 
 class TestRenderSkipLink:
     def test_english(self):
-        result = build.render_skip_link("en")
+        result = renderer.render_skip_link("en")
         assert "Skip to content" in result
         assert 'class="skip-link"' in result
         assert 'href="#main-content"' in result
 
     def test_portuguese(self):
-        result = build.render_skip_link("pt")
+        result = renderer.render_skip_link("pt")
         assert "Pular para o conte" in result  # "Pular para o conteúdo"
 
 
@@ -344,7 +308,7 @@ class TestRenderSkipLink:
 class TestRenderJsonldScript:
     def test_basic_dict(self):
         data = {"@type": "Person", "name": "Alice"}
-        result = build.render_jsonld_script(data)
+        result = seo.render_jsonld_script(data)
         assert result.startswith('<script type="application/ld+json">')
         assert result.endswith("</script>")
         # Parse the JSON payload back
@@ -355,18 +319,18 @@ class TestRenderJsonldScript:
     def test_escapes_closing_script_tag(self):
         # A value containing "</" must not break the <script> element
         data = {"content": "foo</script>bar"}
-        result = build.render_jsonld_script(data)
+        result = seo.render_jsonld_script(data)
         assert "</script>bar" not in result  # raw closing tag must be escaped
         assert "<\\/" in result
 
     def test_non_ascii_preserved(self):
         data = {"name": "São Paulo"}
-        result = build.render_jsonld_script(data)
+        result = seo.render_jsonld_script(data)
         assert "São Paulo" in result  # ensure_ascii=False
 
     def test_list_input(self):
         data = [{"@type": "A"}, {"@type": "B"}]
-        result = build.render_jsonld_script(data)
+        result = seo.render_jsonld_script(data)
         payload = result[len('<script type="application/ld+json">') : -len("</script>")]
         parsed = json.loads(payload)
         assert len(parsed) == 2
@@ -379,22 +343,22 @@ class TestRenderJsonldScript:
 
 class TestRenderPersonJsonld:
     def test_returns_dict(self):
-        result = build.render_person_jsonld()
+        result = seo.render_person_jsonld()
         assert isinstance(result, dict)
 
     def test_type_is_person(self):
-        result = build.render_person_jsonld()
+        result = seo.render_person_jsonld()
         assert result["@type"] == "Person"
 
     def test_has_required_fields(self):
-        result = build.render_person_jsonld()
+        result = seo.render_person_jsonld()
         assert "name" in result
         assert "url" in result
         assert "sameAs" in result
         assert "knowsAbout" in result
 
     def test_same_as_is_list(self):
-        result = build.render_person_jsonld()
+        result = seo.render_person_jsonld()
         assert isinstance(result["sameAs"], list)
         assert len(result["sameAs"]) > 0
 
@@ -406,42 +370,42 @@ class TestRenderPersonJsonld:
 
 class TestGenerateLangToggleHtml:
     def test_en_toggle_links_to_pt(self):
-        result = build.generate_lang_toggle_html("en", "index.html")
+        result = renderer.generate_lang_toggle_html("en", "index.html")
         assert "/pt/" in result
 
     def test_pt_toggle_links_to_en(self):
-        result = build.generate_lang_toggle_html("pt", "index.html")
+        result = renderer.generate_lang_toggle_html("pt", "index.html")
         assert "/en/" in result
 
     def test_en_active_class(self):
-        result = build.generate_lang_toggle_html("en", "index.html")
+        result = renderer.generate_lang_toggle_html("en", "index.html")
         assert "lang-en active" in result
         # PT should NOT have active class
         assert "lang-pt active" not in result
 
     def test_pt_active_class(self):
-        result = build.generate_lang_toggle_html("pt", "index.html")
+        result = renderer.generate_lang_toggle_html("pt", "index.html")
         assert "lang-pt active" in result
         assert "lang-en active" not in result
 
     def test_aria_label_en(self):
-        result = build.generate_lang_toggle_html("en", "index.html")
+        result = renderer.generate_lang_toggle_html("en", "index.html")
         assert "aria-label=" in result
         # Should mention switching to Portuguese
         assert "Portugu" in result  # "Português"
 
     def test_aria_label_pt(self):
-        result = build.generate_lang_toggle_html("pt", "index.html")
+        result = renderer.generate_lang_toggle_html("pt", "index.html")
         assert "aria-label=" in result
         # PT template: "Mudar para English (atualmente Português)"
         assert "Mudar para" in result
 
     def test_data_current_lang_attribute(self):
-        result = build.generate_lang_toggle_html("en", "index.html")
+        result = renderer.generate_lang_toggle_html("en", "index.html")
         assert 'data-current-lang="en"' in result
 
     def test_page_path_preserved(self):
-        result = build.generate_lang_toggle_html("en", "blog/my-post.html")
+        result = renderer.generate_lang_toggle_html("en", "blog/my-post.html")
         assert "blog/my-post.html" in result
 
 
@@ -452,20 +416,20 @@ class TestGenerateLangToggleHtml:
 
 class TestRenderNav:
     def test_contains_nav_element(self):
-        result = build.render_nav("en", "blog", "<a>toggle</a>")
+        result = renderer.render_nav("en", "blog", "<a>toggle</a>")
         assert "<nav" in result
 
     def test_active_blog(self):
-        result = build.render_nav("en", "blog", "")
+        result = renderer.render_nav("en", "blog", "")
         assert 'class="active"' in result
 
     def test_lang_toggle_injected(self):
         toggle = '<a class="lang-toggle">EN/PT</a>'
-        result = build.render_nav("en", "blog", toggle)
+        result = renderer.render_nav("en", "blog", toggle)
         assert toggle in result
 
     def test_portuguese_labels(self):
-        result = build.render_nav("pt", "about", "")
+        result = renderer.render_nav("pt", "about", "")
         assert "SOBRE" in result  # PT for "ABOUT"
         assert "BLOG" in result
 
@@ -477,20 +441,20 @@ class TestRenderNav:
 
 class TestRenderFooter:
     def test_contains_footer_element(self):
-        result = build.render_footer("en")
+        result = renderer.render_footer("en")
         assert "<footer" in result
         assert "</footer>" in result
 
     def test_english_copyright(self):
-        result = build.render_footer("en")
+        result = renderer.render_footer("en")
         assert "All Rights Reserved" in result
 
     def test_portuguese_copyright(self):
-        result = build.render_footer("pt")
+        result = renderer.render_footer("pt")
         assert "Todos os Direitos Reservados" in result
 
     def test_contains_social_links(self):
-        result = build.render_footer("en")
+        result = renderer.render_footer("en")
         assert 'aria-label="Twitter"' in result
         assert 'aria-label="GitHub"' in result
         assert 'aria-label="LinkedIn"' in result
@@ -519,46 +483,46 @@ class TestGeneratePostCard:
     }
 
     def test_returns_article_element(self):
-        result = build.generate_post_card(self.SAMPLE_POST, 1, "en")
+        result = renderer.generate_post_card(self.SAMPLE_POST, 1, "en")
         assert "<article" in result
 
     def test_title_uppercased(self):
-        result = build.generate_post_card(self.SAMPLE_POST, 1, "en")
+        result = renderer.generate_post_card(self.SAMPLE_POST, 1, "en")
         assert "TEST POST TITLE" in result
 
     def test_view_transition_names(self):
-        result = build.generate_post_card(self.SAMPLE_POST, 3, "en")
+        result = renderer.generate_post_card(self.SAMPLE_POST, 3, "en")
         assert "post-container-3" in result
         assert "post-title-3" in result
         assert "post-date-3" in result
 
     def test_tags_rendered(self):
-        result = build.generate_post_card(self.SAMPLE_POST, 1, "en")
+        result = renderer.generate_post_card(self.SAMPLE_POST, 1, "en")
         assert "python" in result
         assert "web" in result
         assert "tag-pill" in result
 
     def test_no_tags(self):
         post = {**self.SAMPLE_POST, "tags": [], "en_tags": []}
-        result = build.generate_post_card(post, 1, "en")
+        result = renderer.generate_post_card(post, 1, "en")
         assert "tag-pill" not in result
 
     def test_data_attributes(self):
-        result = build.generate_post_card(self.SAMPLE_POST, 1, "en")
+        result = renderer.generate_post_card(self.SAMPLE_POST, 1, "en")
         assert 'data-year="2024"' in result
         assert 'data-month="06"' in result
         assert 'data-created="2024-06-15"' in result
 
     def test_en_link_path(self):
-        result = build.generate_post_card(self.SAMPLE_POST, 1, "en")
+        result = renderer.generate_post_card(self.SAMPLE_POST, 1, "en")
         assert "/en/blog/test-post.html" in result
 
     def test_pt_link_path(self):
-        result = build.generate_post_card(self.SAMPLE_POST, 1, "pt")
+        result = renderer.generate_post_card(self.SAMPLE_POST, 1, "pt")
         assert "/pt/blog/test-post.html" in result
 
     def test_pt_date_format(self):
-        result = build.generate_post_card(self.SAMPLE_POST, 1, "pt")
+        result = renderer.generate_post_card(self.SAMPLE_POST, 1, "pt")
         assert "15 de Junho de 2024" in result
 
     def test_html_escaping(self):
@@ -567,7 +531,7 @@ class TestGeneratePostCard:
             "title": "A <script> Test",
             "excerpt": 'Excerpt & "quotes"',
         }
-        result = build.generate_post_card(post, 1, "en")
+        result = renderer.generate_post_card(post, 1, "en")
         # Title is uppercased first, then escaped — produces correct entities
         assert "&lt;SCRIPT&gt;" in result
         assert "&amp;" in result

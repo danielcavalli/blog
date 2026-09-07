@@ -280,7 +280,7 @@ def _compile_for_invariants(
 
 _FENCE_OPEN_RE = re.compile(r"^[ \t]{0,3}(?P<fence>`{3,}|~{3,}).*$")
 _REFERENCE_DESTINATION_RE = re.compile(
-    r"^[ \t]{0,3}\[[^\]]+\]:[ \t]*(?P<destination><[^>\n]+>|\S+)",
+    r"^[ \t]{0,3}\[(?!\^)[^\]]+\]:[ \t]*(?P<destination><[^>\n]+>|\S+)",
     re.MULTILINE,
 )
 

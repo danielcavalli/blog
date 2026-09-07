@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>An Agent in a JSON File – Daniel Cavalli | dan.rio</title>
+    <meta name="description" content="My coding agents can add an agent to a Maré app with a JSON definition. The platform supplies the runtime, and a discoverable contract tells them how to use it.">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://dan.rio/en/blog/adding-an-agent-to-a-mare-app.html">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://dan.rio/en/blog/adding-an-agent-to-a-mare-app.html">
+    <meta property="og:title" content="An Agent in a JSON File">
+    <meta property="og:description" content="My coding agents can add an agent to a Maré app with a JSON definition. The platform supplies the runtime, and a discoverable contract tells them how to use it.">
+    <meta property="og:site_name" content="dan.rio">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="pt_BR">
+    <meta property="article:published_time" content="2026-09-05">
+    <meta property="article:modified_time" content="2026-09-05">
+    <meta property="article:author" content="Daniel Cavalli">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="An Agent in a JSON File">
+    <meta name="twitter:description" content="My coding agents can add an agent to a Maré app with a JSON definition. The platform supplies the runtime, and a discoverable contract tells them how to use it.">
+    
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "An Agent in a JSON File", "description": "My coding agents can add an agent to a Maré app with a JSON definition. The platform supplies the runtime, and a discoverable contract tells them how to use it.", "url": "https://dan.rio/en/blog/adding-an-agent-to-a-mare-app.html", "inLanguage": "en", "datePublished": "2026-09-05", "dateModified": "2026-09-05", "author": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "publisher": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://dan.rio/en/blog/adding-an-agent-to-a-mare-app.html"}, "keywords": "AI Agents, Maré, Software Architecture"}</script>
+    
+    <!-- Additional SEO -->
+    <meta name="author" content="Daniel Cavalli">
+    <meta name="robots" content="index, follow">
+    
+    <link rel="alternate" hreflang="x-default" href="https://dan.rio/">
+    <link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/adding-an-agent-to-a-mare-app.html">
+    <link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/adding-an-agent-to-a-mare-app.html">
+    
+    <link rel="stylesheet" href="/static/css/styles.css?v=a9e0f4b7">
+    <link rel="stylesheet" href="/static/css/post.css?v=b1fe0cd4">
+    <link rel="preload" href="/static/js/theme.js?v=30ebbd0e" as="script">
+    <script src="/static/js/theme.js?v=30ebbd0e"></script>
+    <script src="/static/js/transitions.js?v=ec40089a" defer></script>
+    <script src="/static/js/filter.js?v=c18ff16b" defer></script>
+    <script src="/static/js/annotations.js?v=31123876" defer></script>
+    <script src="/static/js/presentation.js?v=fff59a2c" defer></script>
+    <script src="/static/js/diagrams.js?v=bc8a594d" defer></script>
+    <script src="/static/js/reading.js?v=6c9b14d6" defer></script>
+</head>
+<body
+    data-copy-section-link="Copy section link"
+    data-copy-passage-link="Copy passage link"
+    data-link-copied="Link copied"
+>
+    <a href="#main-content" class="skip-link">Skip to content</a>
+    <nav class="nav" style="view-transition-name: site-nav;">
+        <div class="nav-container">
+            <a href="/en/index.html" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="/en/index.html" class="active" style="view-transition-name: nav-blog;">BLOG</a></li>
+                    <li><a href="/en/about.html" style="view-transition-name: nav-about;">ABOUT</a></li>
+                    <li><a href="/en/cv.html" style="view-transition-name: nav-cv;">CV</a></li>
+                </ul>
+                <div style="view-transition-name: lang-toggle;"><a href="/pt/blog/adding-an-agent-to-a-mare-app.html" class="lang-toggle" aria-label="Switch to Português (currently English)" data-current-lang="en">
+        <svg class="lang-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span class="lang-text">
+            <span class="lang-en active">EN</span>
+            <span class="lang-sep">/</span>
+            <span class="lang-pt">PT</span>
+        </span>
+    </a></div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" style="view-transition-name: theme-toggle;">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main-content" class="container article-container">
+        <article class="post post--reading" style="view-transition-name: post-container-2;">
+            <header class="post-header">
+                <a href="/en/index.html" class="back-link">← Back to Blog</a>
+
+                <h1 class="post-title-large" style="view-transition-name: post-title-2;">AN AGENT IN A JSON FILE</h1>
+                <div class="post-meta">
+                    <time class="post-date" style="view-transition-name: post-date-2;">September 05, 2026</time>
+                    <span class="post-separator">•</span>
+                    <span class="post-reading-time">9 min read</span>
+                </div>
+                <div class="post-tags"><span class="tag-pill">AI Agents</span><span class="tag-pill">Maré</span><span class="tag-pill">Software Architecture</span></div>
+            </header>
+
+            <div class="article-layout">
+            <nav class="article-outline" aria-label="On this page"><details open><summary>On this page</summary><ol class="outline-list"><li><a href="#an-agent-for-moon">An agent for Moon</a></li><li><a href="#a-contract-my-coding-agents-can-discover">A contract my coding agents can discover</a></li><li><a href="#how-mare-executes-a-run">How Maré executes a run</a><ol><li><a href="#admitting-the-run">Admitting the run</a></li><li><a href="#recording-and-delivering-the-result">Recording and delivering the result</a></li></ol></li><li><a href="#what-moon-does-with-the-answer">What Moon does with the answer</a></li></ol></details></nav>
+            <div class="post-body">
+                <p class="lead" style="view-transition-name: post-excerpt-2;">
+                    My coding agents can add an agent to a Maré app with a JSON definition. The platform supplies the runtime, and a discoverable contract tells them how to use it.
+                </p>
+                <p class="linkable-block" data-block-id="block-001" id="block-001">I've been using AI for development since 2022 and, as I mentioned in <a href="https://dan.rio/en/blog/dont-outsource-the-thinking.html">Don't Outsource the Thinking</a>, I eventually stopped writing code myself. But even so, only this year did it finally click that I really am not the bottleneck anymore. That has made a rather curious kind of software practical now: applications built around my own habits, with no particular obligation to be useful to anyone else but me! A tool can be worth building because it suits the way I organize my notes, understand my finances, or decide what to watch. It doesn't need a market.</p>
+<p class="linkable-block" data-block-id="block-002" id="block-002">The more apps I want, though, the less sense it makes to treat each one as a fresh engineering exercise. While my preferences may change from app to app, authentication, storage, and background execution mostly don't. Asking an agent to reconstruct those parts each time spends tokens on decisions I've already made and then leaves me with several implementations to maintain. Each with its own weird variation of those choices.</p>
+<p class="linkable-block" data-block-id="block-003" id="block-003">Even though agents have made writing that code cheaper, I would still prefer to avoid needing to spend my hard-earned money on the same task again.</p>
+<p class="linkable-block" data-block-id="block-004" id="block-004"><a href="/en/blog/mare-rio-and-mare-hub.html">Maré Rio</a> is the personal software environment I've been building around that preference. By giving the apps a common foundation, I can keep those engineering decisions settled while my agents work on whatever makes each app worth having. The apps keep their own purposes and data, but I use them together through Maré Hub, shown below. Agent execution now belongs to that common foundation too, so adding an agent to an app can be as small a task as writing a JSON definition against a contract the coding agent can discover.</p>
+<figure class="post-figure theme-media linkable-block" data-block-id="block-005" id="block-005">
+  <a data-theme-variant="light" href="/static/images/mare-agent/hub-day.jpg"><img src="/static/images/mare-agent/hub-day.jpg" alt="Maré Hub in Day mode: a shared home for Notes, Finance, Moon, and Library." width="1440" height="1060" loading="lazy" decoding="async"></a>
+  <a data-theme-variant="dark" href="/static/images/mare-agent/hub-night.jpg"><img src="/static/images/mare-agent/hub-night.jpg" alt="Maré Hub in Night mode: a shared home for Notes, Finance, Moon, and Library." width="1440" height="1060" loading="lazy" decoding="async"></a>
+  <figcaption>Maré Hub, shown here with sample app data.</figcaption>
+</figure>
+<h2 class="section-heading" id="an-agent-for-moon">An agent for Moon<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#an-agent-for-moon"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-006" id="block-006">Moon, my watchlist app, already had a recommendation system; what I wanted from an agent was a way to notice connections beyond genre. I might have liked a film for its director, its tone, or the way it treats a subject, none of which is captured particularly well by classifying it as science fiction.</p>
+<p class="linkable-block" data-block-id="block-007" id="block-007">Taking my viewing history to a chat would get me an answer, but it would also make me the integration between the app that holds the information and the agent that can use it. Since Moon already has both the history and a place for the recommendations, I wanted it to make that request itself.</p>
+<p class="linkable-block" data-block-id="block-008" id="block-008">The request I wanted to give my coding agent was to write a prompt and connect it to that feature. Choosing an agent framework, building an execution harness, and connecting provider accounts would turn a small improvement to my watchlist into another infrastructure project. Those things have to exist somewhere, of course; putting them in Maré means they are available the next time I want an app to do something similar.</p>
+<p class="linkable-block" data-block-id="block-009" id="block-009">Scout is the agent Moon runs for this purpose. With my viewing history, ratings, watchlist, and existing recommendations as context, it looks for a few additions and explains each through a connection to that history. Whether I ask it for something familiar or something I probably wouldn't have found myself makes a considerable difference to the request, even though the input is the same. That preference goes into the prompt, where I can revise it after seeing what Scout makes of it.</p>
+<h2 class="section-heading" id="a-contract-my-coding-agents-can-discover">A contract my coding agents can discover<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#a-contract-my-coding-agents-can-discover"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-010" id="block-010">For the coding agent, this capability needs to be discoverable during the session in which it is building the app. Otherwise I would still have to explain the platform each time, and hope the explanation survived until it was needed. Maré's command-line interface (CLI) lets the agent inspect the available commands and their contracts: the inputs they accept, their effects, and whether they require interaction. Because those descriptions come back as JSON, the agent can consult them as part of its work.</p>
+<p class="linkable-block" data-block-id="block-011" id="block-011">With Scout, that can begin by inspecting the creation command and then using it:</p>
+<pre class="linkable-block" data-block-id="block-012" id="block-012"><code class="language-bash">mare --json meta describe app.agent.create
+
+mare --json app agent create scout \
+  --purpose "Propose watchlist-worthy movies and TV shows from the tenant's taste signals"
+</code></pre>
+<p class="linkable-block" data-block-id="block-013" id="block-013">What the command leaves behind is a valid starting definition, registered in the app's deployment manifest, together with directions for refining it and a link to the agent reference. The coding agent can work from those instructions and validate its changes against the same compiler used for creation and deployment preparation. An unsupported field therefore produces a finding it can act on while it is still working on the definition.</p>
+<p class="linkable-block" data-block-id="block-014" id="block-014">The file describes the work in terms that belong to the app: what the agent is being asked to do, which capabilities it needs, what answer is expected, and how much it is allowed to spend getting there. This excerpt from Scout's definition, with the instructions shortened, shows the shape of that request:</p>
+<pre class="linkable-block" data-block-id="block-015" id="block-015"><code class="language-json">{
+  "id": "scout",
+  "instructions": "Suggest titles the current recommendations missed. Explain each choice using the supplied viewing history.",
+  "workload": {"profile": "analysis"},
+  "tools": {"operations": [], "packs": []},
+  "budget": {"perRunTokens": 20000, "perDayTokens": 60000},
+  "timeoutSeconds": 600
+}
+</code></pre>
+<p class="linkable-block" data-block-id="block-016" id="block-016">The <a href="/static/examples/mare-agent/scout.agent.json">full Scout definition</a> also specifies the output schema, so the coding agent can build Moon's handling of the answer around known fields. A suggestion carries a title, media type, reason, and confidence value. Scout has up to 20,000 tokens for a run, within a daily allowance of 60,000, and ten minutes to finish; those limits travel with the definition as part of the request the platform agrees to execute.</p>
+<p class="linkable-block" data-block-id="block-017" id="block-017">Since Moon supplies the context Scout needs, its tool lists are empty. For a task that required more information, the same contract allows the coding agent to name an operation exposed by another app, such as searching Notes, or request the platform's browser <a id="first-use-agent-pack"></a>AgentPack<sup><a href="#footnote-agent-pack" id="cite-footnote-agent-pack-1" class="note-reference" role="doc-noteref" data-note-target="sidenote-footnote-agent-pack">1</a></sup>. Maré supplies those capabilities when the task runs, without making the app's authoring process depend on how the corresponding services are deployed.</p>
+<h2 class="section-heading" id="how-mare-executes-a-run">How Maré executes a run<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#how-mare-executes-a-run"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-018" id="block-018">On the platform side, Scout's definition becomes an Agent resource in Kubernetes, which already runs the rest of Maré. The definition is reused across requests, while each execution gets its own <a id="first-use-agent-resources"></a>AgentRun<sup><a href="#footnote-agent-resources" id="cite-footnote-agent-resources-1" class="note-reference" role="doc-noteref" data-note-target="sidenote-footnote-agent-resources">2</a></sup> and, once admitted, a Kubernetes Job. Keeping the request as a resource in its own right gives the controller somewhere to record the execution settings, progress, and result, independently of the Job doing the work.</p>
+<p class="linkable-block" data-block-id="block-019" id="block-019">Moon creates a run when it needs recommendations, but a schedule or an event can start the same kind of work. A notes app might request a review each morning, for example, or when a note is captured. The controller processes the resulting AgentRun in either case. More particular conditions, such as whether enough new material has accumulated to make a review worthwhile, remain in application code, where the meaning of that material is understood.</p>
+<pre class="linkable-block" data-block-id="block-020" id="block-020"><code class="language-mermaid">%%{init: {"flowchart": {"nodeSpacing": 24, "subGraphTitleMargin": {"top": 6, "bottom": 18}}}}%%
+flowchart TB
+    accTitle: How Maré executes an app agent
+    accDescr: Moon invokes Scout and polls through the agent bridge. Inside Maré Platform, the bridge creates and reads a tenant AgentRun. The controller watches the run, resolves the app-owned Agent definition, and starts a runner Job. The Job calls the provider and validates the output. The controller records its result on the same AgentRun, where the bridge can read it for Moon.
+    M["Moon · SDK"] &lt;--&gt;|invoke · poll| B
+    subgraph P["Maré Platform"]
+        B["Agent bridge&lt;br/&gt;Verify caller"] &lt;--&gt;|create · read| R["AgentRun&lt;br/&gt;Request and result"]
+        A["Agent&lt;br/&gt;App definition"] --&gt;|resolve| C["Agent controller"]
+        R &lt;--&gt;|watch · update| C
+        C --&gt;|start| J["Runner Job&lt;br/&gt;Call provider&lt;br/&gt;Validate output"]
+        J --&gt;|final result| C
+    end
+</code></pre>
+<p class="diagram-caption linkable-block" data-block-id="block-021" id="block-021">Moon's request and its result live on the same AgentRun. The arrows show the polling path through the bridge and the controller's work inside Kubernetes.<br></p>
+<h3 class="section-heading" id="admitting-the-run">Admitting the run<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#admitting-the-run"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h3>
+<p class="linkable-block" data-block-id="block-022" id="block-022">A request from Moon has to establish both which app is asking and on whose behalf. Its software development kit (SDK) carries those identities to Maré's agent bridge, which verifies them and checks that the app is installed and ready for the tenant. In Moon's case, that tenant is the household whose data and provider accounts will be used. Scout's definition belongs to the app, but the run belongs to the household, allowing the definition to be shared without combining the requests or their results.</p>
+<p class="linkable-block" data-block-id="block-023" id="block-023">Model selection follows the workload requirements in the definition. Scout asks for <code>analysis</code>, with requirements for reasoning level and structured output; a shared routing policy resolves that description to a provider and model, using the accounts I connect in the Hub. This is a choice I can change across my apps without revisiting each definition. A missing connection to the selected provider or an exhausted budget stops the request at admission, before the controller creates a Job.</p>
+<p class="linkable-block" data-block-id="block-024" id="block-024">Changing Scout while it is running shouldn't change the job halfway through. At admission, the controller records the resolved instructions, tools, routing decision, and limits on the AgentRun, and the Job runs from that snapshot. Later edits therefore affect later requests, leaving me with a record of the prompt and model behind a recommendation even after I've moved on to another version.</p>
+<h3 class="section-heading" id="recording-and-delivering-the-result">Recording and delivering the result<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#recording-and-delivering-the-result"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h3>
+<p class="linkable-block" data-block-id="block-025" id="block-025">The result returns through the same AgentRun that recorded the request. After calling the provider and checking the answer against Scout's output schema, the runner reports its final result to the controller, which stores it alongside the status and token usage. A missing or malformed result makes the run fail, leaving Moon to handle that outcome through the platform's contract rather than interpret an incomplete provider response.</p>
+<p class="linkable-block" data-block-id="block-026" id="block-026">From Moon's side, waiting for Scout amounts to an SDK call that polls the AgentRun through the bridge. A feature with no reason to wait can instead receive the result in an asynchronous handler and continue its own work in the meantime. That path uses a Redis stream with delivery that may repeat, so the handler has to tolerate receiving the same result twice.</p>
+<h2 class="section-heading" id="what-moon-does-with-the-answer">What Moon does with the answer<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#what-moon-does-with-the-answer"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-027" id="block-027">By the time Scout's answer reaches Moon, the platform has checked its structure, but only the app can decide how it belongs in the recommendation list. Moon matches suggested titles to its catalog and removes duplicates, so a plausible name alone doesn't qualify for inclusion. If Scout fails or Moon stops waiting for it, the usual recommendations remain available. The agent's contribution fits around the feature that already works.</p>
+<p class="linkable-block" data-block-id="block-028" id="block-028">Whether those additions make the list more interesting is something I still have to judge. A recommendation can be perfectly well formed and still miss what I liked about a film; in that case, I have something specific to discuss with my coding agent about Scout's instructions or the context Moon supplies. Having the execution machinery already in place lets that conversation stay with the feature, instead of expanding once again into how to run an agent.</p>
+
+
+
+            </div>
+            <aside class="article-notes" aria-label="Notes"><h2 class="notes-heading">Notes</h2><section class="sidenote" id="sidenote-footnote-agent-pack" role="doc-footnote" tabindex="-1"><span class="sidenote-label" aria-hidden="true">1</span><p class="linkable-block" data-block-id="block-029" id="block-029"><a id="footnote-agent-pack"></a><br>
+<strong>AgentPack:</strong> A platform-owned bundle of instructions or tool services. The browser pack supplies a browser through the Model Context Protocol (MCP), the interface the runner uses to call its tools. </p></section><section class="sidenote" id="sidenote-footnote-agent-resources" role="doc-footnote" tabindex="-1"><span class="sidenote-label" aria-hidden="true">2</span><p class="linkable-block" data-block-id="block-030" id="block-030"><a id="footnote-agent-resources"></a><br>
+<strong>Agent and AgentRun:</strong> Custom Kubernetes resource types. Custom Resource Definitions (CRDs) make these types available through the Kubernetes API; controllers implement their behavior. </p></section></aside>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer" style="view-transition-name: site-footer;">
+        <div class="footer-container">
+            <div class="social-links">
+                <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/danielcavalli" target="_blank" rel="noopener" aria-label="GitHub">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/cavallidaniel/" target="_blank" rel="noopener" aria-label="LinkedIn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                </a>
+            </div>
+            <p class="copyright">&copy; 2026 All Rights Reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

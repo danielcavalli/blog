@@ -53,21 +53,6 @@ def _asset_hash(logical_path: str) -> str:
 CURRENT_YEAR = datetime.now().year
 
 
-def calculate_content_hash(content):
-    """Calculate SHA-256 hash of content for change detection.
-
-    Uses SHA-256 to match the translator's hashing algorithm,
-    enabling consistent cache invalidation across the pipeline.
-
-    Args:
-        content (str): Post content to hash.
-
-    Returns:
-        str: SHA-256 hexadecimal digest string.
-    """
-    return hashlib.sha256(content.encode("utf-8")).hexdigest()
-
-
 def tag_to_slug(tag: str) -> str:
     """Convert a tag string to a stable, canonical slug for cross-language filtering.
 

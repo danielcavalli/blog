@@ -1,0 +1,147 @@
+{
+  "parent_revision": null,
+  "provenance": {
+    "artifact_type": "cv",
+    "author_voice_fingerprint": "b44cb261cdcc1dffbc86717821bf663461dbaa57e4bd5923fba6361d136fc823",
+    "imported_from": "translation-cache-v2",
+    "legacy_cache_key": "schema=v2|source_hash=847c3d356bf93f7c6369d539688cb8e1905aa5d68d25254a45cfb78a837b91cc|source_locale=en-us|target_locale=pt-br|provider=opencode|model=openai/gpt-5.5|prompt_version=v2",
+    "prompt_fingerprint": "6860de252d16ecbf1899fabcd5dcb9d1752540fac55caa9ee9c3755747be2f4b",
+    "prompt_version": "v2",
+    "provider": "opencode",
+    "translation_model": "openai/gpt-5.5",
+    "workflow": "translate",
+    "writing_style_fingerprint": "b44cb261cdcc1dffbc86717821bf663461dbaa57e4bd5923fba6361d136fc823"
+  },
+  "schema_version": 1,
+  "source": {
+    "artifact_type": "cv",
+    "frontmatter": {
+      "excerpt": "Senior Machine Learning Engineer @ Nubank | MLOps, AI, ML Infrastructure",
+      "tags": [
+        "cv"
+      ],
+      "title": "Daniel Cavalli"
+    },
+    "slug": "cv",
+    "source_locale": "en-us",
+    "target_locale": "pt-br",
+    "text": "{\n  \"contact\": {\n    \"email\": \"daniel@cavalli.dev\",\n    \"github\": \"danielcavalli\",\n    \"linkedin\": \"cavallidaniel\",\n    \"phone\": \"+55(21)985979780\"\n  },\n  \"education\": [\n    {\n      \"degree\": \"Bachelor of Economics - BBA, Economics\",\n      \"period\": \"March 2017 - December 2023\",\n      \"school\": \"Federal University of Rio de Janeiro\"\n    },\n    {\n      \"degree\": \"Associate degree in Game Development and Software Engineering, Computer Software Engineering\",\n      \"period\": \"2014 - 2016\",\n      \"school\": \"Nucleo Avançado em Educação - NAVE\"\n    }\n  ],\n  \"experience\": [\n    {\n      \"achievements\": [\n        \"Orchestrating a full greenfield migration from a shell-script-based deployment to Infrastructure as Code using Pulumi, replacing all existing tooling and integrating Nubank's networking, OAuth, and security requirements at scale.\",\n        \"Leading the upgrade from Kubeflow 1.7 (AWS distribution) to Kubeflow 1.11 (Community Manifests) in a complete platform rebuild adopting KFP v2, enhanced network policies, and open-standard tooling with no carry-over from the previous stack.\"\n      ],\n      \"company\": \"Nubank\",\n      \"description\": \"Leading the next generation of Nubank's AI Platform infrastructure, serving 150+ Data Scientists and MLEs across the organization.\",\n      \"location\": \"Rio de Janeiro, Brazil\",\n      \"period\": \"February 2026 - Present\",\n      \"title\": \"Senior Machine Learning Engineer\"\n    },\n    {\n      \"achievements\": [\n        \"Drove distributed GPU training optimization through multi-cluster, multi-GPU strategies, reducing large model training time from 21 days to 3 days and cutting development iteration cycles from ~25 minutes to under 2 minutes.\",\n        \"Enhanced platform reliability and reusability by improving integrations across Kubeflow, Dagster, Argo, Tekton, Clojure Services, and the in-house CPW library, revamping core components to increase developer velocity at scale.\",\n        \"Architected a geo-agnostic expansion framework for Nubank's AI Platform, enabling seamless onboarding of new countries without infrastructure rework and directly supporting the company's international growth strategy.\"\n      ],\n      \"company\": \"Nubank\",\n      \"description\": \"Scaled Nubank's AI Platform to serve 150+ Data Scientists across multiple business units, supporting 200+ models in production.\",\n      \"location\": \"Brazil\",\n      \"period\": \"September 2023 - February 2026\",\n      \"title\": \"Machine Learning Engineer\"\n    },\n    {\n      \"achievements\": [\n        \"Boosted team contribution rate from under 2 PRs/month to 50+ PRs/month by designing a faster, more accessible MLOps framework on AWS SageMaker that onboarded Data Scientists into the development workflow, enabling the unit's first real-time credit/lending models to reach production.\",\n        \"Built DataOps pipelines supporting 150+ datasets fully integrated with the company's DataLake, ensuring reliable and consistent data access for analytics and model training across workflows.\",\n        \"Designed end-to-end MLOps infrastructure for real-time model deployment, monitoring, and experimentation.\"\n      ],\n      \"company\": \"PicPay\",\n      \"description\": \"Laid the foundation for the ML and Data Infrastructure of PicPay's High Income business unit, establishing scalable systems that bridged Data Engineering and MLOps practices.\",\n      \"location\": \"Brazil\",\n      \"period\": \"May 2022 - September 2023\",\n      \"title\": \"Senior Machine Learning Engineer\"\n    },\n    {\n      \"achievements\": [\n        \"Designed ML models to expand risk management and fraud prevention tools while improving model deployment efficiency through internal MLOps solutions.\",\n        \"Evaluated and integrated external data providers to improve model performance and cost-effectiveness across analytics workflows.\"\n      ],\n      \"company\": \"frete.com\",\n      \"description\": \"Developed early MLOps foundations and machine learning models to enhance the company's risk management and fraud detection systems for truck drivers and freight operations.\",\n      \"location\": \"Brazil\",\n      \"period\": \"November 2021 - May 2022\",\n      \"title\": \"Machine Learning Engineer\"\n    },\n    {\n      \"achievements\": [\n        \"Developed an end-to-end anti-fraud system for online payments combining a rule-based engine and an ML model, reducing fraud by ~30% and preventing ~15,000 fraudulent transactions/month at under $0.01 cost per transaction scored.\",\n        \"Built an MLOps platform using GitOps, AWS SageMaker, and Terraform that accelerated model delivery from 1 deployment/year to 1 deployment/month.\",\n        \"Advocated for and defined the Anti-Fraud platform as a key product initiative, aligning engineering and business teams around its strategic value and deployment across multiple production environments.\"\n      ],\n      \"company\": \"M4U\",\n      \"description\": \"Built M4U's first Anti-Fraud solution and AI Platform from concept to production, establishing ML infrastructure as a core product capability within a small ML team.\",\n      \"location\": \"Brazil\",\n      \"period\": \"September 2020 - November 2021\",\n      \"title\": \"Machine Learning Engineer\"\n    },\n    {\n      \"achievements\": [\n        \"Designed and maintained observability tooling for ML models in staging and production, enabling data and concept drift detection across the platform.\",\n        \"Delivered exploratory and descriptive analyses for 4 telecom client companies and 2 internal platform teams (Recharging and Recurrence), producing visual reports that accelerated operational diagnostics and identifying key improvements.\"\n      ],\n      \"company\": \"M4U\",\n      \"description\": \"Contributed across the full ML workflow while helping shape the early data foundations that later evolved into the company's AI Platform.\",\n      \"location\": \"Brazil\",\n      \"period\": \"May 2019 - September 2020\",\n      \"title\": \"Junior Data Scientist\"\n    },\n    {\n      \"achievements\": [\n        \"Developed an early NLP model leveraging BERT, before the rise of LLMs, to analyze open-text feedback from user surveys, automatically extracting insights for product and design teams.\",\n        \"Conducted analytical and exploratory studies to validate hypotheses raised by the UX team regarding user behavior and engagement patterns.\",\n        \"Retrieved and structured data that served as the foundation for UX improvements and decision-making across web and mobile channels.\"\n      ],\n      \"company\": \"Oi S.A\",\n      \"description\": \"Started my career within Oi's UX Research Lab, where I combined analytics, user research, and data science to improve digital experiences for millions of users of the Minha Oi platform.\",\n      \"location\": \"Rio de Janeiro Area, Brazil\",\n      \"period\": \"November 2018 - May 2019\",\n      \"title\": \"Junior Data Scientist\"\n    }\n  ],\n  \"languages_spoken\": [\n    \"Portuguese (Native or Bilingual)\",\n    \"English (Full Professional)\"\n  ],\n  \"location\": \"Rio de Janeiro, Rio de Janeiro, Brazil\",\n  \"name\": \"Daniel Cavalli\",\n  \"skills\": [\n    \"Kubeflow\",\n    \"Distributed Systems\",\n    \"Machine Learning Infrastructure\"\n  ],\n  \"summary\": \"ML Infrastructure Engineer at Nubank, helping build and scale the company's AI platform that powers 150+ Data Scientists and Machine Learning Engineers across multiple business units. My work bridges infrastructure and applied ML, optimizing distributed training with multi-cluster, multi-GPU strategies and designing deployment workflows through Argo and Tekton. I focus on creating reliable, reusable systems that turn complex models into production-ready services. My interests lie in MLOps, Distributed Systems, and Machine Learning Infrastructure, especially where they intersect with fintech innovation and large-scale data products.\",\n  \"tagline\": \"Senior Machine Learning Engineer @ Nubank | MLOps, AI, ML Infrastructure\"\n}"
+  },
+  "source_hash": "fb4536303bdedb6c3f8ad9228c40e2cf5338fcb9e339ca9bef3b08a8c0ca0dc4",
+  "translation": {
+    "contact": {
+      "email": "daniel@cavalli.dev",
+      "github": "danielcavalli",
+      "linkedin": "cavallidaniel",
+      "phone": "+55(21)985979780"
+    },
+    "education": [
+      {
+        "degree": "Bacharelado em Economia",
+        "period": "March 2017 - December 2023",
+        "school": "Federal University of Rio de Janeiro"
+      },
+      {
+        "degree": "Tecnólogo em Desenvolvimento de Jogos e Engenharia de Software",
+        "period": "2014 - 2016",
+        "school": "Nucleo Avançado em Educação - NAVE"
+      }
+    ],
+    "experience": [
+      {
+        "achievements": [
+          "Orquestrando uma migração greenfield completa de um processo de implantação baseado em shell scripts para infraestrutura como código com Pulumi, substituindo todo o ferramental existente e integrando, em escala, os requisitos de rede, OAuth e segurança do Nubank.",
+          "Liderando a atualização do Kubeflow 1.7 (distribuição AWS) para o Kubeflow 1.11 (Community Manifests) em uma reconstrução completa da plataforma, com adoção de KFP v2, políticas de rede aprimoradas e ferramentas baseadas em padrões abertos, sem reaproveitamento da stack anterior."
+        ],
+        "company": "Nubank",
+        "description": "Liderando a próxima geração da infraestrutura da AI Platform do Nubank, que atende 150+ cientistas de dados e engenheiros de Machine Learning em toda a organização.",
+        "location": "Rio de Janeiro, Brazil",
+        "period": "February 2026 - Present",
+        "title": "Engenheiro de Machine Learning Sênior"
+      },
+      {
+        "achievements": [
+          "Conduzi a otimização de treinamento distribuído em GPU com estratégias multi-cluster e multi-GPU, reduzindo o tempo de treinamento de modelos grandes de 21 dias para 3 dias e encurtando ciclos de iteração de desenvolvimento de ~25 minutos para menos de 2 minutos.",
+          "Aumentei a confiabilidade e a reutilização da plataforma ao aprimorar integrações entre Kubeflow, Dagster, Argo, Tekton, Clojure Services e a biblioteca interna CPW, reformulando componentes centrais para ampliar a velocidade de desenvolvimento em escala.",
+          "Arquitetei um framework de expansão geo-agnóstico para a AI Platform do Nubank, permitindo a integração fluida de novos países sem retrabalho de infraestrutura e apoiando diretamente a estratégia de crescimento internacional da empresa."
+        ],
+        "company": "Nubank",
+        "description": "Escalei a AI Platform do Nubank para atender 150+ cientistas de dados em múltiplas unidades de negócio, dando suporte a 200+ modelos em produção.",
+        "location": "Brazil",
+        "period": "September 2023 - February 2026",
+        "title": "Engenheiro de Machine Learning"
+      },
+      {
+        "achievements": [
+          "Elevei a taxa de contribuição do time de menos de 2 PRs/mês para 50+ PRs/mês ao desenhar um framework de MLOps em AWS SageMaker mais rápido e acessível, incorporando cientistas de dados ao workflow de desenvolvimento e permitindo que os primeiros modelos em tempo real de crédito e empréstimos da unidade chegassem à produção.",
+          "Construí pipelines de DataOps para 150+ conjuntos de dados totalmente integrados ao DataLake da empresa, garantindo acesso confiável e consistente a dados para análises e treinamento de modelos em diferentes workflows.",
+          "Desenhei infraestrutura de MLOps de ponta a ponta para implantação, monitoramento e experimentação de modelos em tempo real."
+        ],
+        "company": "PicPay",
+        "description": "Estabeleci as bases da infraestrutura de Machine Learning e dados da unidade High Income do PicPay, criando sistemas escaláveis que integravam práticas de Data Engineering e MLOps.",
+        "location": "Brazil",
+        "period": "May 2022 - September 2023",
+        "title": "Engenheiro de Machine Learning Sênior"
+      },
+      {
+        "achievements": [
+          "Desenhei modelos de Machine Learning para expandir ferramentas de gestão de risco e prevenção à fraude, ao mesmo tempo em que melhorei a eficiência da implantação de modelos por meio de soluções internas de MLOps.",
+          "Avaliei e integrei provedores externos de dados para melhorar a performance dos modelos e a eficiência de custo em workflows de análise."
+        ],
+        "company": "frete.com",
+        "description": "Desenvolvi as primeiras bases de MLOps e modelos de Machine Learning para aprimorar os sistemas de gestão de risco e detecção de fraude da empresa para caminhoneiros e operações de frete.",
+        "location": "Brazil",
+        "period": "November 2021 - May 2022",
+        "title": "Engenheiro de Machine Learning"
+      },
+      {
+        "achievements": [
+          "Desenvolvi um sistema antifraude de ponta a ponta para pagamentos online, combinando um motor baseado em regras e um modelo de Machine Learning, reduzindo fraudes em ~30% e prevenindo ~15.000 transações fraudulentas/mês a um custo inferior a $0.01 por transação avaliada.",
+          "Construí uma plataforma de MLOps com GitOps, AWS SageMaker e Terraform, acelerando a entrega de modelos de 1 implantação/ano para 1 implantação/mês.",
+          "Defendi e defini a plataforma antifraude como uma iniciativa-chave de produto, alinhando times de engenharia e negócio em torno de seu valor estratégico e de sua implantação em múltiplos ambientes de produção."
+        ],
+        "company": "M4U",
+        "description": "Construí a primeira solução antifraude e a primeira AI Platform da M4U, da concepção à produção, estabelecendo infraestrutura de Machine Learning como uma capacidade central de produto em um time pequeno de Machine Learning.",
+        "location": "Brazil",
+        "period": "September 2020 - November 2021",
+        "title": "Engenheiro de Machine Learning"
+      },
+      {
+        "achievements": [
+          "Desenhei e mantive ferramentas de observabilidade para modelos de Machine Learning em staging e produção, permitindo detectar drift de dados e de conceito em toda a plataforma.",
+          "Entreguei análises exploratórias e descritivas para 4 empresas do setor de telecom e 2 times internos de plataforma (Recharging e Recurrence), produzindo relatórios visuais que aceleraram diagnósticos operacionais e identificaram melhorias fundamentais."
+        ],
+        "company": "M4U",
+        "description": "Atuei em todo o workflow de Machine Learning enquanto ajudava a estruturar as primeiras bases de dados que depois evoluiriam para a AI Platform da empresa.",
+        "location": "Brazil",
+        "period": "May 2019 - September 2020",
+        "title": "Cientista de Dados Júnior"
+      },
+      {
+        "achievements": [
+          "Desenvolvi um dos primeiros modelos de NLP com BERT, antes da ascensão dos LLMs, para analisar respostas abertas de pesquisas com usuários e extrair automaticamente insights para times de produto e design.",
+          "Conduzi estudos analíticos e exploratórios para validar hipóteses levantadas pelo time de UX sobre comportamento de usuários e padrões de engajamento.",
+          "Recuperei e estruturei dados que serviram de base para melhorias de UX e tomada de decisão em canais web e mobile."
+        ],
+        "company": "Oi S.A",
+        "description": "Comecei minha carreira no UX Research Lab da Oi, onde combinei analytics, pesquisa com usuários e ciência de dados para melhorar experiências digitais de milhões de usuários da plataforma Minha Oi.",
+        "location": "Rio de Janeiro Area, Brazil",
+        "period": "November 2018 - May 2019",
+        "title": "Cientista de Dados Júnior"
+      }
+    ],
+    "languages_spoken": [
+      "Português (Nativo ou Bilíngue)",
+      "Inglês (Proficiência Profissional Completa)"
+    ],
+    "location": "Rio de Janeiro, Rio de Janeiro, Brazil",
+    "name": "Daniel Cavalli",
+    "skills": [
+      "Kubeflow",
+      "sistemas distribuídos",
+      "infraestrutura de Machine Learning"
+    ],
+    "summary": "Engenheiro de infraestrutura de Machine Learning no Nubank, atuando na construção e escala da AI Platform da empresa, que atende 150+ cientistas de dados e engenheiros de Machine Learning em múltiplas unidades de negócio. Meu trabalho conecta infraestrutura e Machine Learning aplicado, com otimização de treinamento distribuído por meio de estratégias multi-cluster e multi-GPU e desenho de workflows de implantação com Argo e Tekton. Tenho foco em criar sistemas confiáveis e reutilizáveis, capazes de transformar modelos complexos em serviços prontos para produção. Meus interesses estão em MLOps, sistemas distribuídos e infraestrutura de Machine Learning, especialmente onde essas áreas convergem com inovação em fintech e produtos de dados em larga escala.",
+    "tagline": "Engenheiro de Machine Learning Sênior @ Nubank | MLOps, IA, infraestrutura de Machine Learning"
+  }
+}

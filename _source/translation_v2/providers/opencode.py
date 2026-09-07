@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import json
 import inspect
+from time import monotonic
+from ..checkpoints import StageCheckpoints
+from ..run_logging import TranslationRunEventLogger
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from typing import Any, Protocol
+from typing import Any, Protocol, Literal, overload
 
 from ..artifacts import TranslationRunArtifacts
 from ..console import finish_stage_status, start_stage_status
@@ -32,7 +35,6 @@ from ..terminology_policy import (
     build_terminology_policy_context,
     build_translation_policy_context,
 )
-from ..voice_profile import AuthorVoiceProfile
 
 
 class OpenCodeRunnerLike(Protocol):
@@ -78,8 +80,8 @@ class OpenCodeTranslationProvider(TranslationProvider):
         critique_runner: OpenCodeRunnerLike | None = None,
         revision_runner: OpenCodeRunnerLike | None = None,
         final_review_runner: OpenCodeRunnerLike | None = None,
-        voice_profile: AuthorVoiceProfile | None = None,
         max_revision_passes: int = 2,
+        checkpoint_dir: str | None = None,
     ) -> None:
         base_runner = runner
         if base_runner is None and any(
@@ -94,23 +96,23 @@ class OpenCodeTranslationProvider(TranslationProvider):
         ):
             raise ValueError("runner is required when stage-specific runners are not all provided")
 
-        self._analysis_runner = analysis_runner or base_runner
-        self._terminology_runner = terminology_runner or base_runner
-        self._translation_runner = base_runner or revision_runner
-        self._critique_runner = critique_runner or base_runner
-        self._revision_runner = revision_runner or base_runner
-        self._final_review_runner = final_review_runner or critique_runner or base_runner
+        self._analysis_runner = _require_runner(analysis_runner or base_runner)
+        self._terminology_runner = _require_runner(terminology_runner or base_runner)
+        self._translation_runner = _require_runner(base_runner or revision_runner)
+        self._critique_runner = _require_runner(critique_runner or base_runner)
+        self._revision_runner = _require_runner(revision_runner or base_runner)
+        self._final_review_runner = _require_runner(final_review_runner or critique_runner or base_runner)
         self._artifacts = artifacts
         self._default_attach_path = default_attach_path
-        self._voice_profile = voice_profile or AuthorVoiceProfile(brief="")
         self._fingerprint_cache: dict[str, str] = {}
         self._max_revision_passes = max_revision_passes
+        self._checkpoints = StageCheckpoints(checkpoint_dir) if checkpoint_dir else None
+        self._events = TranslationRunEventLogger(artifacts.run_id, artifacts.base_dir)
 
     def source_analysis(self, request: TranslationRequest) -> StageResult[VoiceIntentPacket]:
         lists = self._policy_lists(request)
         context = build_source_analysis_context(
             request,
-            voice_profile=self._voice_profile,
             writing_style_brief=str(request.metadata.get("writing_style_brief", "")),
             style_constraints=lists["style_constraints"],
             localization_brief=lists["localization_brief"],
@@ -363,6 +365,7 @@ class OpenCodeTranslationProvider(TranslationProvider):
                     stop_reason="accepted",
                 )
 
+            request.metadata["final_review_feedback"] = _payload_to_dict(final_review_result.payload)
             current_translation = revised_translation
 
         raise OpenCodeProviderLoopError(
@@ -405,6 +408,36 @@ class OpenCodeTranslationProvider(TranslationProvider):
             terminology_policy=terminology_policy,
         )
 
+    @overload
+    def _run_stage_with_repair(self, *, runner: OpenCodeRunnerLike,
+        request: TranslationRequest, stage: Literal["source_analysis"], context: Mapping[str, str],
+        pass_name: str | None = None) -> StageResult[VoiceIntentPacket]: ...
+
+    @overload
+    def _run_stage_with_repair(self, *, runner: OpenCodeRunnerLike,
+        request: TranslationRequest, stage: Literal["terminology_policy"], context: Mapping[str, str],
+        pass_name: str | None = None) -> StageResult[TerminologyPolicyPacket]: ...
+
+    @overload
+    def _run_stage_with_repair(self, *, runner: OpenCodeRunnerLike,
+        request: TranslationRequest, stage: Literal["translate"], context: Mapping[str, str],
+        pass_name: str | None = None) -> StageResult[TranslationOutput | CVTranslationOutput]: ...
+
+    @overload
+    def _run_stage_with_repair(self, *, runner: OpenCodeRunnerLike,
+        request: TranslationRequest, stage: Literal["critique"], context: Mapping[str, str],
+        pass_name: str | None = None) -> StageResult[CritiqueOutput]: ...
+
+    @overload
+    def _run_stage_with_repair(self, *, runner: OpenCodeRunnerLike,
+        request: TranslationRequest, stage: Literal["revise"], context: Mapping[str, str],
+        pass_name: str | None = None) -> StageResult[RevisionOutput | CVRevisionOutput]: ...
+
+    @overload
+    def _run_stage_with_repair(self, *, runner: OpenCodeRunnerLike,
+        request: TranslationRequest, stage: Literal["final_review"], context: Mapping[str, str],
+        pass_name: str | None = None) -> StageResult[FinalReviewOutput]: ...
+
     def _run_stage_with_repair(
         self,
         *,
@@ -426,6 +459,39 @@ class OpenCodeTranslationProvider(TranslationProvider):
             prompt_version=request.prompt_version,
             artifact_type=artifact_type,
         )
+        # Carry owner instructions and exact frontmatter through every stage.
+        # These are part of the rendered prompt, so checkpoint identity covers them.
+        supplement = {
+            "source_frontmatter": {key: request.metadata.get(key, "" if key != "tags" else [])
+                                   for key in ("title", "excerpt", "tags")},
+            "owner_revision_instructions": request.metadata.get("revision_request", {}),
+            "previous_source": request.metadata.get("previous_source", {}),
+            "previous_final_review": request.metadata.get("final_review_feedback", {}),
+            "deterministic_validation_findings": request.metadata.get("deterministic_findings", "")
+                if stage in {"critique", "revise", "final_review"} else "",
+        }
+        prompt_text += (
+            "\n\nLOCALIZATION BOUNDARY\n"
+            "The source is already authored and is authoritative. Writing guidance describes "
+            "the rules behind it; it is context for understanding the author, not an instruction "
+            "to edit, reorganize, shorten, expand, or improve the source. Preserve its argument, "
+            "section order, emphasis, qualifications, evidence, and humor. Use the target-locale "
+            "references to rebuild sentences naturally when necessary to preserve their effect. "
+            "Do not impose an authoring checklist on the translation or repair perceived "
+            "editorial shortcomings. Revision instructions apply to the localized artifact.\n"
+            "\nARTIFACT CONTEXT AND OWNER REVISION INSTRUCTIONS\n"
+            "Use the exact source frontmatter when translating title, excerpt and tags. "
+            "Address the owner's requested corrections explicitly in critique, revision, "
+            "and final review. Resolve any previous final-review rejection and deterministic "
+            "validation findings; preserve exact source code and link destinations.\n"
+            + json.dumps(supplement, ensure_ascii=False, sort_keys=True, indent=2)
+        )
+        if "mermaid" in request.source_text:
+            prompt_text += (
+                "\nFor Mermaid flowcharts, localize visible node/edge labels and "
+                "accessibility text. Preserve graph identifiers, edges, shapes, directives, "
+                "configuration, embedded HTML markup, and link destinations.\n"
+            )
         self._artifacts.write_prompt(
             post_slug,
             stage,
@@ -438,6 +504,14 @@ class OpenCodeTranslationProvider(TranslationProvider):
         attach_path = self._resolve_attach_path(request)
         artifact_key = f"{artifact_type}:{post_slug}"
         start_stage_status(stage, artifact_key, _stage_launch_label(stage))
+        started = monotonic()
+        model = getattr(runner, "model_id", type(runner).__name__)
+        checkpoint_key = None
+        if self._checkpoints:
+            checkpoint_key = self._checkpoints.key(
+                stage=stage, prompt=prompt_text, model=model,
+                reasoning=getattr(runner, "reasoning_effort", "high"),
+            )
         try:
             runner_kwargs = {
                 "request": request,
@@ -449,7 +523,34 @@ class OpenCodeTranslationProvider(TranslationProvider):
             }
             if pass_name is not None and "pass_name" in inspect.signature(runner.run_stage).parameters:
                 runner_kwargs["pass_name"] = pass_name
-            result = runner.run_stage(**runner_kwargs)
+            result = self._checkpoints.load(
+                checkpoint_key, request=request, stage=stage, model=model,
+            ) if self._checkpoints is not None and checkpoint_key else None
+            outcome = "resumed" if result is not None else "completed"
+            if result is None:
+                try:
+                    result = runner.run_stage(**runner_kwargs)
+                except ContractValidationError as exc:
+                    self._artifacts.write_error(post_slug, stage, str(exc), pass_name=pass_name)
+                    repair_pass = f"{pass_name or 'initial'}-schema-repair"
+                    repaired_prompt = prompt_text + (
+                        "\n\nSCHEMA CORRECTION\nThe previous response failed validation: "
+                        + str(exc)
+                        + "\nReturn the complete response with the exact required JSON schema. "
+                        "Preserve the editorial work; correct the response shape."
+                    )
+                    self._artifacts.write_prompt(post_slug, stage, repaired_prompt, pass_name=repair_pass)
+                    runner_kwargs["prompt_text"] = repaired_prompt
+                    if "pass_name" in inspect.signature(runner.run_stage).parameters:
+                        runner_kwargs["pass_name"] = repair_pass
+                    result = runner.run_stage(**runner_kwargs)
+                if self._checkpoints is not None and checkpoint_key:
+                    self._checkpoints.save(checkpoint_key, result)
+            self._events.emit_stage_event(
+                post_slug=post_slug, stage=stage, attempt=1, model=model,
+                duration_ms=int((monotonic() - started) * 1000), outcome=outcome,
+                metadata={"pass": pass_name, "checkpoint": checkpoint_key},
+            )
             self._artifacts.write_structured_response(
                 post_slug,
                 stage,
@@ -463,10 +564,20 @@ class OpenCodeTranslationProvider(TranslationProvider):
             )
             return result
         except ContractValidationError as exc:
+            self._events.emit_stage_event(
+                post_slug=post_slug, stage=stage, attempt=2, model=model,
+                duration_ms=int((monotonic() - started) * 1000), outcome="schema_failed",
+                metadata={"pass": pass_name, "error": str(exc)},
+            )
             self._artifacts.write_error(post_slug, stage, str(exc), pass_name=pass_name)
             finish_stage_status(stage, artifact_key, error=_stage_invalid_label(stage, exc))
             raise
         except Exception as exc:
+            self._events.emit_stage_event(
+                post_slug=post_slug, stage=stage, attempt=1, model=model,
+                duration_ms=int((monotonic() - started) * 1000), outcome="failed",
+                metadata={"pass": pass_name, "error": str(exc)},
+            )
             self._artifacts.write_error(post_slug, stage, str(exc), pass_name=pass_name)
             finish_stage_status(stage, artifact_key, error=str(exc))
             raise
@@ -683,3 +794,9 @@ def _stage_success_label(stage: str, model: str) -> str:
 
 def _stage_invalid_label(stage: str, exc: ContractValidationError) -> str:
     return f"{stage} produced schema-invalid output: {exc}"
+
+
+def _require_runner(runner: OpenCodeRunnerLike | None) -> OpenCodeRunnerLike:
+    if runner is None:
+        raise ValueError("Every localization stage requires a runner")
+    return runner

@@ -5,13 +5,11 @@ from __future__ import annotations
 import json
 
 from .contracts import TranslationRequest
-from .voice_profile import AuthorVoiceProfile
 
 
 def build_source_analysis_context(
     request: TranslationRequest,
     *,
-    voice_profile: AuthorVoiceProfile,
     writing_style_brief: str,
     style_constraints: list[str],
     localization_brief: str,
@@ -37,7 +35,6 @@ def build_source_analysis_context(
         "locale_direction": str(metadata.get("locale_direction", "")),
         "frontmatter_json": json.dumps(frontmatter, ensure_ascii=False, sort_keys=True, indent=2),
         "writing_style_brief": writing_style_brief,
-        "author_voice_profile": voice_profile.brief,
         "style_constraints": _render_bullets(style_constraints),
         "localization_brief": _render_text_block(localization_brief),
         "borrowing_conventions": _render_bullets(borrowing_conventions),

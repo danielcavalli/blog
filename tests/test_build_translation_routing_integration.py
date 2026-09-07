@@ -11,24 +11,7 @@ _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 sys.path.insert(0, _SOURCE)
 
 
-# Stub optional runtime dependencies before importing build.
-_google_stub = types.ModuleType("google")
-_genai_stub = types.ModuleType("google.genai")
-sys.modules.setdefault("google", _google_stub)
-sys.modules.setdefault("google.genai", _genai_stub)
-sys.modules.setdefault("dotenv", types.ModuleType("dotenv"))
-sys.modules["dotenv"].load_dotenv = lambda *a, **kw: None  # type: ignore[attr-defined]
-
-
-_translator_stub = types.ModuleType("translator")
-_translator_stub.MultiAgentTranslator = object  # type: ignore[attr-defined]
-_translator_stub.validate_translation = lambda *a, **kw: (True, [])  # type: ignore[attr-defined]
-_translator_stub.sanitize_translation_html = lambda html: html  # type: ignore[attr-defined]
-_translator_stub.sanitize_translation_text = lambda text: text  # type: ignore[attr-defined]
-sys.modules["translator"] = _translator_stub
-
-
-import build  # noqa: E402  # imported after dependency stubs by design
+import build  # noqa: E402
 
 
 def _mk_post(slug: str, lang: str) -> dict:
@@ -64,7 +47,7 @@ class _FakePostOrchestrator:
         translated["content"] = "<p>translated</p>"
         return translated
 
-    def translate_if_needed_unpersisted(
+    def read_post(
         self,
         post,
         target_locale="pt-br",
@@ -76,11 +59,7 @@ class _FakePostOrchestrator:
             force_revision_reason=force_revision_reason,
         )
 
-    def persist_artifact_translation(self, **kwargs):  # noqa: ANN003
-        return None
 
-    def consume_artifact_persist_context(self, *, slug, artifact_type):  # noqa: ARG002
-        return {"outcome": "cache_miss", "revised_from_cache_source": None}
 
     def _run_pipeline(self, request):
         return {
@@ -90,7 +69,7 @@ class _FakePostOrchestrator:
             "content": f"pt::{request.source_text}",
         }
 
-    def translate_artifact_if_needed(
+    def read_artifact(
         self,
         *,
         slug,
@@ -140,6 +119,7 @@ def _configure_build_for_test(tmp_path: Path, monkeypatch, source_post: dict):
     (pt_dir / "blog").mkdir(parents=True, exist_ok=True)
 
     monkeypatch.setattr(build, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(build, "validate_staged", lambda *a, **k: None)
     monkeypatch.setattr(build, "POSTS_DIR", posts_dir)
     monkeypatch.setattr(build, "LANG_DIRS", {"en": en_dir, "pt": pt_dir})
     monkeypatch.setattr(build, "STAGING_DIR", tmp_path / "_staging")
@@ -151,10 +131,8 @@ def _configure_build_for_test(tmp_path: Path, monkeypatch, source_post: dict):
         else staging_dir / rel_path.relative_to(tmp_path),
     )
 
-    monkeypatch.setattr(build, "load_post_metadata", lambda: {})
-    monkeypatch.setattr(build, "save_post_metadata", lambda *_: None)
     monkeypatch.setattr(build, "load_cv_data", lambda: {"name": "x"})
-    monkeypatch.setattr(build, "TranslationV2PostOrchestrator", lambda **_: _FakePostOrchestrator())
+    monkeypatch.setattr(build, "AcceptedContent", lambda **_: _FakePostOrchestrator())
 
     def _parse_markdown_post(filepath, _metadata_store=None):  # noqa: ARG001
         return source_post.copy()
@@ -186,7 +164,7 @@ def test_pt_br_source_routes_translated_output_to_en(monkeypatch, tmp_path):
     source_post = _mk_post("pt-source", "pt-br")
     _configure_build_for_test(tmp_path, monkeypatch, source_post)
 
-    ok = build.build(strict=False, use_staging=False, skip_about_cv_translation=True)
+    ok = build.build(strict=False, skip_about_cv_translation=True)
     assert ok is True
     assert (tmp_path / "pt" / "blog" / "pt-source.html").exists()
     assert (tmp_path / "en" / "blog" / "pt-source.html").exists()
@@ -211,7 +189,7 @@ def test_build_validates_pt_br_to_en_us_with_locale_direction(monkeypatch, tmp_p
 
     monkeypatch.setattr(build, "validate_translation", _fake_validate)
 
-    ok = build.build(strict=False, use_staging=False, skip_about_cv_translation=True)
+    ok = build.build(strict=False, skip_about_cv_translation=True)
 
     assert ok is True
     assert len(calls) == 1
@@ -229,7 +207,7 @@ def test_strict_build_fails_on_pt_br_to_en_us_validation_error(monkeypatch, tmp_
         lambda *_a, **_k: (False, ["ERROR: paragraph 1 appears untranslated"]),
     )
 
-    ok = build.build(strict=True, use_staging=False, skip_about_cv_translation=True)
+    ok = build.build(strict=True, skip_about_cv_translation=True)
 
     assert ok is False
 
@@ -238,7 +216,7 @@ def test_en_us_source_routes_translated_output_to_pt(monkeypatch, tmp_path):
     source_post = _mk_post("en-source", "en-us")
     _configure_build_for_test(tmp_path, monkeypatch, source_post)
 
-    ok = build.build(strict=False, use_staging=False, skip_about_cv_translation=True)
+    ok = build.build(strict=False, skip_about_cv_translation=True)
     assert ok is True
     assert (tmp_path / "en" / "blog" / "en-source.html").exists()
     assert (tmp_path / "pt" / "blog" / "en-source.html").exists()
@@ -269,7 +247,6 @@ def test_one_file_mode_builds_only_selected_slug_and_skips_about_cv_translation(
 
     ok = build.build(
         strict=False,
-        use_staging=False,
         post_selector="focus-post",
         skip_about_cv_translation=True,
     )
@@ -299,7 +276,6 @@ def test_one_file_mode_does_not_overwrite_sitewide_indexes_or_sitemap(
 
     ok = build.build(
         strict=False,
-        use_staging=False,
         post_selector="focus-post",
         skip_about_cv_translation=True,
     )
@@ -317,6 +293,6 @@ def test_about_cv_translation_runs_without_skip_flag(monkeypatch, tmp_path):
     source_post = _mk_post("en-source", "en-us")
     _configure_build_for_test(tmp_path, monkeypatch, source_post)
 
-    ok = build.build(strict=False, use_staging=False, skip_about_cv_translation=False)
+    ok = build.build(strict=False, skip_about_cv_translation=False)
 
     assert ok is True

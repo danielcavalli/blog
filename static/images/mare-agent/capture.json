@@ -1,0 +1,19 @@
+{
+  "description": "Actual Maré Hub frontend, locally rendered with sample account and app data.",
+  "sourceRevision": "13334bf",
+  "viewport": {
+    "width": 1440,
+    "height": 1060
+  },
+  "themes": [
+    "day",
+    "night"
+  ],
+  "sampleApps": [
+    "notes",
+    "finance",
+    "moon",
+    "library"
+  ],
+  "playwrightVersion": "1.62.1"
+}

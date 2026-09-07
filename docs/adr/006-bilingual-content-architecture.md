@@ -15,6 +15,8 @@ Superseded by:
 - [ADR 11](011-opencode-translation-v2-architecture.md)
 - [ADR 12](012-source-first-build-and-artifact-commit-semantics.md)
 - [ADR 13](013-locale-aware-localization-policy.md)
+- [ADR 16](016-durable-translations-and-recoverable-publication.md), including removal
+  of the sidecar metadata manifest and cache-backed generation described below.
 
 ## Historical Decision
 

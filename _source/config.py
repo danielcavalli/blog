@@ -3,7 +3,7 @@
 This module contains all configuration constants for the bilingual blog system.
 It defines site metadata, language-specific UI strings, paths, and social links.
 
-The Portuguese post pipeline is translated during build using the translation_v2
+Builds render accepted translations. Explicit updates use the translation_v2
 OpenCode runtime.
 
 CV data source of truth:
@@ -18,10 +18,6 @@ Environment:
 
 Constants:
     BASE_PATH (str): Root path prefix for all generated links
-    GEMINI_MODEL_CHAIN (list[str]): Ordered list of Gemini models for translation.
-        The translator tries each in sequence when the current model hits a rate
-        limit, quota exhaustion, or unavailability error.
-    GEMINI_MODEL (str): Backward-compatible alias for the primary (first) model.
     LANGUAGES (dict): Bilingual configuration with EN/PT UI strings and metadata
     DEFAULT_LANGUAGE (str): Fallback language code (en)
     SITE_NAME (str): Display name for the blog
@@ -31,30 +27,9 @@ Constants:
     SOCIAL_LINKS (dict): Social media profile URLs
 """
 
-import os
-
 # Base path for GitHub Pages deployment
 # Use "" for local development, "/blog" for GitHub Pages at username.github.io/blog/
 BASE_PATH = ""
-
-# ---------------------------------------------------------------------------
-# Gemini model fallback chain for translation
-# ---------------------------------------------------------------------------
-# The translator tries models in order.  When a model returns a rate-limit
-# (429), quota-exhaustion (RESOURCE_EXHAUSTED), or service-unavailability
-# error and exhausts its per-model retry budget, the next model is tried.
-#
-#   Primary  : gemini-3-flash-preview          — latest preview Flash (v1beta required)
-#   Fallback1: gemini-2.5-flash               — stable Flash model
-#   Fallback2: gemini-2.0-flash-lite          — lightweight, more quota
-GEMINI_MODEL_CHAIN: list = [
-    "gemini-3-flash-preview",  # Primary (requires v1beta)
-    "gemini-2.5-flash",  # Fallback 1 (stable v1)
-    "gemini-3.1-flash-lite",  # Fallback 2 (stable v1)
-]
-
-# Backward-compatible alias — points to the primary model in the chain.
-GEMINI_MODEL: str = GEMINI_MODEL_CHAIN[0]
 
 # Bilingual support
 LANGUAGES = {
@@ -242,51 +217,3 @@ SOCIAL_LINKS = {
     "github": "https://github.com/danielcavalli",
     "linkedin": "https://www.linkedin.com/in/cavallidaniel/",
 }
-
-
-# Translation provider defaults for build/runtime routing.
-DEFAULT_TRANSLATION_PROVIDER = "opencode"
-DEFAULT_TRANSLATION_V2_PROVIDER = "opencode"
-DEFAULT_TRANSLATION_V2_ENABLED = True
-DEFAULT_TRANSLATION_V2_FAILURE_POLICY = "strict"
-
-
-def get_translation_provider(default: str = DEFAULT_TRANSLATION_PROVIDER) -> str:
-    """Return normalized translation provider from environment.
-
-    Environment variable: TRANSLATION_PROVIDER
-    """
-    provider = (os.getenv("TRANSLATION_PROVIDER") or default or "").strip().lower()
-    return provider or DEFAULT_TRANSLATION_PROVIDER
-
-
-def get_translation_v2_enabled(
-    default: bool = DEFAULT_TRANSLATION_V2_ENABLED,
-) -> bool:
-    """Return whether translation_v2 build routing is enabled."""
-
-    value = os.getenv("TRANSLATION_V2_ENABLED")
-    if value is None:
-        return bool(default)
-    normalized = value.strip().lower()
-    return normalized in {"1", "true", "yes", "on"}
-
-
-def get_translation_v2_provider(
-    default: str = DEFAULT_TRANSLATION_V2_PROVIDER,
-) -> str:
-    """Return normalized translation_v2 provider from environment."""
-
-    provider = (os.getenv("TRANSLATION_V2_PROVIDER") or default or "").strip().lower()
-    return provider or DEFAULT_TRANSLATION_V2_PROVIDER
-
-
-def get_translation_v2_failure_policy(
-    default: str = DEFAULT_TRANSLATION_V2_FAILURE_POLICY,
-) -> str:
-    """Return translation_v2 build failure policy from environment."""
-
-    policy = (os.getenv("TRANSLATION_V2_FAILURE_POLICY") or default or "").strip().lower()
-    if policy not in {"partial", "strict"}:
-        return DEFAULT_TRANSLATION_V2_FAILURE_POLICY
-    return policy

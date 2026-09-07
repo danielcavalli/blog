@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import sys
-import types
 from pathlib import Path
 
 
@@ -18,19 +17,12 @@ MOCK_FIXTURE_PATH = FIXTURES_DIR / "representative_post_expected.json"
 CONTRACT_REGRESSION_FIXTURE_PATH = FIXTURES_DIR / "onefile_contract_regression_case.json"
 
 
-def ensure_runtime_stubs() -> None:
-    """Install import stubs used by build during deterministic tests."""
+def ensure_source_imports() -> None:
+    """Make source modules importable for the standalone test lane."""
     source_dir = os.path.join(os.path.dirname(__file__), "..", "_source")
     if source_dir not in sys.path:
         sys.path.insert(0, source_dir)
 
-    google_stub = types.ModuleType("google")
-    genai_stub = types.ModuleType("google.genai")
-    genai_stub.types = types.SimpleNamespace(HttpOptions=lambda **_: None)  # type: ignore[attr-defined]
-    sys.modules.setdefault("google", google_stub)
-    sys.modules.setdefault("google.genai", genai_stub)
-    sys.modules.setdefault("dotenv", types.ModuleType("dotenv"))
-    sys.modules["dotenv"].load_dotenv = lambda *a, **kw: None  # type: ignore[attr-defined]
 
 
 def make_source_post(*, slug: str = "deterministic-mock-post", lang: str = "en-us") -> dict:
@@ -53,33 +45,9 @@ def make_source_post(*, slug: str = "deterministic-mock-post", lang: str = "en-u
     }
 
 
-class FakePostOrchestrator:
-    def __init__(self, *, run_id: str, artifact_run_dir: Path):
-        self.run_id = run_id
-        self.artifact_run_dir = artifact_run_dir
-
-    def translate_if_needed(self, post, target_locale="pt-br", force_revision_reason=None):  # noqa: ARG002
-        translated = post.copy()
-        translated["lang"] = target_locale
-        return translated
-
-    def translate_if_needed_unpersisted(
-        self,
-        post,
-        target_locale="pt-br",
-        force_revision_reason=None,
-    ):
-        return self.translate_if_needed(
-            post,
-            target_locale=target_locale,
-            force_revision_reason=force_revision_reason,
-        )
-
-    def persist_artifact_translation(self, **kwargs):  # noqa: ANN003
-        return None
-
-    def consume_artifact_persist_context(self, *, slug, artifact_type):  # noqa: ARG002
-        return {"outcome": "cache_miss", "revised_from_cache_source": None}
+class FakeAcceptedContent:
+    def read_post(self, post, *, target_locale):
+        return {**post, "lang": target_locale}
 
 
 def configure_onefile_build(tmp_path: Path, monkeypatch, build_module, source_post: dict) -> None:
@@ -96,6 +64,7 @@ def configure_onefile_build(tmp_path: Path, monkeypatch, build_module, source_po
     (pt_dir / "blog").mkdir(parents=True, exist_ok=True)
 
     monkeypatch.setattr(build_module, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(build_module, "validate_staged", lambda *a, **k: None)
     monkeypatch.setattr(build_module, "POSTS_DIR", posts_dir)
     monkeypatch.setattr(build_module, "LANG_DIRS", {"en": en_dir, "pt": pt_dir})
     monkeypatch.setattr(build_module, "STAGING_DIR", tmp_path / "_staging")
@@ -106,24 +75,12 @@ def configure_onefile_build(tmp_path: Path, monkeypatch, build_module, source_po
         if staging_dir is None
         else staging_dir / rel_path.relative_to(tmp_path),
     )
-    monkeypatch.setattr(
-        build_module,
-        "TRANSLATION_CACHE",
-        tmp_path / "_cache" / "translation-cache.json",
-    )
-
-    monkeypatch.setattr(build_module, "load_post_metadata", lambda: {})
-    monkeypatch.setattr(build_module, "save_post_metadata", lambda *_: None)
     monkeypatch.setattr(build_module, "load_cv_data", lambda: {"name": "x"})
     monkeypatch.setattr(
         build_module,
-        "TranslationV2PostOrchestrator",
-        lambda **_: FakePostOrchestrator(
-            run_id="test-run",
-            artifact_run_dir=tmp_path / "_cache" / "translation-runs" / "test-run",
-        ),
+        "AcceptedContent",
+        lambda **_: FakeAcceptedContent(),
     )
-    (tmp_path / "_cache" / "translation-runs" / "test-run").mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(
         build_module,
         "parse_markdown_post",
@@ -143,7 +100,3 @@ def configure_onefile_build(tmp_path: Path, monkeypatch, build_module, source_po
     monkeypatch.setattr(build_module, "generate_cv_html", lambda *a, **k: "<html>cv</html>")
     monkeypatch.setattr(build_module, "generate_root_index", lambda: "<html>root</html>")
     monkeypatch.setattr(build_module, "generate_sitemap", lambda *a, **k: "<xml />")
-
-    validate_mod = types.ModuleType("validate")
-    validate_mod.run_validation = lambda *_a, **_k: True  # type: ignore[attr-defined]
-    monkeypatch.setitem(sys.modules, "validate", validate_mod)

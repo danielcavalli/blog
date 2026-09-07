@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from typing import Dict, List, Tuple
 
+import html5lib
 
 TECH_GLOSSARY: set[str] = {
     "machine learning",
@@ -102,24 +103,29 @@ _INVARIANT_HEADING_PATTERNS = (
 )
 _REFERENCE_ENTRY_PREFIX = re.compile(r"^\s*(?:\[\d+\]|\d+\.|;\s*)")
 
-_RE_SCRIPT_TAG = re.compile(r"<\s*script[\s>].*?<\s*/\s*script\s*>", re.IGNORECASE | re.DOTALL)
-_RE_SCRIPT_OPEN = re.compile(r"<\s*script[\s>]", re.IGNORECASE)
-_RE_EVENT_HANDLER = re.compile(r"""\bon[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|\S+)""", re.IGNORECASE)
-_RE_JAVASCRIPT_URI = re.compile(
-    r"""(?:href|src|action)\s*=\s*"""
-    r"""(?:"\s*javascript:[^"]*"|'\s*javascript:[^']*'|\s*javascript:\S*)""",
-    re.IGNORECASE,
-)
-
-
 def sanitize_translation_html(html: str) -> str:
-    """Strip dangerous HTML patterns from translated HTML fragments."""
-
-    html = _RE_SCRIPT_TAG.sub("", html)
-    html = _RE_SCRIPT_OPEN.sub("&lt;script", html)
-    html = _RE_EVENT_HANDLER.sub("", html)
-    html = _RE_JAVASCRIPT_URI.sub("", html)
-    return html
+    """Remove executable translated markup without changing prose or code samples."""
+    root = html5lib.parseFragment(html, namespaceHTMLElements=False)
+    for parent in list(root.iter()):
+        for index, child in reversed(list(enumerate(parent))):
+            if str(child.tag).rsplit("}", 1)[-1] != "script":
+                continue
+            if child.tail:
+                if index:
+                    previous = parent[index - 1]
+                    previous.tail = (previous.tail or "") + child.tail
+                else:
+                    parent.text = (parent.text or "") + child.tail
+            parent.remove(child)
+    for element in root.iter():
+        for name, value in list(element.attrib.items()):
+            local_name = name.rsplit("}", 1)[-1].lower()
+            if local_name.startswith("on") or (
+                local_name in {"href", "src", "action"}
+                and re.sub(r"[\x00-\x20]", "", value).lower().startswith("javascript:")
+            ):
+                del element.attrib[name]
+    return html5lib.serialize(root, tree="etree", quote_attr_values="always", omit_optional_tags=False)
 
 
 def sanitize_translation_text(text: str) -> str:

@@ -1,0 +1,28 @@
+{
+  "__translation_v2__": {
+    "entries": {
+      "schema=v2|source_hash=9026163658e2d0d53e3c1e98cf774e8a0e3a1b6be3488917ed7d69b88baef544|source_locale=en-us|target_locale=pt-br|provider=opencode|model=historical/model|prompt_version=v2": {
+        "metadata": {
+          "artifact_type": "post",
+          "author_voice_fingerprint": "historical-voice",
+          "prompt_fingerprint": "historical-prompt",
+          "writing_style_fingerprint": "historical-style"
+        },
+        "model": "historical/model",
+        "prompt_version": "v2",
+        "provider": "opencode",
+        "schema_version": "v2",
+        "source_hash": "9026163658e2d0d53e3c1e98cf774e8a0e3a1b6be3488917ed7d69b88baef544",
+        "source_locale": "en-us",
+        "target_locale": "pt-br",
+        "translation": {
+          "content": "O sistema cumpre suas promessas.",
+          "excerpt": "Um resumo",
+          "tags": [],
+          "title": "Exemplo"
+        }
+      }
+    },
+    "schema_version": "v2"
+  }
+}

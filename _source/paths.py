@@ -1,4 +1,4 @@
-"""Shared path constants and directory initialization for the blog builder.
+"""Shared path constants for the blog builder.
 
 Every module that needs project paths imports them from here, ensuring a
 single source of truth for the filesystem layout.
@@ -22,17 +22,8 @@ LANG_DIRS = {
     for code, meta in LANGUAGES.items()
 }
 
-# Staging directory for atomic builds (used when strict=True or --staging)
+# Staging directory for validated publication
 STAGING_DIR = PROJECT_ROOT / '_staging'
 
 # Cache files
-METADATA_FILE = CACHE_DIR / "post-metadata.json"
 TRANSLATION_CACHE = CACHE_DIR / "translation-cache.json"
-
-# Ensure directories exist at import time
-POSTS_DIR.mkdir(parents=True, exist_ok=True)
-CACHE_DIR.mkdir(parents=True, exist_ok=True)
-
-for _lang_dir in LANG_DIRS.values():
-    _lang_dir.mkdir(parents=True, exist_ok=True)
-    (_lang_dir / 'blog').mkdir(parents=True, exist_ok=True)

@@ -37,11 +37,8 @@ REGISTER CONVENTIONS
 LOCALE REVIEW CHECKS
 {{review_checks}}
 
-WRITING STYLE BRIEF
+AUTHORING CONTEXT (PRESERVE THE AUTHORED SOURCE)
 {{writing_style_brief}}
-
-AUTHOR VOICE PROFILE
-{{author_voice_profile}}
 
 GLOSSARY
 {{glossary_entries}}

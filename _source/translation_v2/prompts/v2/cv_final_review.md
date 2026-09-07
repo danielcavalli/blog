@@ -9,8 +9,9 @@ Accept only if all of these are true:
 - the candidate's seniority and achievement signals remain intact
 - education degree localization is handled consistently and matches the settled terminology policy
 - invariant fields and JSON structure remain intact
-- every critique finding was either fixed or explicitly declined for a valid protection-rule reason
-- the critique findings and revision report agree with the actual revised CV; do not approve if the report claims a fix that is not visible in the artifact
+- if critique_json.needs_refinement is true, every critique finding was either fixed or explicitly declined for a valid protection-rule reason
+- if critique_json.needs_refinement is false, absence of revision_report changes is expected; do not reject merely because informational or minor findings were not applied
+- when a revision report exists, the critique findings and revision report agree with the actual revised CV; do not approve if the report claims a fix that is not visible in the artifact
 
 LOCALE DIRECTION
 - Source locale: {{source_locale}}
@@ -55,9 +56,10 @@ REVISED CANDIDATE JSON
 
 REVIEW INSTRUCTIONS
 - Use critique_json explicitly to verify that each finding was resolved, validly declined, or remains an issue.
-- Use revision_report_json explicitly to verify that claimed applied fixes, declined findings, and protected-field exceptions match the revised CV.
+- Use revision_report_json explicitly to verify that claimed applied fixes, declined findings, and protected-field exceptions match the revised CV when critique_json.needs_refinement is true.
 - Verify that every education.degree value follows the settled degree-localization policy in terminology_policy_json. Do not accept mixed handling unless the policy explicitly allows it.
-- If critique_json and revision_report_json disagree, treat the mismatch as a residual issue and do not infer that the revision is complete.
+- If critique_json.needs_refinement is false, evaluate the CV directly and reject only for material defects that make it not publish-ready.
+- If critique_json.needs_refinement is true and critique_json and revision_report_json disagree, treat the mismatch as a residual issue and do not infer that the revision is complete.
 
 OUTPUT CONTRACT
 - Return exactly one JSON object.

@@ -6,6 +6,8 @@ and root landing pages. Each function returns a full HTML string.
 
 import html as _html
 import re as _re
+from reading_layout import compile_reading_layout
+from post_links import resolve_post_links
 
 from config import (
     BASE_PATH,
@@ -188,6 +190,8 @@ def render_head(
             f"{BASE_PATH}/static/js/filter.js",
             f"{BASE_PATH}/static/js/annotations.js",
             f"{BASE_PATH}/static/js/presentation.js",
+            f"{BASE_PATH}/static/js/diagrams.js",
+            f"{BASE_PATH}/static/js/reading.js",
         ]
 
     # Build versioned stylesheet links (content-hash per file)
@@ -611,6 +615,9 @@ def generate_presentation_html(presentation, post_number, lang="en"):
         render_presentation_slide(slide, index, total_slides, lang)
         for index, slide in enumerate(slides)
     )
+    slides_html = resolve_post_links(
+        slides_html, lang=lang, source_path=presentation.get("source_path"),
+    )
 
     tags_html = ""
     if presentation.get("tags"):
@@ -693,6 +700,8 @@ def generate_presentation_html(presentation, post_number, lang="en"):
             f"{BASE_PATH}/static/js/filter.js",
             f"{BASE_PATH}/static/js/annotations.js",
             f"{BASE_PATH}/static/js/presentation.js",
+            f"{BASE_PATH}/static/js/diagrams.js",
+            f"{BASE_PATH}/static/js/reading.js",
         ],
     )
 
@@ -718,7 +727,7 @@ def generate_presentation_html(presentation, post_number, lang="en"):
                     <span class="post-separator">•</span>
                     <span class="post-reading-time">{reading_time_display}</span>
                 </div>
-                {tags_html}
+{"                " + tags_html if tags_html else ""}
                 <p class="lead presentation-excerpt" style="view-transition-name: post-excerpt-{post_number};">
                     {_html.escape(presentation["excerpt"])}
                 </p>
@@ -820,7 +829,7 @@ def generate_post_html(post, post_number, lang="en"):
 
     last_updated_html = ""
     if updated_fm and updated_fm != published_fm:
-        last_updated_html = f'<div class="last-updated">{ui["last_updated_label"]}: {format_date(updated_fm, lang)}</div>'
+        last_updated_html = f'                <div class="last-updated">{ui["last_updated_label"]}: {format_date(updated_fm, lang)}</div>'
 
     # Published date for display: use frontmatter 'date' (stable, author-controlled)
     published_date_display = format_date(post.get("published_date", post.get("date", "")), lang)
@@ -905,6 +914,9 @@ def generate_post_html(post, post_number, lang="en"):
     footer = render_footer(lang)
     skip_link = render_skip_link(lang)
 
+    content = resolve_post_links(post["content"], lang=lang, source_path=post.get("source_path"))
+    reading = compile_reading_layout(content, lang=lang)
+
     return f"""<!DOCTYPE html>
 <html lang="{lang}">
 {head}
@@ -916,25 +928,29 @@ def generate_post_html(post, post_number, lang="en"):
     {skip_link}
     {nav}
 
-    <main id="main-content" class="container">
-        <article class="post" style="view-transition-name: post-container-{post_number};">
+    <main id="main-content" class="container article-container">
+        <article class="post post--reading" style="view-transition-name: post-container-{post_number};">
             <header class="post-header">
                 <a href="{get_lang_path(lang, "index.html")}" class="back-link">{ui["back_to_blog"]}</a>
-                {last_updated_html}
+{last_updated_html}
                 <h1 class="post-title-large" style="view-transition-name: post-title-{post_number};">{_html.escape(post["title"].upper())}</h1>
                 <div class="post-meta">
                     <time class="post-date" style="view-transition-name: post-date-{post_number};">{published_date_display}</time>
                     <span class="post-separator">•</span>
                     <span class="post-reading-time">{reading_time_display}</span>
                 </div>
-                {tags_html}
+{"                " + tags_html if tags_html else ""}
             </header>
 
+            <div class="article-layout">
+{"            " + reading.outline if reading.outline else ""}
             <div class="post-body">
                 <p class="lead" style="view-transition-name: post-excerpt-{post_number};">
                     {_html.escape(post["excerpt"])}
                 </p>
-                {post["content"]}
+                {reading.content}
+            </div>
+{"            " + reading.notes if reading.notes else ""}
             </div>
         </article>
     </main>
@@ -996,8 +1012,8 @@ def generate_post_card(post, post_number, lang="en"):
     )
 
     return f"""            <article class="post-card"{content_type_attr}
-                     data-year="{post["year"]}" 
-                     data-month="{post["month"]}" 
+                     data-year="{post["year"]}"
+                     data-month="{post["month"]}"
                      data-tags="{tags_attr}"
                      data-tag-keys="{tag_keys_attr}"
                      data-created="{created_timestamp}"
@@ -1007,7 +1023,7 @@ def generate_post_card(post, post_number, lang="en"):
                     <div class="post-content">
                         <h2 class="post-title" style="view-transition-name: post-title-{post_number};">{_html.escape(post["title"].upper())}</h2>
                         <time class="post-date" style="view-transition-name: post-date-{post_number};">{format_date(post.get("published_date", post.get("date", "")), lang)}</time>
-                        {tags_html}
+{"                        " + tags_html if tags_html else ""}
                         <p class="post-excerpt" style="view-transition-name: post-excerpt-{post_number};">
                             {_html.escape(post["excerpt"])}
                         </p>

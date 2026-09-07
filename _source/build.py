@@ -6,9 +6,9 @@ Run this whenever you add or edit a blog post.
 This is the orchestration entry point.  All domain logic lives in
 focused modules:
 
-    paths.py           - Filesystem constants and directory creation
+    paths.py           - Filesystem constants
     helpers.py         - Pure utility functions (hashing, formatting, etc.)
-    content_loader.py  - Markdown parsing and sidecar metadata manifest
+    content_loader.py  - Read-only Markdown parsing
     cv_parser.py       - CV YAML loading and schema validation
     seo.py             - JSON-LD structured data and sitemap generation
     renderer.py        - All HTML page generation
@@ -19,21 +19,23 @@ focused modules:
 import os
 import shutil
 import sys
-import importlib
 import json
 from pathlib import Path
 import argparse
+from functools import wraps
+from publication import publish_staged, recover_publication, validate_staged
+from translation_v2.storage import file_lock
 from typing import Any
 
+import frontmatter
+
 from config import (
-    BASE_PATH,
     LANGUAGES,
-    DEFAULT_TRANSLATION_V2_PROVIDER,
     get_language_codes,
 )
 from paths import PROJECT_ROOT, POSTS_DIR, LANG_DIRS, STAGING_DIR
 from helpers import _out
-from content_loader import load_post_metadata, save_post_metadata, parse_markdown_post
+from content_loader import parse_markdown_post
 from cv_parser import load_cv_data
 from seo import generate_sitemap
 from renderer import (
@@ -47,7 +49,7 @@ from renderer import (
 from presentation_compiler import compile_presentation_markdown, presentation_document_to_dict
 from presentation_translation import compare_presentation_translation_invariants
 from translation_common import validate_translation
-from translation_v2 import TranslationV2PostOrchestrator
+from accepted_content import AcceptedContent
 from translation_v2.console import (
     configure_console,
     log_blank,
@@ -56,40 +58,6 @@ from translation_v2.console import (
     log_line,
     shutdown_console,
 )
-
-# Re-export everything that tests and external callers reference via `build.*`.
-# This keeps backward compatibility while the actual implementations live in
-# their focused modules.
-from helpers import (  # noqa: F401
-    _asset_hash,
-    CURRENT_YEAR,
-    calculate_content_hash,
-    tag_to_slug,
-    calculate_reading_time,
-    format_reading_time,
-    format_date,
-    format_iso_date,
-    get_lang_path,
-    get_alternate_lang,
-)
-from renderer import (  # noqa: F401
-    render_theme_toggle_svg,
-    render_skip_link,
-    render_nav,
-    render_footer,
-    render_head,
-    generate_lang_toggle_html,
-    generate_post_card,
-)
-from seo import render_person_jsonld, render_jsonld_script  # noqa: F401
-from paths import (  # noqa: F401
-    CACHE_DIR,
-    STATIC_DIR,
-    CV_DATA_FILE,
-    METADATA_FILE,
-    TRANSLATION_CACHE,
-)
-
 
 def normalize_locale(locale: str) -> str:
     """Normalize locale identifiers to lowercase hyphenated form."""
@@ -112,23 +80,6 @@ def get_target_locale(source_locale: str) -> str:
     return "pt-br"
 
 
-def resolve_translation_provider(
-    cli_provider: str | None = None,  # noqa: ARG001
-    *,
-    use_translation_v2: bool = False,  # noqa: ARG001
-) -> str:
-    """Resolve build translation provider.
-
-    Build runtime is OpenCode-only for post translation.
-    """
-    return DEFAULT_TRANSLATION_V2_PROVIDER
-
-
-def resolve_translation_v2_enabled(cli_enabled: bool | None = None) -> bool:  # noqa: ARG001
-    """Build runtime always uses translation_v2 orchestration."""
-    return True
-
-
 def select_markdown_files(md_files: list[Path], selector: str | None) -> list[Path]:
     """Filter markdown files by slug or path selector."""
     if not selector:
@@ -146,31 +97,13 @@ def select_markdown_files(md_files: list[Path], selector: str | None) -> list[Pa
             md_file.stem == needle
             or md_file.name == needle
             or source_rel == needle
-            or source_rel.endswith(needle)
+            or source_rel.endswith(f"/{needle}")
             or md_file.resolve() == needle_path.resolve()
+            or (md_file.is_file() and frontmatter.load(str(md_file)).get("slug") == needle)
         ):
             selected.append(md_file)
 
     return selected
-
-
-def _log_translation_v2_debug_context(post_translator: object | None) -> None:
-    """Print run-scoped debug context for translation_v2 lanes."""
-    if post_translator is None:
-        return
-
-    run_id = getattr(post_translator, "run_id", None)
-    artifact_dir = getattr(post_translator, "artifact_run_dir", None)
-    if run_id is None or artifact_dir is None:
-        return
-
-    log_block(
-        "translation_v2 runtime",
-        [
-            ("Run ID", run_id),
-            ("Artifacts", artifact_dir),
-        ],
-    )
 
 
 def _serialize_about_artifact(about_payload: dict[str, Any]) -> str:
@@ -218,15 +151,13 @@ def _deserialize_about_artifact(
     return about_payload
 
 
-def _translate_about_to_pt_v2(
-    post_translator: TranslationV2PostOrchestrator,
+def _read_about_pt(
+    accepted: AcceptedContent,
     about_en: dict[str, Any],
-    *,
-    force_revision_reason: str | None = None,
 ) -> dict[str, str]:
-    """Translate EN About payload as one artifact and return PT renderer shape."""
+    """Read the accepted About artifact in the renderer shape."""
 
-    translated = post_translator.translate_artifact_if_needed(
+    translated = accepted.read_artifact(
         slug="about",
         source_text=_serialize_about_artifact(about_en),
         source_locale="en-us",
@@ -237,38 +168,19 @@ def _translate_about_to_pt_v2(
             "excerpt": "",
             "tags": [],
         },
-        attach_path=str(PROJECT_ROOT / "_source" / "config.py"),
-        force_revision_reason=force_revision_reason,
     )
     return _deserialize_about_artifact(translated, template_about=about_en)
 
 
-def _translate_cv_to_pt_v2(
-    post_translator: TranslationV2PostOrchestrator,
-    cv_data: dict[str, Any],
-    *,
-    force_revision_reason: str | None = None,
+def _read_cv_pt(
+    accepted: AcceptedContent,
 ) -> dict[str, Any]:
-    """Translate the full CV as one structured artifact."""
+    """Read the accepted structured CV."""
 
-    do_not_translate_entities = [
-        "Nubank",
-        "PicPay",
-        "M4U",
-        "Oi S.A",
-        "frete.com",
-        "Kubeflow",
-        "Dagster",
-        "Argo",
-        "Tekton",
-        "Pulumi",
-        "AWS",
-        "SageMaker",
-        "GPU",
-        "CUDA",
-        "MLOps",
-    ]
-    translated = post_translator.translate_artifact_if_needed(
+    cv_data = load_cv_data()
+    if cv_data is None:
+        raise RuntimeError("Could not load cv_data.yaml")
+    translated = accepted.read_artifact(
         slug="cv",
         source_text=json.dumps(cv_data, ensure_ascii=False, sort_keys=True, indent=2),
         source_locale="en-us",
@@ -279,9 +191,6 @@ def _translate_cv_to_pt_v2(
             "excerpt": str(cv_data.get("tagline", "")),
             "tags": ["cv"],
         },
-        attach_path=str(PROJECT_ROOT / "cv_data.yaml"),
-        do_not_translate_entities=do_not_translate_entities,
-        force_revision_reason=force_revision_reason,
     )
     return translated
 
@@ -336,11 +245,7 @@ def _write_output_file(relative_path: Path, content: str, staging_dir: Path | No
     return output_path
 
 
-def _live_output_exists(output_path: Path) -> bool:
-    return output_path.exists()
-
-
-def _commit_source_post_output(
+def _write_post(
     post: dict[str, Any],
     *,
     lang_key: str,
@@ -363,7 +268,7 @@ def _commit_source_post_output(
         staging_dir,
     )
     log_line(
-        f"built from source: {lang_key}/blog/{post['slug']}.html",
+        f"Rendered {lang_key}/blog/{post['slug']}.html",
         indent=2,
         status="success",
     )
@@ -376,7 +281,7 @@ def _commit_source_about_output(
 ) -> None:
     about_html = generate_about_html(lang=lang_key)
     _write_output_file(LANG_DIRS[lang_key] / "about.html", about_html, staging_dir)
-    log_line(f"built from source: {lang_key}/about.html", indent=2, status="success")
+    log_line(f"Rendered {lang_key}/about.html", indent=2, status="success")
 
 
 def _commit_source_cv_output(
@@ -386,7 +291,7 @@ def _commit_source_cv_output(
 ) -> None:
     cv_html = generate_cv_html(lang=lang_key)
     _write_output_file(LANG_DIRS[lang_key] / "cv.html", cv_html, staging_dir)
-    log_line(f"built from source: {lang_key}/cv.html", indent=2, status="success")
+    log_line(f"Rendered {lang_key}/cv.html", indent=2, status="success")
 
 
 def _commit_translated_about_output(
@@ -394,10 +299,9 @@ def _commit_translated_about_output(
     *,
     staging_dir: Path | None,
 ) -> None:
-    LANGUAGES["pt"]["about"] = dict(about_payload)
     about_html = generate_about_html(lang="pt", translated_about=about_payload)
     _write_output_file(LANG_DIRS["pt"] / "about.html", about_html, staging_dir)
-    log_line("committed translation: pt/about.html", indent=2, status="success")
+    log_line("Rendered pt/about.html", indent=2, status="success")
 
 
 def _commit_translated_cv_output(
@@ -407,36 +311,7 @@ def _commit_translated_cv_output(
 ) -> None:
     cv_html = generate_cv_html(lang="pt", translated_cv=cv_payload)
     _write_output_file(LANG_DIRS["pt"] / "cv.html", cv_html, staging_dir)
-    log_line("committed translation: pt/cv.html", indent=2, status="success")
-
-
-def _commit_translated_post_output(
-    translated_post: dict[str, Any],
-    *,
-    lang_key: str,
-    posts_for_lang: list[dict[str, Any]],
-    staging_dir: Path | None,
-) -> None:
-    sorted_posts = _sorted_posts(posts_for_lang)
-    post_number = next(
-        index
-        for index, post in enumerate(sorted_posts, start=1)
-        if post["slug"] == translated_post["slug"]
-    )
-    if _is_presentation_post(translated_post):
-        html = generate_presentation_html(translated_post, post_number, lang=lang_key)
-    else:
-        html = generate_post_html(translated_post, post_number, lang=lang_key)
-    _write_output_file(
-        LANG_DIRS[lang_key] / "blog" / f"{translated_post['slug']}.html",
-        html,
-        staging_dir,
-    )
-    log_line(
-        f"committed translation: {lang_key}/blog/{translated_post['slug']}.html",
-        indent=2,
-        status="success",
-    )
+    log_line("Rendered pt/cv.html", indent=2, status="success")
 
 
 def _commit_language_index(
@@ -444,14 +319,10 @@ def _commit_language_index(
     posts: list[dict[str, Any]],
     lang_key: str,
     staging_dir: Path | None,
-    source_build: bool,
 ) -> None:
     index_html = generate_index_html(_sorted_posts(posts), lang=lang_key)
     _write_output_file(LANG_DIRS[lang_key] / "index.html", index_html, staging_dir)
-    if source_build:
-        log_line(f"built from source: {lang_key}/index.html", indent=2, status="success")
-    else:
-        log_line(f"updated translated output: {lang_key}/index.html", indent=2, status="success")
+    log_line(f"Rendered {lang_key}/index.html", indent=2, status="success")
 
 
 def _commit_sitemap_output(
@@ -459,128 +330,37 @@ def _commit_sitemap_output(
     posts_en: list[dict[str, Any]],
     posts_pt: list[dict[str, Any]],
     staging_dir: Path | None,
-    source_build: bool,
 ) -> None:
     sitemap_xml = generate_sitemap(_sorted_posts(posts_en), _sorted_posts(posts_pt))
     _write_output_file(PROJECT_ROOT / "sitemap.xml", sitemap_xml, staging_dir)
-    if source_build:
-        log_line("built from source: sitemap.xml", indent=2, status="success")
-    else:
-        log_line("updated translated output: sitemap.xml", indent=2, status="success")
+    log_line("Rendered sitemap.xml", indent=2, status="success")
 
 
-def build(
+def _build(
     strict: bool = False,
-    use_staging: bool = False,
     post_selector: str | None = None,
-    translation_provider: str | None = None,
-    use_translation_v2: bool | None = None,
-    translation_failure_policy: str | None = None,
     skip_about_cv_translation: bool = False,
     verbose: bool = False,
 ):
-    """Main build function orchestrating entire site generation.
+    """Render source and accepted translations, validate, then publish.
 
-    Workflow:
-        1. Validate post structure and metadata
-        2. Parse all Markdown posts
-        3. Build source-language outputs first
-        4. Translate static pages and posts (with caching/revision)
-        5. Commit accepted translated outputs immediately
-        6. Generate root index and landing pages
-        7. Promote staged output atomically when enabled
+    Normal builds are staged and make no model calls. Missing or outdated
+    accepted translations fail before publication. A focused build replaces
+    only its rendered files. Skip-about/cv leaves all four static pages intact.
 
-    Atomicity (use_staging=True):
-        All HTML/XML outputs are first written to _staging/ (a temporary
-        directory under PROJECT_ROOT).  Only after every file is generated
-        without error are the staged outputs copied over to their final
-        destinations.  If generation fails at any point, _staging/ is left in
-        place for debugging and the existing live outputs are untouched.
-        _cache/ writes (translation cache, sidecar manifest) bypass staging --
-        they are build-time state, not site output.
-
-    Args:
-        strict (bool): If True, enforces strict translation validation and
-                       enables staged writes for atomic publish behavior.
-        use_staging (bool): If True, write all outputs to _staging/ first and
-                             only promote them after a fully successful generation.
-                             Automatically True when strict=True.
-        post_selector (str | None): Optional slug/path selector for translating
-                                    and rendering one markdown post only.
-        translation_provider (str | None): Deprecated and ignored.
-        use_translation_v2 (bool | None): Deprecated and ignored.
-        translation_failure_policy (str | None): Deprecated and ignored.
-        skip_about_cv_translation (bool): If True, skip about/cv translation API
-                                          calls and reuse EN content for PT pages.
-        verbose (bool): If True, keep runner-level translation detail visible.
-
-    Returns:
-        bool: True if build succeeds, False if validation or translation fails.
+    Strict mode adds deterministic translation heuristics. Every build validates
+    the complete proposed site before recoverable publication.
     """
-    # Strict builds are always staged
-    if strict:
-        use_staging = True
-
     configure_console(verbose=verbose)
+    log_block("Building bilingual blog", [
+        ("Validation", "strict" if strict else "default"),
+        ("Content", "source and accepted translations"),
+    ])
+    staging_dir = STAGING_DIR
 
-    translation_v2_enabled = resolve_translation_v2_enabled(use_translation_v2)
-    provider_name = resolve_translation_provider(
-        translation_provider,
-        use_translation_v2=translation_v2_enabled,
-    )
-    if translation_failure_policy:
-        log_line(
-            "translation failure policy override is ignored in OpenCode-only build mode",
-            status="error",
-        )
-
-    mode_label = "strict validation" if strict else "default validation"
-    pipeline_label = "translation_v2/full-pipeline"
-    log_block(
-        "Building bilingual blog",
-        [
-            ("Validation", mode_label),
-            ("Provider", provider_name),
-            ("Pipeline", pipeline_label),
-            ("Writes", "atomic/staged" if use_staging else "direct"),
-        ],
-    )
-    log_blank()
-
-    # Determine staging directory (None = write directly)
-    staging_dir = STAGING_DIR if use_staging else None
-
-    # Prepare staging area: clean any previous attempt so stale files don't
-    # survive into the new build, then create the skeleton directories.
-    if staging_dir is not None:
-        if staging_dir.exists():
-            shutil.rmtree(staging_dir)
-        staging_dir.mkdir(parents=True, exist_ok=True)
-        for lang_code in get_language_codes():
-            lang_dir = LANGUAGES[lang_code]["dir"]
-            (staging_dir / lang_dir / "blog").mkdir(parents=True, exist_ok=True)
-        log_block("Staging area", [("Path", staging_dir)])
-        log_blank()
-
-    # Run validation first
-    try:
-        validate_module = importlib.import_module("validate")
-        run_validation = getattr(validate_module, "run_validation", None)
-        if not callable(run_validation):
-            raise ImportError("validate.run_validation not found")
-
-        if not run_validation(BASE_PATH, POSTS_DIR):
-            log_block("Build aborted", [("Reason", "validation failures")], status="error")
-            log_blank()
-            return False
-    except ImportError:
-        log_line("Skipping validation (validate.py not found)", status="info")
-        log_blank()
-
-    # Load and validate CV data before doing any work
-    # (load_cv_data() exits with SystemExit if validation fails)
-    load_cv_data()
-    post_translator: TranslationV2PostOrchestrator | None = None
+    if not POSTS_DIR.is_dir():
+        log_line(f"Posts directory not found: {POSTS_DIR}", status="error")
+        return False
 
     # Get all markdown files
     md_files = sorted(POSTS_DIR.glob("*.md"))
@@ -588,7 +368,7 @@ def build(
     if not md_files:
         log_block(
             "No markdown files found",
-            [("Path", "blog-posts/"), ("Action", "create .md files to get started")],
+            [("Path", POSTS_DIR), ("Action", "create .md files to get started")],
             status="error",
         )
         log_blank()
@@ -619,14 +399,9 @@ def build(
 
     focused_post_build = bool(post_selector)
 
-    # Load the sidecar metadata manifest once; pass it to every parse call so
-    # we can save it a single time at the end (avoids N redundant disk writes).
-    metadata_store = load_post_metadata()
-
-    # Parse all posts first; source and translated outputs are committed in
-    # separate lanes later in the build.
+    # Resolve the complete bilingual content before writing output files.
     parsed_posts: list[dict[str, Any]] = []
-    source_posts_by_lang = {"en": [], "pt": []}
+    all_source_posts: list[dict[str, Any]] = []
     rendered_posts_by_lang = {"en": [], "pt": []}
 
     # Translation quality tracking
@@ -638,9 +413,12 @@ def build(
         "issues": [],  # (slug, [issues]) pairs for the summary
     }
 
-    for md_file in selected_md_files:
+    for md_file in md_files:
         try:
-            post_source = parse_markdown_post(md_file, metadata_store)
+            post_source = parse_markdown_post(md_file)
+            all_source_posts.append(post_source)
+            if md_file not in selected_md_files:
+                continue
             post_source = _prepare_presentation_post(post_source)
             source_locale = post_source.get("lang", "en-us")
             source_lang_key = locale_to_lang_key(source_locale)
@@ -657,7 +435,6 @@ def build(
                     "target_lang_key": target_lang_key,
                 }
             )
-            source_posts_by_lang[source_lang_key].append(post_source)
             rendered_posts_by_lang[source_lang_key].append(post_source)
             if verbose:
                 log_line(
@@ -668,153 +445,21 @@ def build(
             log_line(f"Error: {e}", indent=1, status="error")
             return False
 
-    # Persist sidecar manifest once after all posts are parsed
-    # (_cache/ writes bypass staging -- they are build-time state, not output)
-    save_post_metadata(metadata_store)
-
-    log_blank()
-    log_block("Building source outputs")
-    log_blank()
-
-    # Commit source-authored posts before any translation work starts.
-    for lang_key in get_language_codes():
-        for post in _sorted_posts(source_posts_by_lang[lang_key]):
+    accepted = AcceptedContent(
+        root=PROJECT_ROOT / "_source" / "translations", strict_validation=strict,
+    )
+    failures: list[str] = []
+    static_content: dict[str, dict[str, Any]] = {}
+    log_block("Checking accepted translations")
+    if not skip_about_cv_translation:
+        for name, read in (
+            ("about", lambda: _read_about_pt(accepted, dict(LANGUAGES["en"]["about"]))),
+            ("cv", lambda: _read_cv_pt(accepted)),
+        ):
             try:
-                _commit_source_post_output(
-                    post,
-                    lang_key=lang_key,
-                    posts_for_lang=source_posts_by_lang[lang_key],
-                    staging_dir=staging_dir,
-                )
-            except Exception as e:
-                log_line(
-                    f"Error generating source post {lang_key}/blog/{post['slug']}.html: {e}",
-                    indent=2,
-                    status="error",
-                )
-                return False
-
-    try:
-        _commit_source_about_output(lang_key="en", staging_dir=staging_dir)
-        _commit_source_cv_output(lang_key="en", staging_dir=staging_dir)
-    except Exception as e:
-        log_line(f"Error generating source static pages: {e}", indent=2, status="error")
-        return False
-
-    if focused_post_build:
-        log_line("Skipping source indexes for focused post build", indent=2)
-        log_line("Skipping source sitemap for focused post build", indent=2)
-    else:
-        for lang_key in get_language_codes():
-            if rendered_posts_by_lang[lang_key]:
-                try:
-                    _commit_language_index(
-                        posts=rendered_posts_by_lang[lang_key],
-                        lang_key=lang_key,
-                        staging_dir=staging_dir,
-                        source_build=True,
-                    )
-                except Exception as e:
-                    log_line(
-                        f"Error generating source index {lang_key}/index.html: {e}",
-                        indent=2,
-                        status="error",
-                    )
-                    return False
-        try:
-            _commit_sitemap_output(
-                posts_en=rendered_posts_by_lang["en"],
-                posts_pt=rendered_posts_by_lang["pt"],
-                staging_dir=staging_dir,
-                source_build=True,
-            )
-        except Exception as e:
-            log_line(f"Error generating source sitemap.xml: {e}", indent=2, status="error")
-            return False
-
-    # Initialize translation runtime after source outputs exist.
-    try:
-        post_translator = TranslationV2PostOrchestrator(
-            provider_name=provider_name,
-            strict_validation=strict,
-            cache_path=TRANSLATION_CACHE,
-            prompt_version=os.getenv("TRANSLATION_V2_PROMPT_VERSION", "v2"),
-        )
-        _log_translation_v2_debug_context(post_translator)
-        log_block(
-            "Translation system initialized",
-            [
-                ("Provider", provider_name),
-                ("Prompt version", getattr(post_translator, "prompt_version", "unknown")),
-                ("Translation model", getattr(post_translator, "_model_id", "unknown")),
-                ("Critique model", getattr(post_translator, "_critique_model_id", "unknown")),
-                ("Revision model", getattr(post_translator, "_revision_model_id", "unknown")),
-            ],
-        )
-        log_blank()
-    except Exception as e:
-        log_block(
-            "Translation system error",
-            [("Error", str(e)), ("Action", "fix translation issues and retry")],
-            status="error",
-        )
-        log_blank()
-        return False
-
-    # Static translation lane: About/CV after source pages already exist.
-    try:
-        if skip_about_cv_translation:
-            log_line("Skipping about/cv translation for focused run", status="info")
-            log_blank()
-            about_pt_translated = dict(LANGUAGES["en"]["about"])
-            cv_data_en = load_cv_data()
-            if not cv_data_en:
-                raise Exception("Could not load cv_data.yaml for fallback")
-            cv_pt_translated = cv_data_en
-        else:
-            log_block(
-                "Translating about/cv via translation_v2 pipeline",
-                [("Provider", provider_name)],
-            )
-            log_blank()
-            about_force_revision = (
-                "translated output missing"
-                if not _live_output_exists(LANG_DIRS["pt"] / "about.html")
-                else None
-            )
-            about_pt_translated = _translate_about_to_pt_v2(
-                post_translator,
-                dict(LANGUAGES["en"]["about"]),
-                force_revision_reason=about_force_revision,
-            )
-            cv_data_en = load_cv_data()
-            if not cv_data_en:
-                raise Exception("Could not load cv_data.yaml for translation")
-            cv_force_revision = (
-                "translated output missing"
-                if not _live_output_exists(LANG_DIRS["pt"] / "cv.html")
-                else None
-            )
-            cv_pt_translated = _translate_cv_to_pt_v2(
-                post_translator,
-                cv_data_en,
-                force_revision_reason=cv_force_revision,
-            )
-
-        _commit_translated_about_output(about_pt_translated, staging_dir=staging_dir)
-        _commit_translated_cv_output(cv_pt_translated, staging_dir=staging_dir)
-    except Exception as e:
-        log_block(
-            "Translation system error",
-            [("Error", str(e)), ("Action", "fix translation issues and retry")],
-            status="error",
-        )
-        log_blank()
-        return False
-
-    log_blank()
-    log_block("Translating posts", [("Artifacts", f"{len(parsed_posts)} file(s)")])
-    log_blank()
+                static_content[name] = read()
+            except Exception as exc:
+                failures.append(str(exc))
 
     for parsed_post in parsed_posts:
         md_file = parsed_post["md_file"]
@@ -824,16 +469,9 @@ def build(
         target_lang_key = parsed_post["target_lang_key"]
 
         try:
-            translated_output_path = LANG_DIRS[target_lang_key] / "blog" / f"{post_source['slug']}.html"
-            force_revision_reason = (
-                "translated output missing"
-                if not _live_output_exists(translated_output_path)
-                else None
-            )
-            translated_post = post_translator.translate_if_needed_unpersisted(
+            translated_post = accepted.read_post(
                 post_source,
                 target_locale=target_locale,
-                force_revision_reason=force_revision_reason,
             )
             if not translated_post:
                 quality_stats["failed"] += 1
@@ -886,12 +524,7 @@ def build(
                     log_line(f"[quality] {post_source['slug']}: {issue}", indent=1, status="error")
                 if strict:
                     quality_stats["failed"] += 1
-                    log_line(
-                        f"STRICT: validation failed for {post_source['slug']}",
-                        indent=1,
-                        status="error",
-                    )
-                    return False
+                    raise RuntimeError(f"Translation validation failed for {post_source['slug']}")
                 quality_stats["validated_warnings"] += 1
                 log_line(
                     f"(non-strict: continuing despite errors for {post_source['slug']})",
@@ -899,66 +532,41 @@ def build(
                     status="info",
                 )
 
-            persist_context = post_translator.consume_artifact_persist_context(
-                slug=str(post_source.get("slug") or ""),
-                artifact_type=str(post_source.get("content_type") or "post"),
-            )
-            if persist_context.get("outcome") != "cache_hit":
-                persist_frontmatter = {
-                    "title": post_source.get("title", ""),
-                    "excerpt": post_source.get("excerpt", ""),
-                    "tags": post_source.get("tags", []),
-                }
-                if _is_presentation_post(post_source):
-                    persist_frontmatter["content_type"] = "presentation"
-                post_translator.persist_artifact_translation(
-                    slug=str(post_source.get("slug") or ""),
-                    source_text=str(
-                        post_source.get("raw_content", post_source.get("content", ""))
-                    ),
-                    source_locale=source_locale,
-                    target_locale=target_locale,
-                    artifact_type=str(post_source.get("content_type") or "post"),
-                    frontmatter=persist_frontmatter,
-                    translation={
-                        "title": translated_post["title"],
-                        "excerpt": translated_post["excerpt"],
-                        "tags": translated_post["tags"],
-                        "content": translated_post["raw_content"],
-                    },
-                    revised_from_cache_source=persist_context.get(
-                        "revised_from_cache_source"
-                    ),
-                )
             rendered_posts_by_lang[target_lang_key].append(translated_post)
-            _commit_translated_post_output(
-                translated_post,
-                lang_key=target_lang_key,
-                posts_for_lang=rendered_posts_by_lang[target_lang_key],
-                staging_dir=staging_dir,
-            )
-            if not focused_post_build:
-                _commit_language_index(
-                    posts=rendered_posts_by_lang[target_lang_key],
-                    lang_key=target_lang_key,
-                    staging_dir=staging_dir,
-                    source_build=False,
-                )
-                _commit_sitemap_output(
-                    posts_en=rendered_posts_by_lang["en"],
-                    posts_pt=rendered_posts_by_lang["pt"],
-                    staging_dir=staging_dir,
-                    source_build=False,
-                )
-            if verbose:
-                log_line(
-                    f"Translated {md_file.name} ({target_locale.upper()})",
-                    indent=1,
-                    status="success",
-                )
-        except Exception as e:
-            log_line(f"Error: {e}", indent=1, status="error")
-            return False
+        except Exception as exc:
+            failures.append(str(exc))
+
+    if failures:
+        log_block("Accepted content needs attention", status="error")
+        for failure in failures:
+            log_line(failure, indent=1, status="error")
+        return False
+
+    # Prepare staging area: clean any previous attempt so stale files don't
+    # survive into the new build, then create the skeleton directories.
+    if staging_dir.exists():
+        shutil.rmtree(staging_dir)
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    for lang_code in get_language_codes():
+        lang_dir = LANGUAGES[lang_code]["dir"]
+        (staging_dir / lang_dir / "blog").mkdir(parents=True, exist_ok=True)
+    log_block("Staging area", [("Path", staging_dir)])
+    log_blank()
+
+    log_block("Rendering source and accepted translations")
+    try:
+        for lang_key in get_language_codes():
+            for post in _sorted_posts(rendered_posts_by_lang[lang_key]):
+                _write_post(post, lang_key=lang_key, posts_for_lang=all_source_posts,
+                            staging_dir=staging_dir)
+        if not skip_about_cv_translation:
+            _commit_source_about_output(lang_key="en", staging_dir=staging_dir)
+            _commit_source_cv_output(lang_key="en", staging_dir=staging_dir)
+            _commit_translated_about_output(static_content["about"], staging_dir=staging_dir)
+            _commit_translated_cv_output(static_content["cv"], staging_dir=staging_dir)
+    except Exception as exc:
+        log_line(f"Error rendering pages: {exc}", indent=1, status="error")
+        return False
 
     posts_en = rendered_posts_by_lang["en"]
     posts_pt = rendered_posts_by_lang["pt"]
@@ -980,70 +588,33 @@ def build(
             log_line(f"Error generating root index.html: {e}", indent=2, status="error")
             return False
 
-    # Staging promotion: copy staged outputs to final destinations.
-    # This only runs after all generation succeeds, making the build atomic --
-    # any earlier failure leaves staging intact for debugging and the live
-    # outputs untouched.
-    #
-    # Promotion uses POSIX rename() for atomic directory swaps:
-    #   1. Move current live dirs to _staging.old/ as a backup
-    #   2. Rename staged dirs to their final locations (atomic on same fs)
-    #   3. Atomic-replace root-level files (index.html, sitemap.xml)
-    #   4. Clean up _staging.old/ and _staging/
-    # If promotion fails partway, rollback restores from _staging.old/.
-    if staging_dir is not None:
-        log_blank()
-        log_block("Promoting staged outputs", indent=1)
-        old_dir = PROJECT_ROOT / "_staging.old"
+    # Collection outputs are written once, after both languages are complete.
+    if not focused_post_build:
         try:
-            # Phase 0: clean any stale backup
-            if old_dir.exists():
-                shutil.rmtree(old_dir)
-            old_dir.mkdir(parents=True, exist_ok=True)
-
-            # Phase 1: move live dirs to backup (so rename targets are free)
             for lang_key in get_language_codes():
-                lang_dir = LANGUAGES[lang_key]["dir"]
-                live = PROJECT_ROOT / lang_dir
-                if live.exists():
-                    live.rename(old_dir / lang_dir)
-
-            # Phase 2: rename staged dirs to final locations (POSIX-atomic)
-            for lang_key in get_language_codes():
-                lang_dir = LANGUAGES[lang_key]["dir"]
-                staged = staging_dir / lang_dir
-                if staged.exists():
-                    staged.rename(PROJECT_ROOT / lang_dir)
-
-            # Phase 3: atomic replace for root-level files
-            for name in ("index.html", "sitemap.xml"):
-                src = staging_dir / name
-                if src.exists():
-                    src.replace(PROJECT_ROOT / name)
-
-            # Phase 4: clean up
-            if old_dir.exists():
-                shutil.rmtree(old_dir)
-            if staging_dir.exists():
-                shutil.rmtree(staging_dir)
-            log_line("Promotion complete", indent=2, status="success")
-            log_blank()
-        except Exception as e:
-            log_line(f"Error during staging promotion: {e}", indent=2, status="error")
-            # Rollback: restore live dirs from backup if they exist
-            for lang_key in get_language_codes():
-                lang_dir = LANGUAGES[lang_key]["dir"]
-                backup = old_dir / lang_dir
-                live = PROJECT_ROOT / lang_dir
-                if backup.exists() and not live.exists():
-                    try:
-                        backup.rename(live)
-                        log_line(f"Rolled back {lang_key}/ from backup", indent=2, status="success")
-                    except Exception as rb_err:
-                        log_line(f"Rollback failed for {lang_key}/: {rb_err}", indent=2, status="error")
-            log_line(f"Staged outputs preserved at: {staging_dir}", indent=2)
-            log_blank()
+                _commit_language_index(
+                    posts=rendered_posts_by_lang[lang_key], lang_key=lang_key,
+                    staging_dir=staging_dir,
+                )
+            _commit_sitemap_output(
+                posts_en=posts_en, posts_pt=posts_pt,
+                staging_dir=staging_dir,
+            )
+        except Exception as exc:
+            log_line(str(exc), status="error")
             return False
+
+    try:
+        validate_staged(PROJECT_ROOT, staging_dir, full=not focused_post_build,
+                        preserve_static=skip_about_cv_translation)
+        publish_staged(
+            PROJECT_ROOT, staging_dir, full=not focused_post_build,
+            language_dirs=[LANGUAGES[key]["dir"] for key in get_language_codes()],
+            preserve_static=skip_about_cv_translation,
+        )
+    except Exception as exc:
+        log_line(f"Publication failed: {exc}", status="error")
+        return False
 
     lang_count = len(get_language_codes()) if posts_pt else 1
     log_blank()
@@ -1070,7 +641,7 @@ def build(
         log_block(
             f"Translation quality report ({mode} mode)",
             [
-                ("Translated", total),
+                ("Rendered", total),
                 ("Validated OK", ok),
                 ("Validated w/ warnings", warn),
                 ("Failed", fail),
@@ -1099,6 +670,14 @@ def build(
     return True
 
 
+@wraps(_build)
+def build(*args, **kwargs):
+    """Serialize publication and recover an interrupted transaction first."""
+    with file_lock(PROJECT_ROOT / "_cache" / "build.lock", blocking=False):
+        recover_publication(PROJECT_ROOT)
+        return _build(*args, **kwargs)
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entrypoint for the blog build."""
 
@@ -1106,17 +685,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--strict",
         action="store_true",
-        help="Enable strict translation validation and staged writes",
+        help="Enforce deterministic translation quality checks",
     )
     parser.add_argument(
         "--post",
         default=None,
-        help="Build/translate only one post by slug or markdown path",
+        help="Render only one post by slug or markdown path",
     )
     parser.add_argument(
         "--skip-about-cv-translation",
         action="store_true",
-        help="Skip about/cv translation API calls for focused test runs",
+        help="Leave both languages of About/CV untouched",
     )
     parser.add_argument(
         "--verbose",
@@ -1131,11 +710,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         success = build(
             strict=strict_mode,
-            use_staging=strict_mode,
             post_selector=args.post,
             skip_about_cv_translation=args.skip_about_cv_translation,
             verbose=args.verbose,
         )
+    except Exception as exc:
+        log_line(str(exc), status="error")
+        success = False
     except KeyboardInterrupt:
         shutdown_console()
         log_build_footer(outcome="interrupted")

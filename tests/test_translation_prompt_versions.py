@@ -82,6 +82,22 @@ def test_all_stage_prompts_include_strict_output_contract_markers():
             assert marker in template
 
 
+def test_static_final_review_prompts_allow_no_revision_when_critique_accepts_candidate():
+    for artifact_type in ("about", "cv"):
+        template = load_prompt_template(
+            "final_review",
+            prompt_version="v2",
+            artifact_type=artifact_type,
+        )
+
+        assert "critique_json.needs_refinement is false" in template
+        assert "absence of revision_report changes is expected" in template
+        assert "reject only for material defects" in template
+
+    post_template = load_prompt_template("final_review", prompt_version="v2")
+    assert "absence of revision_report changes is expected" not in post_template
+
+
 def test_prompts_include_protected_token_policy_constraints():
     expected_markers = {
         "translate": ("inline code", "fenced code", "placeholders", "citation", "DO_NOT_TRANSLATE_ENTITIES"),

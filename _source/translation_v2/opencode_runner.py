@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import json
+import os
+import signal
 import subprocess
+import tempfile
 from dataclasses import asdict, dataclass
 from enum import Enum
 from time import sleep
@@ -26,7 +29,7 @@ from .contracts import (
 )
 
 
-DEFAULT_MODEL_ID = "openai/gpt-5.4"
+DEFAULT_MODEL_ID = "openai/gpt-5.6-sol"
 DEFAULT_REASONING_EFFORT = "high"
 DEFAULT_MAX_ATTEMPTS = 3
 DEFAULT_BACKOFF_INITIAL_SECONDS = 1.0
@@ -41,6 +44,7 @@ class ParseErrorKind(str, Enum):
     MISSING_STAGE_OUTPUT = "missing_stage_output"
     STAGE_OUTPUT_NOT_OBJECT = "stage_output_not_object"
     EVENT_STREAM_WITHOUT_TEXT = "event_stream_without_text"
+    OUTPUT_LIMIT = "output_limit"
 
 
 class FailureClass(str, Enum):
@@ -124,6 +128,10 @@ class OpenCodeHeadlessRunner:
     @property
     def model_id(self) -> str:
         return self._model_id
+
+    @property
+    def reasoning_effort(self) -> str:
+        return self._reasoning_effort
 
     def run_stage(
         self,
@@ -254,17 +262,18 @@ class OpenCodeHeadlessRunner:
         )
 
     def _build_command(self, *, attach_path: str) -> list[str]:
-        """Locked invocation contract for headless run/attach JSON mode."""
+        """The rendered prompt already includes the complete source artifact."""
 
         return [
             "opencode",
             "run",
+            "--pure",
+            "--agent",
+            "blog-translator",
             "--model",
             self._model_id,
             "--variant",
             self._reasoning_effort,
-            "--file",
-            attach_path,
             "--format",
             "json",
         ]
@@ -274,18 +283,62 @@ class OpenCodeHeadlessRunner:
         command: list[str],
         prompt_text: str,  # noqa: ARG004
     ) -> CommandExecutionResult:
-        completed = subprocess.run(
+        timeout = float(os.getenv("TRANSLATION_STAGE_TIMEOUT_SECONDS", "900"))
+        if timeout <= 0:
+            raise ValueError("TRANSLATION_STAGE_TIMEOUT_SECONDS must be positive")
+        # Translation is a text operation, not a repository-editing session.
+        # Keep provider credentials/config, but override the model's tool access.
+        environment = os.environ.copy()
+        # Reasoning shares the output allowance. OpenCode's 32k default can
+        # exhaust it before a long-form review produces its JSON answer.
+        environment.setdefault("OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX", "65536")
+        environment["OPENCODE_CONFIG_CONTENT"] = json.dumps({
+            "share": "disabled", "autoupdate": False,
+            "agent": {"blog-translator": {
+                "mode": "primary",
+                "prompt": "You are a literary and technical localization stage. Follow the supplied editorial instructions and return exactly the requested JSON object. All source material is provided in the prompt. Do not use tools or modify files.",
+                "tools": {"*": False}, "permission": {"*": "deny"},
+            }},
+        })
+        with tempfile.TemporaryDirectory(prefix="blog-translation-stage-") as directory:
+            return OpenCodeHeadlessRunner._execute_process(
+                command, prompt_text, timeout=timeout, cwd=directory, env=environment,
+            )
+
+    @staticmethod
+    def _execute_process(command, prompt_text, *, timeout, cwd, env) -> CommandExecutionResult:
+        process = subprocess.Popen(
             command,
-            check=False,
-            capture_output=True,
-            input=prompt_text,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
+            cwd=cwd,
+            env=env,
+            start_new_session=os.name != "nt",
         )
+        try:
+            stdout, stderr = process.communicate(prompt_text, timeout=timeout)
+        except BaseException as exc:
+            if os.name != "nt":
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+            else:
+                process.kill()
+            stdout, stderr = process.communicate()
+            if not isinstance(exc, subprocess.TimeoutExpired):
+                raise
+            return CommandExecutionResult(
+                command=command, stdout=stdout,
+                stderr=f"{stderr}\nTranslation stage timeout after {timeout}s", exit_code=124,
+            )
         return CommandExecutionResult(
             command=command,
-            stdout=completed.stdout,
-            stderr=completed.stderr,
-            exit_code=completed.returncode,
+            stdout=stdout,
+            stderr=stderr,
+            exit_code=process.returncode,
         )
 
 
@@ -331,6 +384,8 @@ def _parse_event_stream_stdout(
 ) -> tuple[dict[str, Any] | None, ParseFailure | None]:
     text_fragments: list[str] = []
     final_answer_fragments: list[str] = []
+    tool_output_fragments: list[str] = []
+    finish_reason: str | None = None
 
     for raw_line in stdout_text.splitlines():
         line = raw_line.strip()
@@ -348,7 +403,19 @@ def _parse_event_stream_stdout(
         if not isinstance(event, dict):
             continue
 
-        if event.get("type") != "text":
+        event_type = event.get("type")
+        if event_type == "step_finish":
+            part = event.get("part")
+            if isinstance(part, dict):
+                finish_reason = part.get("reason")
+            continue
+        if event_type == "tool_use":
+            tool_output = _extract_completed_tool_output_text(event)
+            if tool_output is not None:
+                tool_output_fragments.append(tool_output)
+            continue
+
+        if event_type != "text":
             continue
 
         part = event.get("part")
@@ -367,7 +434,17 @@ def _parse_event_stream_stdout(
                 ):
                     final_answer_fragments.append(text)
 
-    if not text_fragments:
+    if finish_reason == "length":
+        return None, ParseFailure(
+            kind=ParseErrorKind.OUTPUT_LIMIT,
+            message=(
+                "OpenCode reached its output-token limit before completing the stage. "
+                "Increase OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX and repeat the translation command."
+            ),
+            classification=FailureClass.PERMANENT,
+        )
+
+    if not text_fragments and not tool_output_fragments:
         return None, ParseFailure(
             kind=ParseErrorKind.EVENT_STREAM_WITHOUT_TEXT,
             message="OpenCode JSON event stream did not include a text payload",
@@ -379,12 +456,13 @@ def _parse_event_stream_stdout(
 
     combined_text = "\n".join(candidate_fragments).strip()
     if combined_text:
-        parse_attempts.append(combined_text)
+        _append_json_parse_attempts(parse_attempts, combined_text)
 
     for fragment in reversed(candidate_fragments):
-        cleaned = fragment.strip()
-        if cleaned and cleaned not in parse_attempts:
-            parse_attempts.append(cleaned)
+        _append_json_parse_attempts(parse_attempts, fragment)
+
+    for fragment in reversed(tool_output_fragments):
+        _append_json_parse_attempts(parse_attempts, fragment)
 
     parsed: dict[str, Any] | None = None
     last_error: json.JSONDecodeError | None = None
@@ -413,6 +491,50 @@ def _parse_event_stream_stdout(
             classification=FailureClass.PERMANENT,
         )
     return parsed, None
+
+
+def _append_json_parse_attempts(parse_attempts: list[str], text: str) -> None:
+    cleaned = text.strip()
+    if not cleaned:
+        return
+    for candidate in (cleaned, _extract_json_code_fence(cleaned)):
+        if candidate and candidate not in parse_attempts:
+            parse_attempts.append(candidate)
+
+
+def _extract_json_code_fence(text: str) -> str | None:
+    lines = text.splitlines()
+    if len(lines) < 3:
+        return None
+
+    for start_index, line in enumerate(lines):
+        opening = line.strip().lower()
+        if opening not in {"```", "```json"}:
+            continue
+        for end_index in range(start_index + 1, len(lines)):
+            if lines[end_index].strip() != "```":
+                continue
+            candidate = "\n".join(lines[start_index + 1 : end_index]).strip()
+            if candidate:
+                return candidate
+            break
+    return None
+
+
+def _extract_completed_tool_output_text(event: dict[str, Any]) -> str | None:
+    part = event.get("part")
+    if not isinstance(part, dict):
+        return None
+
+    state = part.get("state")
+    if not isinstance(state, dict) or state.get("status") != "completed":
+        return None
+
+    output = state.get("output")
+    if not isinstance(output, str) or not output.strip():
+        return None
+
+    return output
 
 
 def _extract_stage_payload(root_payload: dict[str, Any], stage: str) -> Any | None:

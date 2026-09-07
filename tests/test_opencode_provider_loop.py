@@ -8,16 +8,12 @@ from __future__ import annotations
 
 import os
 import sys
-import types
 
 import pytest
 
 
 _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 sys.path.insert(0, _SOURCE)
-_mock_provider_stub = types.ModuleType("translation_v2.mock_provider")
-_mock_provider_stub.DeterministicMockTranslationProvider = object
-sys.modules.setdefault("translation_v2.mock_provider", _mock_provider_stub)
 
 from translation_v2.artifacts import TranslationRunArtifacts  # noqa: E402
 from translation_v2.contracts import (  # noqa: E402
@@ -117,7 +113,7 @@ def _request_without_locale_metadata(
     )
 
 
-def _source_analysis_result(*, model: str = "openai/gpt-5.4-high") -> StageResult:
+def _source_analysis_result(*, model: str = "openai/gpt-5.5-high") -> StageResult:
     return StageResult(
         run_id="opencode-provider-test",
         stage="source_analysis",
@@ -137,7 +133,7 @@ def _source_analysis_result(*, model: str = "openai/gpt-5.4-high") -> StageResul
     )
 
 
-def _terminology_policy_result(*, model: str = "openai/gpt-5.4-high") -> StageResult:
+def _terminology_policy_result(*, model: str = "openai/gpt-5.5-high") -> StageResult:
     return StageResult(
         run_id="opencode-provider-test",
         stage="terminology_policy",
@@ -154,7 +150,7 @@ def _terminology_policy_result(*, model: str = "openai/gpt-5.4-high") -> StageRe
     )
 
 
-def _translation_result(content: str, *, model: str = "openai/gpt-5.4-high") -> StageResult:
+def _translation_result(content: str, *, model: str = "openai/gpt-5.5-high") -> StageResult:
     return StageResult(
         run_id="opencode-provider-test",
         stage="translate",
@@ -172,7 +168,7 @@ def _translation_result(content: str, *, model: str = "openai/gpt-5.4-high") -> 
 def _critique_result(
     score: float,
     *,
-    model: str = "openai/gpt-5.2",
+    model: str = "opencode-go/deepseek-v4-pro-high",
     description: str = "tighten terminology",
     needs_refinement: bool = False,
 ) -> StageResult:
@@ -211,7 +207,7 @@ def _critique_result(
 def _revision_result(
     content: str,
     *,
-    model: str = "openai/gpt-5.4-high",
+    model: str = "openai/gpt-5.5-high",
 ) -> StageResult:
     return StageResult(
         run_id="opencode-provider-test",
@@ -234,7 +230,7 @@ def _final_review_result(
     *,
     accept: bool,
     publish_ready: bool,
-    model: str = "openai/gpt-5.2",
+    model: str = "opencode-go/deepseek-v4-pro-high",
     residual_issues: list[str] | None = None,
 ) -> StageResult:
     return StageResult(
@@ -284,12 +280,12 @@ def test_opencode_provider_runs_settled_stage_graph_with_model_split(tmp_path):
         "final_review",
     ]
     assert [item.model for item in result.stage_results] == [
-        "openai/gpt-5.4-high",
-        "openai/gpt-5.4-high",
-        "openai/gpt-5.4-high",
-        "openai/gpt-5.2",
-        "openai/gpt-5.4-high",
-        "openai/gpt-5.2",
+        "openai/gpt-5.5-high",
+        "openai/gpt-5.5-high",
+        "openai/gpt-5.5-high",
+        "opencode-go/deepseek-v4-pro-high",
+        "openai/gpt-5.5-high",
+        "opencode-go/deepseek-v4-pro-high",
     ]
     assert result.final_translation.content == "Conteudo revisado"
 
@@ -428,7 +424,7 @@ def test_opencode_provider_propagates_schema_validation_failures(tmp_path):
                 stage="source_analysis",
                 field="tone",
             )
-        ]
+        ] * 2
     )
     provider = OpenCodeTranslationProvider(
         runner=runner,
@@ -439,7 +435,7 @@ def test_opencode_provider_propagates_schema_validation_failures(tmp_path):
     with pytest.raises(MissingFieldError):
         provider.source_analysis(_request())
 
-    assert [call["stage"] for call in runner.calls] == ["source_analysis"]
+    assert [call["stage"] for call in runner.calls] == ["source_analysis", "source_analysis"]
     error_path = (
         TranslationRunArtifacts(run_id="opencode-provider-test", base_dir=tmp_path)
         .stage_dir("provider-loop-post", "source_analysis")

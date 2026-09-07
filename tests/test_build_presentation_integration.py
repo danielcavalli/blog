@@ -4,20 +4,11 @@ from __future__ import annotations
 
 import os
 import sys
-import types
 from pathlib import Path
 
 
 _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 sys.path.insert(0, _SOURCE)
-
-
-_google_stub = types.ModuleType("google")
-_genai_stub = types.ModuleType("google.genai")
-sys.modules.setdefault("google", _google_stub)
-sys.modules.setdefault("google.genai", _genai_stub)
-sys.modules.setdefault("dotenv", types.ModuleType("dotenv"))
-sys.modules["dotenv"].load_dotenv = lambda *a, **kw: None  # type: ignore[attr-defined]
 
 
 import build  # noqa: E402
@@ -70,7 +61,7 @@ class _FakePresentationOrchestrator:
         self.correlation_id = "test-correlation"
         self.persist_calls: list[dict] = []
 
-    def translate_if_needed_unpersisted(
+    def read_post(
         self,
         post,
         *,
@@ -86,12 +77,7 @@ class _FakePresentationOrchestrator:
         translated["content"] = "<p>translated markdown should not be rendered</p>"
         return translated
 
-    def consume_artifact_persist_context(self, *, slug, artifact_type):  # noqa: ARG002
-        return {"outcome": "cache_miss", "revised_from_cache_source": None}
 
-    def persist_artifact_translation(self, **kwargs):  # noqa: ANN003
-        self.persist_calls.append(kwargs)
-        return "cache-key"
 
 
 def _configure(monkeypatch, tmp_path: Path):
@@ -107,6 +93,7 @@ def _configure(monkeypatch, tmp_path: Path):
     (pt_dir / "blog").mkdir(parents=True)
 
     monkeypatch.setattr(build, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(build, "validate_staged", lambda *a, **k: None)
     monkeypatch.setattr(build, "POSTS_DIR", posts_dir)
     monkeypatch.setattr(build, "LANG_DIRS", {"en": en_dir, "pt": pt_dir})
     monkeypatch.setattr(build, "STAGING_DIR", tmp_path / "_staging")
@@ -117,19 +104,14 @@ def _configure(monkeypatch, tmp_path: Path):
         if staging_dir is None
         else staging_dir / rel_path.relative_to(tmp_path),
     )
-    monkeypatch.setattr(build, "load_post_metadata", lambda: {})
-    monkeypatch.setattr(build, "save_post_metadata", lambda *_: None)
     monkeypatch.setattr(build, "load_cv_data", lambda: {"name": "x"})
     monkeypatch.setattr(build, "parse_markdown_post", lambda *_a, **_k: _mk_post())
     monkeypatch.setattr(build, "generate_about_html", lambda *a, **k: "<html>about</html>")
     monkeypatch.setattr(build, "generate_cv_html", lambda *a, **k: "<html>cv</html>")
     monkeypatch.setattr(build, "generate_root_index", lambda: "<html>root</html>")
-    monkeypatch.setattr(build, "TranslationV2PostOrchestrator", lambda **_: _FakePresentationOrchestrator())
+    monkeypatch.setattr(build, "AcceptedContent", lambda **_: _FakePresentationOrchestrator())
     monkeypatch.setattr(build, "validate_translation", lambda *a, **k: (True, []))
 
-    validate_mod = types.ModuleType("validate")
-    validate_mod.run_validation = lambda *_a, **_k: True  # type: ignore[attr-defined]
-    monkeypatch.setitem(sys.modules, "validate", validate_mod)
 
 
 def test_markdown_presentation_builds_source_translation_indexes_and_sitemap(
@@ -162,7 +144,7 @@ def test_markdown_presentation_builds_source_translation_indexes_and_sitemap(
         ),
     )
 
-    ok = build.build(strict=False, use_staging=False, skip_about_cv_translation=True)
+    ok = build.build(strict=False, skip_about_cv_translation=True)
 
     assert ok is True
     assert (tmp_path / "en" / "blog" / "mapr-ai-agents.html").read_text(
@@ -174,8 +156,8 @@ def test_markdown_presentation_builds_source_translation_indexes_and_sitemap(
     assert "mapr-ai-agents" in (tmp_path / "en" / "index.html").read_text(encoding="utf-8")
     assert "mapr-ai-agents" in (tmp_path / "pt" / "index.html").read_text(encoding="utf-8")
     assert "mapr-ai-agents" in (tmp_path / "sitemap.xml").read_text(encoding="utf-8")
-    assert [(lang, slug) for lang, slug, _post in rendered_presentations] == [
+    assert set((lang, slug) for lang, slug, _post in rendered_presentations) == {
         ("en", "mapr-ai-agents"),
         ("pt", "mapr-ai-agents"),
-    ]
+    }
     assert all("presentation" in post for _lang, _slug, post in rendered_presentations)

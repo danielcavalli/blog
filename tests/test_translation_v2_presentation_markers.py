@@ -4,20 +4,11 @@ from __future__ import annotations
 
 import os
 import sys
-import types
 from pathlib import Path
 
 
 _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 sys.path.insert(0, _SOURCE)
-
-
-_google_stub = types.ModuleType("google")
-_genai_stub = types.ModuleType("google.genai")
-sys.modules.setdefault("google", _google_stub)
-sys.modules.setdefault("google.genai", _genai_stub)
-sys.modules.setdefault("dotenv", types.ModuleType("dotenv"))
-sys.modules["dotenv"].load_dotenv = lambda *a, **kw: None  # type: ignore[attr-defined]
 
 
 import build  # noqa: E402
@@ -41,7 +32,7 @@ def test_parse_markdown_post_preserves_content_type(tmp_path):
         encoding="utf-8",
     )
 
-    post = parse_markdown_post(post_path, {})
+    post = parse_markdown_post(post_path)
 
     assert post["content_type"] == "presentation"
 
@@ -84,7 +75,7 @@ class _BadMarkerOrchestrator:
     run_id = "test-run"
     prompt_version = "v2"
 
-    def translate_if_needed_unpersisted(
+    def read_post(
         self,
         post,
         *,
@@ -97,11 +88,7 @@ class _BadMarkerOrchestrator:
         translated["content"] = "<p>bad</p>"
         return translated
 
-    def consume_artifact_persist_context(self, *, slug, artifact_type):  # noqa: ARG002
-        return {"outcome": "cache_miss", "revised_from_cache_source": None}
 
-    def persist_artifact_translation(self, **kwargs):  # noqa: ANN003
-        return None
 
 
 def test_build_validates_translated_presentation_markers_before_render(
@@ -148,8 +135,6 @@ def test_build_validates_translated_presentation_markers_before_render(
         if staging_dir is None
         else staging_dir / rel_path.relative_to(tmp_path),
     )
-    monkeypatch.setattr(build, "load_post_metadata", lambda: {})
-    monkeypatch.setattr(build, "save_post_metadata", lambda *_: None)
     monkeypatch.setattr(build, "load_cv_data", lambda: {"name": "x"})
     monkeypatch.setattr(build, "parse_markdown_post", lambda *_a, **_k: source_post.copy())
     monkeypatch.setattr(build, "generate_about_html", lambda *a, **k: "<html>about</html>")
@@ -158,19 +143,16 @@ def test_build_validates_translated_presentation_markers_before_render(
     monkeypatch.setattr(build, "generate_root_index", lambda: "<html>root</html>")
     monkeypatch.setattr(build, "generate_sitemap", lambda *a, **k: "<xml />")
     monkeypatch.setattr(build, "validate_translation", lambda *a, **k: (True, []))
-    monkeypatch.setattr(build, "TranslationV2PostOrchestrator", lambda **_: _BadMarkerOrchestrator())
+    monkeypatch.setattr(build, "AcceptedContent", lambda **_: _BadMarkerOrchestrator())
     monkeypatch.setattr(
         build,
         "generate_presentation_html",
         lambda post, post_number, lang="en": rendered.append(lang) or f"<html>{lang}</html>",
     )
 
-    validate_mod = types.ModuleType("validate")
-    validate_mod.run_validation = lambda *_a, **_k: True  # type: ignore[attr-defined]
-    monkeypatch.setitem(sys.modules, "validate", validate_mod)
 
-    ok = build.build(strict=False, use_staging=False, skip_about_cv_translation=True)
+    ok = build.build(strict=False, skip_about_cv_translation=True)
 
     assert ok is False
-    assert rendered == ["en"]
+    assert rendered == []
     assert not (tmp_path / "pt" / "blog" / "deck.html").exists()

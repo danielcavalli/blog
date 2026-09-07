@@ -8,22 +8,24 @@ from pathlib import Path
 from paths import PROJECT_ROOT
 
 
-STYLE_BRIEF_PATH = PROJECT_ROOT / "WRITING_STYLE.md"
-DEFAULT_STYLE_BRIEF = (
-    "Opinionated, layered, structurally aware, dry. Preserve connective tissue, "
-    "argument flow, and understated humor without signaling jokes explicitly."
+STYLE_BRIEF_PATH = PROJECT_ROOT / ".agents/skills/writing-style/references/WRITING_STYLE.md"
+AUTHORING_REFERENCES = (
+    ("Blog composition", PROJECT_ROOT / ".agents/skills/editorial-line/references/blog-composition.md"),
+    ("Prose", PROJECT_ROOT / ".agents/skills/prose-style/references/prose-contract.md"),
+    ("Author voice", STYLE_BRIEF_PATH),
 )
 
 
-def load_writing_style_brief(path: str | Path = STYLE_BRIEF_PATH) -> str:
-    """Load the committed writing style brief used by translation prompts."""
-
-    style_path = Path(path)
-    try:
-        content = style_path.read_text(encoding="utf-8").strip()
-    except OSError:
-        return DEFAULT_STYLE_BRIEF
-    return content or DEFAULT_STYLE_BRIEF
+def load_writing_style_brief(path: str | Path | None = None) -> str:
+    """Read authoring context once; missing guidance must not weaken localization."""
+    references = (("Author voice", Path(path)),) if path is not None else AUTHORING_REFERENCES
+    sections = []
+    for label, reference in references:
+        content = reference.read_text(encoding="utf-8").strip()
+        if not content:
+            raise ValueError(f"Empty authoring reference: {reference}")
+        sections.append(f"## {label}\n\n{content}")
+    return "\n\n".join(sections)
 
 
 def compute_writing_style_fingerprint(style_brief: str) -> str:

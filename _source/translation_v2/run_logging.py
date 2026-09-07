@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from pathlib import Path
 from time import time
 from typing import Any
@@ -18,45 +17,6 @@ REQUIRED_EVENT_FIELDS = (
     "duration_ms",
     "outcome",
 )
-
-
-@dataclass(slots=True)
-class BuildSummaryCounters:
-    """Concise counters for build-level translation outcomes."""
-
-    cache_hit: int = 0
-    cache_miss: int = 0
-    retries: int = 0
-    failures: int = 0
-
-    def increment_cache_hit(self) -> None:
-        self.cache_hit += 1
-
-    def increment_cache_miss(self) -> None:
-        self.cache_miss += 1
-
-    def increment_retries(self, count: int = 1) -> None:
-        self.retries += count
-
-    def increment_failures(self, count: int = 1) -> None:
-        self.failures += count
-
-    def as_dict(self) -> dict[str, int]:
-        return {
-            "cache_hit": self.cache_hit,
-            "cache_miss": self.cache_miss,
-            "retries": self.retries,
-            "failures": self.failures,
-        }
-
-    def to_summary_line(self) -> str:
-        return (
-            "translation_summary "
-            f"cache_hit={self.cache_hit} "
-            f"cache_miss={self.cache_miss} "
-            f"retries={self.retries} "
-            f"failures={self.failures}"
-        )
 
 
 class TranslationRunEventLogger:

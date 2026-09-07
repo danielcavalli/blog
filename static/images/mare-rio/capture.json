@@ -1,0 +1,98 @@
+{
+  "description": "Actual local Maré frontends with sample account, notes, catalog, and provider status. No production data or live agent output.",
+  "capturedAt": "2026-09-06T15:43:18.984Z",
+  "viewport": {
+    "width": 1440,
+    "height": 1060
+  },
+  "sources": {
+    "mare-platform": {
+      "revision": "13334bf5d81dd4d1857dad277faaeb8c28c428b8",
+      "frontendChanges": ""
+    },
+    "notes": {
+      "revision": "e976bcf32af06c4cdb9d74a6b5b38137f738906b",
+      "frontendChanges": ""
+    },
+    "moon": {
+      "revision": "cdc288085d92002e87df8f6caafd1963e51f3d67",
+      "frontendChanges": ""
+    }
+  },
+  "posterSources": [
+    {
+      "title": "Game of Thrones",
+      "url": "https://images.metahub.space/poster/medium/tt0944947/img"
+    },
+    {
+      "title": "Breaking Bad",
+      "url": "https://images.metahub.space/poster/medium/tt0903747/img"
+    },
+    {
+      "title": "Stranger Things",
+      "url": "https://images.metahub.space/poster/medium/tt4574334/img"
+    },
+    {
+      "title": "Interstellar",
+      "url": "https://images.metahub.space/poster/medium/tt0816692/img"
+    },
+    {
+      "title": "Arrival",
+      "url": "https://images.metahub.space/poster/medium/tt2543164/img"
+    },
+    {
+      "title": "Blade Runner 2049",
+      "url": "https://images.metahub.space/poster/medium/tt1856101/img"
+    },
+    {
+      "title": "Band of Brothers",
+      "url": "https://static.tvmaze.com/uploads/images/medium_portrait/80/201679.jpg"
+    },
+    {
+      "title": "Chernobyl",
+      "url": "https://images.metahub.space/poster/medium/tt7366338/img"
+    }
+  ],
+  "captures": [
+    {
+      "filename": "hub-day.jpg",
+      "url": "http://127.0.0.1:4173/",
+      "theme": "day"
+    },
+    {
+      "filename": "hub-night.jpg",
+      "url": "http://127.0.0.1:4173/",
+      "theme": "night"
+    },
+    {
+      "filename": "settings-day.jpg",
+      "url": "http://127.0.0.1:4173/settings",
+      "theme": "day"
+    },
+    {
+      "filename": "settings-night.jpg",
+      "url": "http://127.0.0.1:4173/settings",
+      "theme": "night"
+    },
+    {
+      "filename": "notes-day.jpg",
+      "url": "http://127.0.0.1:4174/notes/",
+      "theme": "day"
+    },
+    {
+      "filename": "notes-night.jpg",
+      "url": "http://127.0.0.1:4174/notes/",
+      "theme": "night"
+    },
+    {
+      "filename": "moon-day.jpg",
+      "url": "http://127.0.0.1:4175/moon/",
+      "theme": "day"
+    },
+    {
+      "filename": "moon-night.jpg",
+      "url": "http://127.0.0.1:4175/moon/",
+      "theme": "night"
+    }
+  ]
+}

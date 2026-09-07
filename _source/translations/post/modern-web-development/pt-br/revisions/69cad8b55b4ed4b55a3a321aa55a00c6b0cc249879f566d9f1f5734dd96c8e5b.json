@@ -1,0 +1,45 @@
+{
+  "parent_revision": null,
+  "provenance": {
+    "artifact_type": "post",
+    "author_voice_fingerprint": "aec163091a62927a1abba3214ddb033a4b62c00a1ceeb0028576df8113f75dce",
+    "imported_from": "translation-cache-v2",
+    "legacy_cache_key": "schema=v2|source_hash=a037a2c39d46358e157c581419102c1b94145f40e8c3f5a6113e506338609c41|source_locale=en-us|target_locale=pt-br|provider=opencode|model=openai/gpt-5.4|prompt_version=v2",
+    "prompt_fingerprint": "508b180ec33e6253dcaf41327ab3ebd5b2ddeb40e1f138b1ed0d3cb3f8f7d5fd",
+    "prompt_version": "v2",
+    "provider": "opencode",
+    "translation_model": "openai/gpt-5.4",
+    "workflow": "translate",
+    "writing_style_fingerprint": "aec163091a62927a1abba3214ddb033a4b62c00a1ceeb0028576df8113f75dce"
+  },
+  "schema_version": 1,
+  "source": {
+    "artifact_type": "post",
+    "frontmatter": {
+      "excerpt": "Exploring the latest trends and best practices in modern web development, from performance optimization to user experience design.",
+      "tags": [
+        "web",
+        "css",
+        "performance"
+      ],
+      "title": "Modern Web Development"
+    },
+    "slug": "modern-web-development",
+    "source_locale": "en-us",
+    "target_locale": "pt-br",
+    "text": "## The Evolution of Web Development\n\nWeb development has come a long way since the early days of static HTML pages. Today's web is dynamic, interactive, and more powerful than ever before. However, with great power comes great responsibility.\n\n## Performance Matters\n\nOne of the most critical aspects of modern web development is performance. Users expect websites to load quickly and respond instantly to their interactions. Here are some key strategies:\n\n- Minimize JavaScript bundle sizes\n- Optimize images and use modern formats like WebP\n- Implement lazy loading for non-critical resources\n- Use CSS for animations instead of JavaScript when possible\n- Leverage browser caching effectively\n\n## The Power of CSS\n\nModern CSS has evolved to handle complex layouts and animations that previously required JavaScript. Features like CSS Grid, Flexbox and CSS animations allow developers to create rich, interactive experiences with better performance and accessibility.\n\n## Progressive Enhancement\n\nBuilding websites that work for everyone, regardless of their device or browser capabilities, is more important than ever. Progressive enhancement ensures that core functionality is available to all users while enhanced features are provided to those with modern browsers.\n\n## What This Blog Taught Me\n\nBuilding this site was a valuable lesson and deep dive into how much CSS has evolved since I first used it. I set out to do a site with a deliberately minimal architecture: no framework overhead, no build-time complexity beyond a straightforward Python script that compiles Markdown to HTML. What remains is CSS that does real work: View Transitions API for morphing animations, design tokens for theming and layout primitives that respond without media query sprawl.\n\nI do not think I would have been able to do this that quickly without LLMs. The tooling made the difference. GitHub Copilot and LLMs turned front-end work (definitely not my strength) into a structured conversation rather than a back and forth through documentation. The result is a system I understand completely because I built it incrementally, testing assumptions and observing behavior at each step. Yet I was able to create it from the ground up in one night."
+  },
+  "source_hash": "925d2fb9e782c8f98292b809ad88c0cebcb2e9086c54c661b31df3b21883cc8b",
+  "translation": {
+    "content": "## A evolução do desenvolvimento web\n\nO desenvolvimento web avançou muito desde os primeiros dias das páginas estáticas em HTML. A web de hoje é dinâmica, interativa e mais poderosa do que nunca. Mas, com grande poder vem grande responsabilidade.\n\n## Desempenho importa\n\nUm dos aspectos mais críticos do desenvolvimento web moderno é o desempenho. Os usuários esperam que sites carreguem rápido e respondam imediatamente às suas interações. Algumas estratégias importantes:\n\n- Minimizar o tamanho dos bundles de JavaScript\n- Otimizar imagens e usar formatos modernos, como WebP\n- Implementar lazy loading para recursos não críticos\n- Usar CSS para animações em vez de JavaScript sempre que possível\n- Aproveitar bem o cache do navegador\n\n## O poder do CSS\n\nO CSS moderno evoluiu a ponto de lidar com layouts e animações complexos que antes exigiam JavaScript. Recursos como CSS Grid, Flexbox e animações em CSS permitem que desenvolvedores criem experiências ricas e interativas, com melhor desempenho e acessibilidade.\n\n## Aprimoramento progressivo\n\nConstruir sites que funcionem para todo mundo, independentemente do dispositivo ou das capacidades do navegador, é mais importante do que nunca. O aprimoramento progressivo garante que a funcionalidade central esteja disponível para todos os usuários, enquanto recursos mais avançados ficam para quem usa navegadores modernos.\n\n## O que este blog me ensinou\n\nConstruir este site foi uma lição valiosa e um mergulho em quanto o CSS evoluiu desde a primeira vez que o usei. Minha proposta era fazer um site com uma arquitetura deliberadamente mínima: sem a sobrecarga de um framework, sem complexidade de build além de um script em Python simples, que compila Markdown para HTML. O que sobra é CSS fazendo trabalho de verdade: View Transitions API para animações de morphing entre estados, tokens de design para temas e primitivos de layout que se adaptam sem explodir em media queries.\n\nNão acho que teria conseguido fazer isso tão rápido sem LLMs. O ferramental fez a diferença. GitHub Copilot e LLMs transformaram o trabalho de front-end, que definitivamente não é meu ponto forte, em uma conversa estruturada, em vez de um vai e volta na documentação. O resultado é um sistema que entendo por completo porque o construí incrementalmente, testando hipóteses e observando o comportamento em cada etapa. Ainda assim, consegui criá-lo do zero em uma noite.",
+    "excerpt": "Uma reflexão sobre como o desenvolvimento web moderno exige foco em desempenho, amplia o papel do CSS e permite construir experiências ricas com uma arquitetura mínima e bem compreendida.",
+    "tags": [
+      "desenvolvimento web",
+      "CSS",
+      "desempenho",
+      "front-end",
+      "LLMs"
+    ],
+    "title": "A evolução do desenvolvimento web"
+  }
+}

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maré Rio: o software que eu quero que exista – Daniel Cavalli | dan.rio</title>
+    <meta name="description" content="Meus agentes de programação podem criar apps voltados às minhas próprias necessidades. Estou construindo Maré Rio para que esses apps compartilhem a engenharia ">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://dan.rio/pt/blog/mare-rio-and-mare-hub.html">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://dan.rio/pt/blog/mare-rio-and-mare-hub.html">
+    <meta property="og:title" content="Maré Rio: o software que eu quero que exista">
+    <meta property="og:description" content="Meus agentes de programação podem criar apps voltados às minhas próprias necessidades. Estou construindo Maré Rio para que esses apps compartilhem a engenharia ">
+    <meta property="og:site_name" content="dan.rio">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="article:published_time" content="2026-09-06">
+    <meta property="article:modified_time" content="2026-09-06">
+    <meta property="article:author" content="Daniel Cavalli">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Maré Rio: o software que eu quero que exista">
+    <meta name="twitter:description" content="Meus agentes de programação podem criar apps voltados às minhas próprias necessidades. Estou construindo Maré Rio para que esses apps compartilhem a engenharia ">
+    
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Maré Rio: o software que eu quero que exista", "description": "Meus agentes de programação podem criar apps voltados às minhas próprias necessidades. Estou construindo Maré Rio para que esses apps compartilhem a engenharia ", "url": "https://dan.rio/pt/blog/mare-rio-and-mare-hub.html", "inLanguage": "pt", "datePublished": "2026-09-06", "dateModified": "2026-09-06", "author": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "publisher": {"@type": "Person", "name": "Daniel Cavalli", "alternateName": ["Dan Cavalli", "Dan Rio", "Daniel Rio"], "url": "https://dan.rio/", "jobTitle": "Machine Learning Engineer", "worksFor": {"@type": "Organization", "name": "Nubank"}, "sameAs": ["https://github.com/danielcavalli", "https://www.linkedin.com/in/cavallidaniel/", "https://x.com/dancavlli"], "knowsAbout": ["Machine Learning", "Artificial Intelligence", "CUDA", "Distributed Training", "MLOps", "Software Engineering", "Deep Learning", "Python"]}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://dan.rio/pt/blog/mare-rio-and-mare-hub.html"}, "keywords": "Maré, Software pessoal, Arquitetura de software"}</script>
+    
+    <!-- Additional SEO -->
+    <meta name="author" content="Daniel Cavalli">
+    <meta name="robots" content="index, follow">
+    
+    <link rel="alternate" hreflang="x-default" href="https://dan.rio/">
+    <link rel="alternate" hreflang="pt" href="https://dan.rio/pt/blog/mare-rio-and-mare-hub.html">
+    <link rel="alternate" hreflang="en" href="https://dan.rio/en/blog/mare-rio-and-mare-hub.html">
+    
+    <link rel="stylesheet" href="/static/css/styles.css?v=a9e0f4b7">
+    <link rel="stylesheet" href="/static/css/post.css?v=b1fe0cd4">
+    <link rel="preload" href="/static/js/theme.js?v=30ebbd0e" as="script">
+    <script src="/static/js/theme.js?v=30ebbd0e"></script>
+    <script src="/static/js/transitions.js?v=ec40089a" defer></script>
+    <script src="/static/js/filter.js?v=c18ff16b" defer></script>
+    <script src="/static/js/annotations.js?v=31123876" defer></script>
+    <script src="/static/js/presentation.js?v=fff59a2c" defer></script>
+    <script src="/static/js/diagrams.js?v=bc8a594d" defer></script>
+    <script src="/static/js/reading.js?v=6c9b14d6" defer></script>
+</head>
+<body
+    data-copy-section-link="Copiar link da seção"
+    data-copy-passage-link="Copiar link do trecho"
+    data-link-copied="Link copiado"
+>
+    <a href="#main-content" class="skip-link">Pular para o conteúdo</a>
+    <nav class="nav" style="view-transition-name: site-nav;">
+        <div class="nav-container">
+            <a href="/pt/index.html" class="logo" style="view-transition-name: landing-title;">dan.rio</a>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="/pt/index.html" class="active" style="view-transition-name: nav-blog;">BLOG</a></li>
+                    <li><a href="/pt/about.html" style="view-transition-name: nav-about;">SOBRE</a></li>
+                    <li><a href="/pt/cv.html" style="view-transition-name: nav-cv;">CV</a></li>
+                </ul>
+                <div style="view-transition-name: lang-toggle;"><a href="/en/blog/mare-rio-and-mare-hub.html" class="lang-toggle" aria-label="Mudar para English (atualmente Português)" data-current-lang="pt">
+        <svg class="lang-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span class="lang-text">
+            <span class="lang-en">EN</span>
+            <span class="lang-sep">/</span>
+            <span class="lang-pt active">PT</span>
+        </span>
+    </a></div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Alternar tema" style="view-transition-name: theme-toggle;">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main-content" class="container article-container">
+        <article class="post post--reading" style="view-transition-name: post-container-1;">
+            <header class="post-header">
+                <a href="/pt/index.html" class="back-link">← Voltar ao Blog</a>
+
+                <h1 class="post-title-large" style="view-transition-name: post-title-1;">MARÉ RIO: O SOFTWARE QUE EU QUERO QUE EXISTA</h1>
+                <div class="post-meta">
+                    <time class="post-date" style="view-transition-name: post-date-1;">06 de Setembro de 2026</time>
+                    <span class="post-separator">•</span>
+                    <span class="post-reading-time">6 min de leitura</span>
+                </div>
+                <div class="post-tags"><span class="tag-pill">Maré</span><span class="tag-pill">Software pessoal</span><span class="tag-pill">Arquitetura de software</span></div>
+            </header>
+
+            <div class="article-layout">
+            <nav class="article-outline" aria-label="Neste artigo"><details open><summary>Neste artigo</summary><ol class="outline-list"><li><a href="#make-the-next-idea-easier-to-build">Facilitar a construção da próxima ideia</a></li><li><a href="#let-the-applications-work-together">Fazer os apps trabalharem juntos</a></li><li><a href="#an-environment-i-can-keep-shaping">Um ambiente que posso continuar moldando</a></li></ol></details></nav>
+            <div class="post-body">
+                <p class="lead" style="view-transition-name: post-excerpt-1;">
+                    Meus agentes de programação podem criar apps voltados às minhas próprias necessidades. Estou construindo Maré Rio para que esses apps compartilhem a engenharia que os sustenta e, cada vez mais, realizem tarefas úteis em conjunto.
+                </p>
+                <p class="linkable-block" data-block-id="block-001" id="block-001">Escolher um app costuma significar escolher quais decisões dos outros consigo aceitar. Um app de notas pode organizar as informações de modo perfeitamente razoável e, ainda assim, me obrigar a enquadrar meu raciocínio em categorias que eu jamais escolheria.</p>
+<p class="linkable-block" data-block-id="block-002" id="block-002">Com meus agentes de programação cuidando da implementação, posso ter um app feito sob medida para o meu jeito de trabalhar. Ele pode justificar o esforço por ser útil para mim, mesmo que ninguém mais quisesse usá-lo.</p>
+<p class="linkable-block" data-block-id="block-003" id="block-003">Quando os apps são meus e posso alterá-los, também posso repensar o trabalho que faço ao passar de um para outro. Se uma tarefa exige informações de um app e uma ação em outro, posso fazê-los cooperar e dar a um agente os meios para levar a tarefa até o fim.</p>
+<p class="linkable-block" data-block-id="block-004" id="block-004">Maré Rio é o ambiente pessoal e auto-hospedado que estou construindo para isso. Ele oferece aos meus agentes de programação uma plataforma compartilhada para os apps que criam, de modo que a engenharia desenvolvida para um sustente o próximo.</p>
+<p class="linkable-block" data-block-id="block-005" id="block-005">Uso esses apps por meio do Maré Hub, a interface no navegador que os reúne com suas configurações compartilhadas.</p>
+<figure class="post-figure theme-media linkable-block" data-block-id="block-006" id="block-006">
+  <a data-theme-variant="light" href="/static/images/mare-rio/hub-day.jpg"><img src="/static/images/mare-rio/hub-day.jpg" alt="Maré Hub no modo Day, listando Notes, Finance, Moon e Library e seus respectivos status de prontidão." width="1440" height="1060" loading="lazy" decoding="async"></a>
+  <a data-theme-variant="dark" href="/static/images/mare-rio/hub-night.jpg"><img src="/static/images/mare-rio/hub-night.jpg" alt="Maré Hub no modo Night, listando Notes, Finance, Moon e Library e seus respectivos status de prontidão." width="1440" height="1060" loading="lazy" decoding="async"></a>
+  <figcaption>A tela inicial do Maré Hub. Todas as capturas de tela deste post foram feitas nos próprios front-ends locais, com dados de exemplo.</figcaption>
+</figure>
+<h2 class="section-heading" id="make-the-next-idea-easier-to-build">Facilitar a construção da próxima ideia<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#make-the-next-idea-easier-to-build"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-007" id="block-007">Para que eu possa confiar em um software, ele precisa preservar os próprios dados, executar tarefas mesmo depois que fecho o navegador, suportar mudanças e permanecer compreensível quando for retomado em outra sessão de programação. Um agente de programação pode implementar toda essa infraestrutura, mas pedir que tome essas decisões do zero para cada app consome tokens e esforço de engenharia em variações cuja manutenção depois ficará comigo.</p>
+<p class="linkable-block" data-block-id="block-008" id="block-008">Maré dá forma duradoura a essas decisões. A plataforma oferece identidade, armazenamento, execução em segundo plano e um runtime de agentes por meio de contratos que o agente de programação pode descobrir e usar para validar sua implementação. O sistema de design compartilhado cumpre a mesma função na interface. Enquanto trabalha em uma funcionalidade, meu agente de programação consegue descobrir o que está disponível e como usar esses recursos, sem que eu tenha de reconstruir a plataforma em toda conversa.</p>
+<p class="linkable-block" data-block-id="block-009" id="block-009">O valor desse trabalho vai além do app que primeiro precisou dele. Depois que Maré consegue executar certo tipo de tarefa ou oferecer uma ferramenta a um agente, um app futuro pode usar a mesma infraestrutura para um fim em que eu não havia pensado quando ela foi criada. Novos requisitos exigirão nova engenharia, que também poderá se incorporar à base compartilhada. É por isso que estou disposto a construir uma plataforma substancial para software pessoal: quero que cada investimento amplie o leque do que poderei pedir depois.</p>
+<h2 class="section-heading" id="let-the-applications-work-together">Fazer os apps trabalharem juntos<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#let-the-applications-work-together"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-010" id="block-010">Um app também pode oferecer algo útil para o restante do ambiente. Uma função de busca, por exemplo, é útil em sua própria interface; exposta por meio de um contrato, pode se tornar uma ferramenta que outro app ou agente aciona como parte de uma tarefa maior. As informações que já registrei podem ser úteis para além da tela em que as inseri.</p>
+<p class="linkable-block" data-block-id="block-011" id="block-011">Essa ideia já estava presente na concepção inicial de Maré. Os apps precisavam de uma forma de descrever o que ofereciam, e os agentes precisavam descobrir o que podiam usar. Tratar as duas necessidades como um único problema de engenharia dá à integração uma base comum. Um app declara uma operação com entradas, saídas e efeitos definidos; os consumidores podem operar por meio dessa interface, enquanto o app continua responsável por seus registros e seu comportamento.</p>
+<p class="linkable-block" data-block-id="block-012" id="block-012">Notes, por exemplo, me oferece um lugar para registrar uma ideia ainda em estado bruto. Quero que um agente trabalhando em outra parte de Maré consiga resgatar o material relevante por meio de uma interface definida, enquanto Notes continua sendo o lugar onde o guardo e reviso.</p>
+<figure class="post-figure theme-media linkable-block" data-block-id="block-013" id="block-013">
+  <a data-theme-variant="light" href="/static/images/mare-rio/notes-day.jpg"><img src="/static/images/mare-rio/notes-day.jpg" alt="Notes no modo Day, com navegação, uma lista de notas com dados de exemplo e uma nota aberta no editor." width="1440" height="1060" loading="lazy" decoding="async"></a>
+  <a data-theme-variant="dark" href="/static/images/mare-rio/notes-night.jpg"><img src="/static/images/mare-rio/notes-night.jpg" alt="Notes no modo Night, com navegação, uma lista de notas com dados de exemplo e uma nota aberta no editor." width="1440" height="1060" loading="lazy" decoding="async"></a>
+  <figcaption>Notes mantém a navegação e a ideia em curso no mesmo espaço de trabalho. As notas exibidas usam dados de exemplo.</figcaption>
+</figure>
+<p class="linkable-block" data-block-id="block-014" id="block-014">Moon, meu app de filmes e séries, mostra o movimento inverso: um app colocando um agente para trabalhar. O histórico de visualização e as avaliações de Moon dão ao agente contexto para fazer recomendações, e a resposta volta para uma funcionalidade em que posso aproveitá-la. A plataforma executa o agente; Moon decide o que pedir e como tratar o resultado. Demonstrei esse mecanismo em <a href="/pt/blog/adding-an-agent-to-a-mare-app.html">Um agente em um arquivo JSON</a>.</p>
+<figure class="post-figure theme-media linkable-block" data-block-id="block-015" id="block-015">
+  <a data-theme-variant="light" href="/static/images/mare-rio/moon-day.jpg"><img src="/static/images/mare-rio/moon-day.jpg" alt="Moon no modo Day, mostrando uma lista de filmes e séries para assistir com dados de exemplo, ao lado de recomendações e títulos do catálogo." width="1440" height="1494" loading="lazy" decoding="async"></a>
+  <a data-theme-variant="dark" href="/static/images/mare-rio/moon-night.jpg"><img src="/static/images/mare-rio/moon-night.jpg" alt="Moon no modo Night, mostrando uma lista de filmes e séries para assistir com dados de exemplo, ao lado de recomendações e títulos do catálogo." width="1440" height="1494" loading="lazy" decoding="async"></a>
+  <figcaption>As áreas de Moon dedicadas à lista de títulos para assistir e às recomendações foram preenchidas com itens de catálogo usados como dados de exemplo, em vez do meu histórico ou das sugestões de um agente em execução.</figcaption>
+</figure>
+<p class="linkable-block" data-block-id="block-016" id="block-016">A partir disso, quero desenvolver um software capaz de levar uma tarefa até o fim envolvendo todos os apps necessários. Uma tarefa pode exigir informações de vários lugares, o julgamento de um agente e uma alteração registrada em algum outro ponto. Como posso mudar os próprios apps, consigo planejar a cooperação entre eles em função do resultado que busco.</p>
+<p class="linkable-block" data-block-id="block-017" id="block-017">Um software previsível oferece ao agente ferramentas confiáveis. Finance faz cálculos a partir de seus registros; Notes salva o que escrevo. Um agente pode usar essas operações enquanto cuida das partes da tarefa que exigem interpretação, e o app define qual parte do trabalho cabe a cada um. Quero poder delegar tarefas maiores com base em operações comuns que eu mesmo continue capaz de entender e usar.</p>
+<h2 class="section-heading" id="an-environment-i-can-keep-shaping">Um ambiente que posso continuar moldando<a aria-label="Link to this section" class="permalink-anchor heading-anchor" data-copied-label="Link copied" data-share-label="Copy section link" href="#an-environment-i-can-keep-shaping"><span aria-hidden="true" class="permalink-glyph">#</span><span class="sr-only">Link to this section</span></a></h2>
+<p class="linkable-block" data-block-id="block-018" id="block-018">Maré Hub dá a esse sistema em expansão um lugar no meu cotidiano. Posso entrar com uma única conta, abrir um app instalado ou adicionar outro pelo catálogo do ambiente. Os apps preservam interfaces adequadas ao trabalho que realizam, com controles em comum e uma linguagem visual compartilhada. Um editor de notas e uma lista de títulos para assistir podem parecer partes do mesmo lugar sem me obrigar a usá-los da mesma forma.</p>
+<p class="linkable-block" data-block-id="block-019" id="block-019">Quero continuar ampliando o que o software é capaz de fazer sem tornar a experiência cada vez mais trabalhosa. A engenharia por trás de uma funcionalidade pode se tornar bastante complexa, ainda que usá-la continue simples. Os temas Day e Night do Hub, sua navegação e os espaços de trabalho visualmente mais discretos ajudam a fazer deste um lugar onde quero passar tempo e onde meus agentes de programação podem entregar código.</p>
+<figure class="post-figure theme-media linkable-block" data-block-id="block-020" id="block-020">
+  <a data-theme-variant="light" href="/static/images/mare-rio/settings-day.jpg"><img src="/static/images/mare-rio/settings-day.jpg" alt="Configurações do Hub no modo Day, mostrando uma conta com dados de exemplo, controles de aparência, conexões com provedores de agentes e permissões de instalação." width="1440" height="1311" loading="lazy" decoding="async"></a>
+  <a data-theme-variant="dark" href="/static/images/mare-rio/settings-night.jpg"><img src="/static/images/mare-rio/settings-night.jpg" alt="Configurações do Hub no modo Night, mostrando uma conta com dados de exemplo, controles de aparência, conexões com provedores de agentes e permissões de instalação." width="1440" height="1311" loading="lazy" decoding="async"></a>
+  <figcaption>As configurações reúnem informações da conta, aparência e conexões com provedores de agentes. A identidade e os estados de conexão exibidos usam dados de exemplo.</figcaption>
+</figure>
+<p class="linkable-block" data-block-id="block-021" id="block-021">As conexões com provedores disponíveis nas configurações seguem a mesma lógica de compartilhamento. Depois que conecto uma conta ao runtime de agentes da plataforma, outro app pode usar esse serviço sem precisar criar uma forma própria de autenticar e executar um agente.</p>
+<p class="linkable-block" data-block-id="block-022" id="block-022">Também posso mudar de ideia. Uma funcionalidade que parecia sensata no planejamento pode se revelar pouco prática no uso ou sugerir algo melhor quando finalmente está diante de mim. Essas observações podem se transformar em mais uma conversa com meus agentes de programação e em outra mudança no software. Ainda cabe a mim decidir o que vale a pena fazer e como reconhecer um bom resultado, como argumentei em <a href="/pt/blog/dont-outsource-the-thinking.html">Não terceirize o pensamento</a>, mas tenho como transformar esse julgamento em ação.</p>
+<p class="linkable-block" data-block-id="block-023" id="block-023">O que me interessa é poder reconhecer uma maneira melhor de fazer algo e ter os meios para colocá-la em prática. Às vezes, isso exigirá um novo app; em outras, significará conectar o que já existe ou deixar que um agente realize um trabalho que hoje faço sozinho. Quero que essas possibilidades continuem se ampliando à medida que Maré cresce. Não tenho a menor intenção de ficar sem ter o que pedir a Maré.</p>
+            </div>
+
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer" style="view-transition-name: site-footer;">
+        <div class="footer-container">
+            <div class="social-links">
+                <a href="https://x.com/dancavlli" target="_blank" rel="noopener" aria-label="Twitter">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/danielcavalli" target="_blank" rel="noopener" aria-label="GitHub">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/cavallidaniel/" target="_blank" rel="noopener" aria-label="LinkedIn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                </a>
+            </div>
+            <p class="copyright">&copy; 2026 Todos os Direitos Reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>

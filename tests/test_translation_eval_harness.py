@@ -9,16 +9,12 @@ from __future__ import annotations
 import json
 import os
 import sys
-import types
 from pathlib import Path
 
 
 _SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
 if _SOURCE not in sys.path:
     sys.path.insert(0, _SOURCE)
-_mock_provider_stub = types.ModuleType("translation_v2.mock_provider")
-_mock_provider_stub.DeterministicMockTranslationProvider = object
-sys.modules.setdefault("translation_v2.mock_provider", _mock_provider_stub)
 
 from translation_v2.eval_harness import (  # noqa: E402
     HARD_FAIL_GATES,

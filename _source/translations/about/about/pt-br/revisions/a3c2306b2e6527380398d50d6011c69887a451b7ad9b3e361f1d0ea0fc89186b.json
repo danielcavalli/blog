@@ -1,0 +1,35 @@
+{
+  "parent_revision": null,
+  "provenance": {
+    "artifact_type": "about",
+    "author_voice_fingerprint": "b44cb261cdcc1dffbc86717821bf663461dbaa57e4bd5923fba6361d136fc823",
+    "imported_from": "translation-cache-v2",
+    "legacy_cache_key": "schema=v2|source_hash=b99e578f2bdca4dc55df2b06419de511945a2c0fcd4d48c81b1a27a78321febc|source_locale=en-us|target_locale=pt-br|provider=opencode|model=openai/gpt-5.5|prompt_version=v2",
+    "prompt_fingerprint": "bc0337235071fb2ffc2dce6b645ce045e8b10f8115d8668da90f23b0b1b26b31",
+    "prompt_version": "v2",
+    "provider": "opencode",
+    "translation_model": "openai/gpt-5.5",
+    "workflow": "translate",
+    "writing_style_fingerprint": "b44cb261cdcc1dffbc86717821bf663461dbaa57e4bd5923fba6361d136fc823"
+  },
+  "schema_version": 1,
+  "source": {
+    "artifact_type": "about",
+    "frontmatter": {
+      "excerpt": "",
+      "tags": [],
+      "title": "ABOUT"
+    },
+    "slug": "about",
+    "source_locale": "en-us",
+    "target_locale": "pt-br",
+    "text": "# ABOUT\n\nMy name is Daniel Cavalli. I'm a Machine Learning Engineer who studied economics, which, at the very least, gave me a formal excuse to be suspicious of systems that appear to work before I understand why they work.\n\nNot that I needed formal education for that. That instinct has been fairly consistent in my life, and even as a child I would {{STRIKETHROUGH:constantly}} at times get in trouble for taking apart something that was \"broken\", to better understand how it works.\n\nWell, having formal education meant applying this same mentality to other, uhm, less concrete, topics. Sometimes it leads to distributed training stacks being repurposed, CUDA kernels being written for pipelines that were working, but barely. Other times it leads to surfboards being built in the storage room of my kitchen (with all the fiberglass, tools and dust that comes with it) or a washing machine that had been operating perfectly well, until I decided it should now contribute to science!\n\nThe object changes, but the interest is usually the same: finding the real logic underneath things, where the friction actually is, which parts are carrying their weight, and what can be made simpler in order to make it better.\n\nMy family, while supportive of this behavior, still gives me the occasional look here and there. Unwavering in my intent to break things in order to learn, this blog is where that habit becomes easier to justify. I write about artificial intelligence, systems design, networking and whatever else seems worth understanding properly rather than merely using. Partly to explain things and share some knowledge or opinions, but mostly to see whether my own explanations survive contact with structure and opposing views. Proud to say that they usually don't, which is useful.\n\nI live in Copacabana, stay as close to the ocean as ordinary life allows, and have found that surfing, engineering, and writing are similar in at least one respect: all three are less impressed by intention than by timing, feel, and whether you actually understand the medium you're working with."
+  },
+  "source_hash": "feaac675c73caabd2a0378da01bee48ce758f50b49db9afd432fe2840f7b7b4f",
+  "translation": {
+    "content": "# SOBRE\n\nMeu nome é Daniel Cavalli. Sou Engenheiro de Machine Learning e estudei economia, o que, no mínimo, me deu uma desculpa formal para desconfiar de sistemas que parecem funcionar antes de eu entender por que funcionam.\n\nNão que eu precisasse de formação formal para isso. Esse instinto tem sido bastante constante na minha vida e, mesmo quando criança, eu {{STRIKETHROUGH:constantemente}} às vezes me metia em encrenca por desmontar alguma coisa que estava \"quebrada\", para entender melhor como funcionava.\n\nBem, ter formação formal significou levar essa mesma mentalidade para outros assuntos, hum, menos concretos. Às vezes, isso resulta em stacks de treinamento distribuído sendo reaproveitados, kernels CUDA sendo escritos para pipelines que estavam funcionando, mas no limite. Em outras, resulta em pranchas de surf sendo construídas no depósito da minha cozinha (com toda a fibra de vidro, ferramentas e pó que vêm junto) ou em uma máquina de lavar que vinha funcionando perfeitamente bem, até eu decidir que ela agora deveria contribuir para a ciência!\n\nO objeto muda, mas o interesse costuma ser o mesmo: encontrar a lógica real por baixo das coisas, onde o atrito de fato está, quais partes estão fazendo o trabalho que deveriam fazer e o que pode ser simplificado para ficar melhor.\n\nMinha família, embora apoie esse comportamento, ainda me lança um ou outro olhar de vez em quando. Firme na minha intenção de quebrar coisas para aprender, este blog é onde esse hábito fica mais fácil de justificar. Escrevo sobre inteligência artificial, design de sistemas, networking e qualquer outra coisa que pareça valer a pena entender direito, em vez de apenas usar. Em parte para explicar coisas e compartilhar algum conhecimento ou algumas opiniões, mas principalmente para ver se as minhas próprias explicações sobrevivem ao contato com estrutura e pontos de vista contrários. Tenho orgulho de dizer que geralmente não sobrevivem, o que é útil.\n\nMoro em Copacabana, fico tão perto do mar quanto a vida comum permite, e descobri que surfing, engineering e writing se parecem em pelo menos um aspecto: os três se impressionam menos com intenção do que com timing, feel e se você realmente entende o meio com que está trabalhando.",
+    "excerpt": "Daniel Cavalli, Engenheiro de Machine Learning, sobre sistemas, curiosidade, coisas desmontadas e o hábito de entender como elas realmente funcionam.",
+    "tags": [],
+    "title": "SOBRE"
+  }
+}

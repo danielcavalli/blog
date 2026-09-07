@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted for the localization stage graph. [ADR 16](016-durable-translations-and-recoverable-publication.md) supersedes its build/cache lifecycle; the [operations guide](../translation_v2_opencode_runbook.md) owns current commands and model defaults.
 
 ## Context
 
@@ -27,10 +27,10 @@ These stages are implemented as structured contracts under `_source/translation_
 
 Model responsibilities are split by job:
 
-- translation: `GPT-5.4` with high reasoning
-- revision: `GPT-5.4` with high reasoning
-- critique: `GPT-5.2`
-- final review: `GPT-5.2`
+- translation: `GPT-5.5` with high reasoning
+- revision: `GPT-5.5` with high reasoning
+- critique: `opencode-go/deepseek-v4-pro` with high reasoning
+- final review: `opencode-go/deepseek-v4-pro` with high reasoning
 
 The runtime persists:
 

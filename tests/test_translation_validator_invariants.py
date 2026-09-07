@@ -1,28 +1,6 @@
-"""Tests for validate_translation invariant-heading behavior."""
+"""Translation validator invariants for authored technical content."""
 
-import importlib
-import os
-import sys
-import types
-
-
-_SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
-sys.path.insert(0, _SOURCE)
-
-
-_google_stub = sys.modules.get("google", types.ModuleType("google"))
-_genai_stub = sys.modules.get("google.genai", types.ModuleType("google.genai"))
-_genai_types_stub = types.SimpleNamespace(HttpOptions=object)
-setattr(_genai_stub, "types", _genai_types_stub)
-setattr(_genai_stub, "Client", object)
-sys.modules["google"] = _google_stub
-sys.modules["google.genai"] = _genai_stub
-sys.modules.setdefault("dotenv", types.ModuleType("dotenv"))
-sys.modules["dotenv"].load_dotenv = lambda *a, **kw: None  # type: ignore[attr-defined]
-
-sys.modules.pop("translator", None)
-translator = importlib.import_module("translator")
-translation_common = importlib.import_module("translation_common")
+import translation_common
 
 
 def test_validate_translation_allows_known_invariant_headings_without_errors():
@@ -43,7 +21,7 @@ def test_validate_translation_allows_known_invariant_headings_without_errors():
         ]
     )
 
-    is_valid, issues = translator.validate_translation(original, translated)
+    is_valid, issues = translation_common.validate_translation(original, translated)
 
     assert is_valid is True
     assert issues == []
@@ -63,7 +41,7 @@ def test_validate_translation_still_flags_non_invariant_identical_block():
         ]
     )
 
-    is_valid, issues = translator.validate_translation(original, translated)
+    is_valid, issues = translation_common.validate_translation(original, translated)
 
     assert is_valid is False
     assert any("appears untranslated" in issue for issue in issues)
@@ -91,7 +69,7 @@ def test_validate_translation_allows_reference_entries_with_invariant_titles():
         ]
     )
 
-    is_valid, issues = translator.validate_translation(
+    is_valid, issues = translation_common.validate_translation(
         original,
         translated,
         source_locale="pt-br",
@@ -126,7 +104,7 @@ def test_validate_translation_pt_br_to_en_us_accepts_translated_content():
         ]
     )
 
-    is_valid, issues = translator.validate_translation(
+    is_valid, issues = translation_common.validate_translation(
         original,
         translated,
         source_locale="pt-br",
@@ -146,7 +124,7 @@ def test_validate_translation_pt_br_to_en_us_flags_untranslated_block():
     )
     translated = original
 
-    is_valid, issues = translator.validate_translation(
+    is_valid, issues = translation_common.validate_translation(
         original,
         translated,
         source_locale="pt-br",

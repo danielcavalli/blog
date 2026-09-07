@@ -1,246 +1,112 @@
-"""Integration tests for translation_v2 trigger and request metadata flow.
+"""Requests and explicit revisions through the accepted-content update path."""
 
-Run only this suite:
-    uv run --extra dev pytest tests/test_translation_trigger_interface.py -q
-"""
-
-from __future__ import annotations
-
-import inspect
 import json
-import os
-import sys
-import types
-from typing import Any, cast
+
+from translation_v2.accepted import AcceptedTranslations, digest
+from translation_v2.orchestrator import TranslationV2PostOrchestrator
+from translation_v2.revision_manifest import TranslationRevisionManifest
+from translation_v2.trigger import derive_idempotency_key
+from tests.test_translation_durability import source, TRANSLATION
 
 
-_SOURCE = os.path.join(os.path.dirname(__file__), "..", "_source")
-if _SOURCE not in sys.path:
-    sys.path.insert(0, _SOURCE)
-_mock_provider_stub = types.ModuleType("translation_v2.mock_provider")
-setattr(_mock_provider_stub, "DeterministicMockTranslationProvider", object)
-sys.modules.setdefault("translation_v2.mock_provider", _mock_provider_stub)
-
-from translation_v2.orchestrator import TranslationV2PostOrchestrator  # noqa: E402
-from translation_v2.trigger import (  # noqa: E402
-    TRIGGER_EVENT_TYPE_POST_FINISHED,
-    TRIGGER_SCHEMA_VERSION,
-    derive_idempotency_key,
-)
-
-
-def test_trigger_interface_preserves_facade_and_persists_correlation_context(monkeypatch, tmp_path):
-    captured: dict[str, Any] = {}
-
-    def _fake_run_pipeline(self, request, *, artifact_type):  # noqa: ARG001
-        captured["request"] = request
-        captured["artifact_type"] = artifact_type
-        return {
-            "title": "Titulo trigger",
-            "excerpt": "Resumo trigger",
-            "tags": ["ia", "agentes"],
-            "content": "## Conteudo\n\nTexto traduzido.",
-        }
-
-    monkeypatch.setattr(TranslationV2PostOrchestrator, "_run_pipeline", _fake_run_pipeline)
-
-    artifact_base = tmp_path / "artifacts"
-    monkeypatch.setenv("TRANSLATION_V2_ARTIFACT_BASE_DIR", str(artifact_base))
-
-    orchestrator = TranslationV2PostOrchestrator(
-        provider_name="opencode",
-        strict_validation=False,
-        cache_path=tmp_path / "translation-cache.json",
-        run_id="build-v2-correlation-001",
+def make_runtime(tmp_path):
+    return TranslationV2PostOrchestrator(
+        strict_validation=False, cache_dir=tmp_path / "cache",
+        accepted_path=tmp_path / "accepted", run_id="update-example",
     )
 
-    post = {
-        "slug": "trigger-contract-post",
-        "lang": "en-us",
-        "title": "Trigger Contract",
-        "excerpt": "Trigger excerpt",
-        "tags": ["translation"],
-        "raw_content": "# Trigger\n\nThis is source markdown.",
-        "content": "<h1>Trigger</h1>",
-    }
 
-    translated = orchestrator.translate_if_needed(post, target_locale="pt-br")
-    assert translated is not None
-    assert translated["lang"] == "pt-br"
-
-    signature = inspect.signature(TranslationV2PostOrchestrator.translate_if_needed)
-    assert list(signature.parameters.keys()) == ["self", "post", "target_locale"]
-    assert signature.parameters["target_locale"].default == "pt-br"
-
-    request = cast(Any, captured["request"])
-    assert captured["artifact_type"] == "post"
-    assert request.metadata["trigger"]["schema_version"] == TRIGGER_SCHEMA_VERSION
-    assert request.metadata["trigger"]["event_type"] == TRIGGER_EVENT_TYPE_POST_FINISHED
-    assert request.metadata["correlation_id"] == "build-v2-correlation-001"
-    assert request.metadata["build_run_id"] == "build-v2-correlation-001"
-
-    expected_idempotency = derive_idempotency_key(
-        slug="trigger-contract-post",
-        source_text=post["raw_content"],
-        target_locale="pt-br",
-    )
-    assert request.metadata["idempotency_key"] == expected_idempotency
-
-    trigger_event_path = (
-        artifact_base
-        / "build-v2-correlation-001"
-        / "posts"
-        / "trigger-contract-post"
-        / "trigger"
-        / "event.json"
-    )
-    assert trigger_event_path.exists()
-    event_payload = json.loads(trigger_event_path.read_text(encoding="utf-8"))
-    assert event_payload["schema_version"] == TRIGGER_SCHEMA_VERSION
-    assert event_payload["event_type"] == TRIGGER_EVENT_TYPE_POST_FINISHED
-    assert event_payload["idempotency_key"] == expected_idempotency
-    assert event_payload["correlation_id"] == "build-v2-correlation-001"
-    assert event_payload["run_id"] == "build-v2-correlation-001"
-
-    stage_event_path = artifact_base / "build-v2-correlation-001" / "stage-events.jsonl"
-    assert stage_event_path.exists()
-    lines = stage_event_path.read_text(encoding="utf-8").strip().splitlines()
-    assert len(lines) == 1
-    stage_event = json.loads(lines[0])
-    assert stage_event["run_id"] == "build-v2-correlation-001"
-    assert stage_event["stage"] == "trigger_dispatch"
-    assert stage_event["outcome"] == "cache_miss"
-    assert stage_event["metadata"]["correlation_id"] == "build-v2-correlation-001"
-    assert stage_event["metadata"]["build_run_id"] == "build-v2-correlation-001"
-    assert stage_event["metadata"]["request_run_id"] == request.run_id
-
-def test_trigger_interface_propagates_revision_and_voice_packet_metadata(monkeypatch, tmp_path):
-    captured: dict[str, Any] = {}
-
-    def _fake_run_pipeline(self, request, *, artifact_type):  # noqa: ARG001
-        captured["request"] = request
-        captured["artifact_type"] = artifact_type
-        return {
-            "title": "Titulo revisado",
-            "excerpt": "Resumo revisado",
-            "tags": ["ia"],
-            "content": "Conteudo revisado",
-        }
-
-    monkeypatch.setattr(TranslationV2PostOrchestrator, "_run_pipeline", _fake_run_pipeline)
-
-    artifact_base = tmp_path / "artifacts"
-    monkeypatch.setenv("TRANSLATION_V2_ARTIFACT_BASE_DIR", str(artifact_base))
-
-    orchestrator = TranslationV2PostOrchestrator(
-        provider_name="opencode",
-        strict_validation=False,
-        cache_path=tmp_path / "translation-cache.json",
-        run_id="build-v2-revision-001",
-    )
-    cast(Any, orchestrator).revision_manifest = type(
-        "_Manifest",
-        (),
-        {
-            "get": staticmethod(
-                lambda *, slug, target_locale: type(
-                    "_Entry",
-                    (),
-                    {
-                        "payload": {
-                            "reason": "manual linguistic review",
-                            "notes": "tighten voice and terminology",
-                        },
-                        "marker": "revision-marker-001",
-                    },
-                )()
-            )
-        },
-    )()
-
-    translation = orchestrator.translate_artifact_if_needed(
-        slug="trigger-contract-post",
-        source_text="# Trigger\n\nThis is source markdown.",
-        source_locale="en-us",
-        target_locale="pt-br",
-        artifact_type="post",
-        frontmatter={
-            "title": "Trigger Contract",
-            "excerpt": "Trigger excerpt",
-            "tags": ["translation"],
-        },
-        do_not_translate_entities=["OpenCode", "CUDA"],
+def update(runtime, original=None, **kwargs):
+    original = original or source()
+    return runtime.translate_artifact_if_needed(
+        slug=original["slug"], source_text=original["text"],
+        source_locale=original["source_locale"], target_locale=original["target_locale"],
+        artifact_type=original["artifact_type"], frontmatter=original["frontmatter"], **kwargs,
     )
 
-    assert translation["content"] == "Conteudo revisado"
 
-    request = cast(Any, captured["request"])
-    assert captured["artifact_type"] == "post"
+def test_request_and_saved_trigger_preserve_source_and_correlation(tmp_path, monkeypatch):
+    runtime = make_runtime(tmp_path)
+    requests = []
+
+    def pipeline(request, *, existing_translation=None):
+        assert existing_translation is None
+        requests.append(request)
+        return TRANSLATION
+
+    monkeypatch.setattr(runtime, "_run_pipeline", pipeline)
+    assert update(runtime, do_not_translate_entities=["CUDA"]) == TRANSLATION
+    request = requests[0]
+    assert request.source_text == source()["text"]
+    assert request.metadata["artifact_type"] == "post"
+    assert {key: request.metadata[key] for key in ("title", "excerpt", "tags")} == source()["frontmatter"]
     assert request.metadata["writing_style_brief"]
-    assert request.metadata["writing_style_fingerprint"]
-    assert request.metadata["do_not_translate_entities"] == ["OpenCode", "CUDA"]
-    assert request.metadata["revision_requested"] is True
-    assert request.metadata["revision_request"] == {
-        "reason": "manual linguistic review",
-        "notes": "tighten voice and terminology",
-    }
-    assert request.metadata["revision_marker"] == "revision-marker-001"
-
-    stage_event_path = artifact_base / "build-v2-revision-001" / "stage-events.jsonl"
-    lines = stage_event_path.read_text(encoding="utf-8").strip().splitlines()
-    assert len(lines) == 1
-    stage_event = json.loads(lines[0])
-    assert stage_event["stage"] == "trigger_dispatch"
-    assert stage_event["outcome"] == "cache_miss"
-    assert stage_event["metadata"]["revision_requested"] is True
-    assert stage_event["metadata"]["revision_marker"] == "revision-marker-001"
+    assert request.metadata["do_not_translate_entities"] == ["CUDA"]
+    assert request.metadata["correlation_id"] == runtime.run_id
+    expected = derive_idempotency_key(slug="example", source_text=source()["text"], target_locale="pt-br")
+    assert request.metadata["idempotency_key"] == expected
+    event = json.loads((runtime.artifacts.run_dir / "posts/example/trigger/event.json").read_text())
+    assert event["source_text"] == source()["text"]
+    assert event["idempotency_key"] == expected
+    assert event["correlation_id"] == runtime.run_id
+    assert AcceptedTranslations(tmp_path / "accepted").current(source())["translation"] == TRANSLATION
 
 
-def test_strict_validation_skips_generic_post_validator_for_presentations(
-    monkeypatch,
-    tmp_path,
-):
-    def _fake_run_pipeline(self, request, *, artifact_type):  # noqa: ARG001
-        return {
-            "title": "Deck traduzido",
-            "excerpt": "Resumo",
-            "tags": ["slides"],
-            "content": '<!-- presentation:slide id="intro" layout="lead" density="normal" -->\n'
-            "# Daniel Cavalli\n\n"
-            "<content>literal transcript text\n"
-            "<!-- /presentation:slide -->",
-        }
+def test_revision_notes_are_applied_once_and_preserved_with_acceptance(tmp_path, monkeypatch):
+    runtime = make_runtime(tmp_path)
+    store = AcceptedTranslations(tmp_path / "accepted")
+    store.accept(source(), TRANSLATION, {}, expected_revision=None)
+    manifest = tmp_path / "revision.yaml"
+    manifest.write_text("posts:\n  example:\n    pt-br:\n      notes: Preserve the dry humor\n")
+    runtime.revision_manifest = TranslationRevisionManifest(manifest)
+    requests = []
 
-    def _fail_generic_validation(*_args, **_kwargs):
-        raise AssertionError("generic validator should not run for presentation artifacts")
+    def pipeline(request, *, existing_translation=None):
+        assert existing_translation == TRANSLATION
+        requests.append(request)
+        return {**TRANSLATION, "title": "Revisado"}
 
-    monkeypatch.setattr(TranslationV2PostOrchestrator, "_run_pipeline", _fake_run_pipeline)
-    monkeypatch.setattr("translation_v2.orchestrator.validate_translation", _fail_generic_validation)
+    monkeypatch.setattr(runtime, "_run_pipeline", pipeline)
+    assert update(runtime)["title"] == "Revisado"
+    accepted = store.current(source())
+    assert requests[0].metadata["revision_request"]["notes"] == "Preserve the dry humor"
+    assert accepted["provenance"]["revision_marker"] == runtime.revision_manifest.get(slug="example", target_locale="pt-br").marker
+    assert update(runtime)["title"] == "Revisado"
+    assert len(requests) == 1
+    assert digest(store.current(source())) == digest(accepted)
 
-    orchestrator = TranslationV2PostOrchestrator(
-        provider_name="opencode",
-        strict_validation=True,
-        cache_path=tmp_path / "translation-cache.json",
-        run_id="build-v2-presentation-strict-001",
-    )
 
-    translated = orchestrator.translate_if_needed(
-        {
-            "slug": "deck",
-            "lang": "en-us",
-            "title": "Deck",
-            "excerpt": "Deck excerpt",
-            "tags": ["slides"],
-            "content_type": "presentation",
-            "raw_content": '<!-- presentation:slide id="intro" layout="lead" density="normal" -->\n'
-            "# Daniel Cavalli\n\n"
-            "<content>literal transcript text\n"
-            "<!-- /presentation:slide -->",
-            "content": "<p>Deck</p>",
-        },
-        target_locale="pt-br",
-    )
+def test_source_revision_preserves_previous_acceptance_and_supplies_both_sources(tmp_path, monkeypatch):
+    runtime = make_runtime(tmp_path)
+    store = AcceptedTranslations(tmp_path / "accepted")
+    previous = store.accept(source(), TRANSLATION, {}, expected_revision=None)
+    original = source("The revised source makes a different point.")
 
-    assert translated is not None
-    assert translated["content_type"] == "presentation"
-    assert translated["lang"] == "pt-br"
+    def pipeline(request, *, existing_translation=None):
+        assert existing_translation == TRANSLATION
+        assert request.source_text == original["text"]
+        assert request.metadata["previous_source"] == source()
+        return {**TRANSLATION, "content": "A fonte revisada apresenta outra ideia."}
+
+    monkeypatch.setattr(runtime, "_run_pipeline", pipeline)
+    translated = update(runtime, original)
+    current = store.current(original)
+    assert current["translation"] == translated
+    assert current["source"] == original
+    assert current["parent_revision"] == previous
+    assert store.revision(source(), previous)["translation"] == TRANSLATION
+
+
+def test_presentations_use_their_structural_gate_in_strict_updates(tmp_path, monkeypatch):
+    runtime = make_runtime(tmp_path)
+    runtime.strict_validation = True
+    original = source('<!-- presentation:slide id="intro" layout="lead" density="normal" -->\n# Daniel Cavalli\n\n<content>literal transcript text\n<!-- /presentation:slide -->')
+    original["artifact_type"] = "presentation"
+    translated = {**TRANSLATION, "content": original["text"]}
+    monkeypatch.setattr(runtime, "_run_pipeline", lambda *a, **k: translated)
+
+    def fail(*a, **k):
+        raise AssertionError("generic prose heuristics cannot validate a presentation")
+
+    monkeypatch.setattr("translation_v2.durable.validate_translation", fail)
+    assert update(runtime, original) == translated

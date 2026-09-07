@@ -50,6 +50,10 @@ docs/*
 !docs/translation-v2/
 !docs/translation-v2/**
 !docs/translation_v2_opencode_runbook.md
+!docs/publishing-review.md
 !docs/mapr-presentation-port-plan.md
 
 # Note: Generated HTML files (index.html, en/, pt/) are tracked for GitHub Pages
+
+# Process-owned translation locks; accepted content is tracked.
+_source/translations/.locks/
