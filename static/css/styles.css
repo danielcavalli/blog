@@ -389,15 +389,9 @@ body {
    Typography as a window into ocean depth
    ========================================== */
 
-.logo {
-    font-size: 1.25rem;
-    font-weight: 700;
-    text-decoration: none;
-    letter-spacing: -0.02em;
-    transition: opacity var(--transition-speed) var(--transition-easing);
-    
-    /* The ocean gradient visible through text */
-    background: linear-gradient(
+.logo,
+.tag-mare {
+    --ocean-gradient: linear-gradient(
         135deg,
         var(--ocean-color-deep) 0%,
         var(--ocean-color-mid) 20%,
@@ -406,6 +400,17 @@ body {
         var(--ocean-color-mid) 80%,
         var(--ocean-color-deep) 100%
     );
+}
+
+.logo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: -0.02em;
+    transition: opacity var(--transition-speed) var(--transition-easing);
+
+    /* The ocean gradient visible through text */
+    background: var(--ocean-gradient);
     background-size: 300% 300%;
     background-clip: text;
     -webkit-background-clip: text;
@@ -1433,6 +1438,43 @@ button:focus-visible {
     transform: translateY(-1px);
     border-color: color-mix(in srgb, var(--ocean-color-mid) 24%, var(--color-border));
     color: color-mix(in srgb, var(--color-text-secondary) 88%, var(--ocean-color-mid));
+}
+
+/* Maré carries the logo's sea, shaded to keep small lettering readable. */
+:is(.tag-pill, .filter-tag).tag-mare {
+    color: #eafff9;
+    background: linear-gradient(rgb(3 25 34 / 45%), rgb(3 25 34 / 45%)), var(--ocean-gradient);
+    background-size: 300% 300%;
+    border-color: color-mix(in srgb, var(--ocean-color-teal) 70%, var(--color-border));
+    box-shadow: inset 0 1px 0 rgb(234 255 249 / 16%);
+    animation: ocean-drift 12s ease-in-out infinite;
+}
+
+:is(.tag-pill, .filter-tag).tag-mare:hover {
+    border-color: var(--ocean-color-bright);
+    animation-duration: 6s;
+}
+
+.filter-tag.tag-mare.active {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(.tag-pill, .filter-tag).tag-mare {
+        animation: none;
+        background-position: 50% 50%;
+    }
+}
+
+@media print, (forced-colors: active) {
+    :is(.tag-pill, .filter-tag).tag-mare {
+        animation: none;
+        background: none;
+        color: CanvasText;
+        border-color: CanvasText;
+        box-shadow: none;
+    }
 }
 
 /* Post cards - filtering with native CSS transitions

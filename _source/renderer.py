@@ -40,6 +40,10 @@ from cv_parser import load_cv_data
 # ============================================================
 
 
+def _tag_classes(tag: str, base: str = "tag-pill") -> str:
+    return f"{base} tag-mare" if tag.strip().casefold() == "maré" else base
+
+
 def render_theme_toggle_svg():
     """Render the sun/moon SVG icons used by all theme toggle buttons.
 
@@ -622,7 +626,7 @@ def generate_presentation_html(presentation, post_number, lang="en"):
     tags_html = ""
     if presentation.get("tags"):
         tag_pills = "".join(
-            f'<span class="tag-pill">{_html.escape(tag)}</span>' for tag in presentation["tags"]
+            f'<span class="{_tag_classes(tag)}">{_html.escape(tag)}</span>' for tag in presentation["tags"]
         )
         tags_html = f'<div class="post-tags">{tag_pills}</div>'
 
@@ -818,7 +822,7 @@ def generate_post_html(post, post_number, lang="en"):
     tags_html = ""
     if post.get("tags"):
         tag_pills = "".join(
-            f'<span class="tag-pill">{_html.escape(tag)}</span>' for tag in post["tags"]
+            f'<span class="{_tag_classes(tag)}">{_html.escape(tag)}</span>' for tag in post["tags"]
         )
         tags_html = f'<div class="post-tags">{tag_pills}</div>'
 
@@ -986,7 +990,7 @@ def generate_post_card(post, post_number, lang="en"):
     tags_html = ""
     if post.get("tags"):
         tag_pills = "".join(
-            f'<span class="tag-pill">{_html.escape(tag)}</span>' for tag in post["tags"]
+            f'<span class="{_tag_classes(tag)}">{_html.escape(tag)}</span>' for tag in post["tags"]
         )
         tags_html = f'<div class="post-tags">{content_type_marker}{tag_pills}</div>'
     elif content_type_marker:
@@ -1100,7 +1104,7 @@ def generate_index_html(posts, lang="en"):
 
     # Generate tag pills for filter
     tag_pills_html = "".join(
-        f'<button class="filter-tag" data-tag="{_html.escape(tag)}" data-tag-key="{tag_key_map.get(tag, tag_to_slug(tag))}">{_html.escape(tag)}</button>'
+        f'<button class="{_tag_classes(tag, "filter-tag")}" data-tag="{_html.escape(tag)}" data-tag-key="{tag_key_map.get(tag, tag_to_slug(tag))}">{_html.escape(tag)}</button>'
         for tag in all_tags
     )
 
