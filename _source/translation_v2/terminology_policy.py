@@ -51,8 +51,8 @@ def build_terminology_policy_context(
 def build_translation_policy_context(
     request: TranslationRequest,
     *,
-    source_analysis: VoiceIntentPacket,
-    terminology_policy: TerminologyPolicyPacket,
+    source_analysis: VoiceIntentPacket | None,
+    terminology_policy: TerminologyPolicyPacket | None,
     glossary_entries: list[Any],
     do_not_translate_entities: list[str],
     style_constraints: list[str],
@@ -66,7 +66,6 @@ def build_translation_policy_context(
 ) -> dict[str, str]:
     """Build common translation/critique/revise/final-review prompt context."""
 
-    merged_do_not_translate = list(dict.fromkeys(do_not_translate_entities + terminology_policy.do_not_translate))
     return {
         "source_locale": request.source_locale,
         "target_locale": request.target_locale,
@@ -80,15 +79,15 @@ def build_translation_policy_context(
         "review_checks": _render_bullets(review_checks),
         "writing_style_brief": writing_style_brief,
         "glossary_entries": _render_glossary(glossary_entries),
-        "do_not_translate_entities": _render_bullets(merged_do_not_translate),
+        "do_not_translate_entities": _render_bullets(do_not_translate_entities),
         "source_analysis_json": json.dumps(
-            _voice_packet_dict(source_analysis),
+            _voice_packet_dict(source_analysis) if source_analysis else {},
             ensure_ascii=False,
             sort_keys=True,
             indent=2,
         ),
         "terminology_policy_json": json.dumps(
-            _terminology_packet_dict(terminology_policy),
+            _terminology_packet_dict(terminology_policy) if terminology_policy else {},
             ensure_ascii=False,
             sort_keys=True,
             indent=2,
@@ -103,7 +102,7 @@ def build_translation_policy_context(
                     "rationale": decision.rationale,
                     "applies_to": decision.applies_to,
                 }
-                for decision in terminology_policy.resolved_decisions
+                for decision in (terminology_policy.resolved_decisions if terminology_policy else [])
             ],
             ensure_ascii=False,
             sort_keys=True,
@@ -124,7 +123,7 @@ def build_translation_policy_context(
                         for exception in terminology_policy.education_degree_localization_policy.exceptions
                     ],
                 }
-                if terminology_policy.education_degree_localization_policy is not None
+                if terminology_policy and terminology_policy.education_degree_localization_policy is not None
                 else {}
             ),
             ensure_ascii=False,

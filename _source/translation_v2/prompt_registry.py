@@ -127,6 +127,12 @@ def compute_prompt_pack_fingerprint(
     )
 
 
+def compute_localization_prompt_fingerprint(*, prompt_version: str, artifact_type: str) -> str:
+    """Fingerprint the active template without depending on retired stage prompts."""
+    template = load_prompt_template("translate", prompt_version=prompt_version, artifact_type=artifact_type)
+    return hashlib.sha256(f"localization:{prompt_version}:{artifact_type}\n{template}".encode()).hexdigest()
+
+
 def compute_prompt_pack_fingerprint_from_templates(
     *,
     templates_by_stage: Mapping[str, str],

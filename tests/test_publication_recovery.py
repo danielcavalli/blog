@@ -21,7 +21,6 @@ def test_focused_build_preserves_other_posts_indexes_and_static_translations(
     tmp_path, monkeypatch, strict
 ):
     configure_onefile_build(tmp_path, monkeypatch, build, make_source_post(slug="focus"))
-    monkeypatch.setattr(build, "validate_translation", lambda *a, **k: (True, []))
     names = [
         "en/index.html",
         "pt/index.html",
@@ -51,7 +50,6 @@ def test_focused_build_keeps_the_full_collection_post_number(tmp_path, monkeypat
         "parse_markdown_post",
         lambda path, *a: dict(selected if path.stem == "focus" else newer),
     )
-    monkeypatch.setattr(build, "validate_translation", lambda *a, **k: (True, []))
     monkeypatch.setattr(build, "generate_post_html", lambda post, number, **k: str(number))
     assert build.build(post_selector="focus", skip_about_cv_translation=True)
     assert (tmp_path / "en/blog/focus.html").read_text() == "2"

@@ -2,8 +2,77 @@
 
 import re
 from collections import Counter
+from html.parser import HTMLParser
+
+import markdown
 
 from presentation_translation import extract_fenced_code_blocks, strip_fenced_code_blocks
+
+
+class _ProseText(HTMLParser):
+    """Read visible prose, excluding syntax, attributes, and executable content."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+        self.ignored = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag in {"pre", "code", "script", "style"}:
+            self.ignored += 1
+
+    def handle_endtag(self, tag):
+        if tag in {"pre", "code", "script", "style"}:
+            self.ignored = max(0, self.ignored - 1)
+        if tag in {"p", "li", "h1", "h2", "h3", "h4", "h5", "h6", "td", "figcaption"}:
+            self.parts.append("\n\n")
+
+    def handle_data(self, data):
+        if not self.ignored:
+            self.parts.append(data)
+
+
+def parenthetical_structure(text: str) -> list[str]:
+    """Balanced prose parentheses, including nesting, in reading order.
+
+    Markdown rendering excludes link destinations, image paths, and code. This
+    checks delimiters, not the translated meaning inside them; editorial review
+    still has to verify that each aside encloses the same thought.
+    """
+    prose = _ProseText()
+    prose.feed(markdown.markdown(text, extensions=["fenced_code", "footnotes", "tables"]))
+    structures = []
+    for block in "".join(prose.parts).split("\n\n"):
+        # Bare URLs are protected destinations, not authorial asides.
+        # Keep an enclosing aside's closing parenthesis when a bare URL is its
+        # final token; balanced parentheses within a URL belong to the URL.
+        block = re.sub(
+            r"https?://\S+",
+            lambda match: ")" * max(0, match[0].count(")") - match[0].count("(")),
+            block,
+        )
+        depth = 0
+        current = ""
+        for char in block:
+            if char == "(":
+                depth += 1
+                current += char
+            elif char == ")" and depth:
+                depth -= 1
+                current += char
+                if depth == 0:
+                    structures.append(current)
+                    current = ""
+    return structures
+
+
+def validate_parenthetical_asides(source: str, translated: str) -> None:
+    if parenthetical_structure(source) != parenthetical_structure(translated):
+        raise RuntimeError(
+            "Translation changed parenthetical asides: preserve parentheses around "
+            "the same thoughts, including nested asides; localize their contents "
+            "without replacing the delimiters with commas or dashes"
+        )
 
 
 def footnote_identity(markdown: str) -> Counter[str]:

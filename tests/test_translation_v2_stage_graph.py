@@ -1,4 +1,4 @@
-"""Settled v2 stage-graph expectations for prompt registry coverage."""
+"""Historical v2 prompt coverage; production uses only the localization template."""
 
 from __future__ import annotations
 
@@ -30,13 +30,13 @@ def _expected_stages() -> tuple[str, ...]:
     return tuple(stage["name"] for stage in payload["stages"])
 
 
-def test_prompt_registry_exposes_settled_v2_stage_graph():
+def test_prompt_registry_retains_historical_v2_templates():
     assert PROMPT_STAGES_V2 == _expected_stages()
     assert PROMPT_STAGES == _expected_stages()
     assert tuple(load_prompt_pack(prompt_version="v2").keys()) == _expected_stages()
 
 
-def test_prompt_templates_exist_for_each_settled_stage_and_artifact_type():
+def test_historical_templates_exist_for_each_stage_and_artifact_type():
     for stage in _expected_stages():
         assert prompt_template_path(stage, prompt_version="v2").exists()
         assert prompt_template_path(stage, prompt_version="v2", artifact_type="cv").exists()

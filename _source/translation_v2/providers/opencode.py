@@ -14,12 +14,8 @@ from typing import Any, Protocol, Literal, overload
 from ..artifacts import TranslationRunArtifacts
 from ..console import finish_stage_status, start_stage_status
 from ..contracts import (
-    CVRevisionOutput,
     CVTranslationOutput,
-    CritiqueOutput,
-    FinalReviewOutput,
     ProviderPayload,
-    RevisionOutput,
     StageResult,
     TerminologyPolicyPacket,
     TranslationOutput,
@@ -28,11 +24,8 @@ from ..contracts import (
 )
 from ..errors import ContractValidationError
 from ..locale_rules import get_default_locale_rules
-from ..prompt_registry import compute_prompt_pack_fingerprint, render_prompt_template
-from ..provider import TranslationProvider
-from ..source_analysis import build_source_analysis_context
+from ..prompt_registry import compute_localization_prompt_fingerprint, render_prompt_template
 from ..terminology_policy import (
-    build_terminology_policy_context,
     build_translation_policy_context,
 )
 
@@ -62,381 +55,53 @@ class OpenCodeProviderLoopResult:
     stop_reason: str
 
 
-class OpenCodeProviderLoopError(RuntimeError):
-    """Raised when the localization loop cannot produce a publishable output."""
-
-
-class OpenCodeTranslationProvider(TranslationProvider):
-    """Translation provider that uses distinct stages for localization quality."""
+class OpenCodeTranslationProvider:
+    """An unattended writer governed by source and committed localization guidance."""
 
     def __init__(
-        self,
-        *,
-        runner: OpenCodeRunnerLike | None = None,
-        artifacts: TranslationRunArtifacts,
-        default_attach_path: str,
-        analysis_runner: OpenCodeRunnerLike | None = None,
-        terminology_runner: OpenCodeRunnerLike | None = None,
-        critique_runner: OpenCodeRunnerLike | None = None,
-        revision_runner: OpenCodeRunnerLike | None = None,
-        final_review_runner: OpenCodeRunnerLike | None = None,
-        max_revision_passes: int = 2,
-        checkpoint_dir: str | None = None,
+        self, *, runner: OpenCodeRunnerLike, artifacts: TranslationRunArtifacts,
+        default_attach_path: str, checkpoint_dir: str | None = None,
     ) -> None:
-        base_runner = runner
-        if base_runner is None and any(
-            current is None
-            for current in (
-                analysis_runner,
-                terminology_runner,
-                critique_runner,
-                revision_runner,
-                final_review_runner,
-            )
-        ):
-            raise ValueError("runner is required when stage-specific runners are not all provided")
-
-        self._analysis_runner = _require_runner(analysis_runner or base_runner)
-        self._terminology_runner = _require_runner(terminology_runner or base_runner)
-        self._translation_runner = _require_runner(base_runner or revision_runner)
-        self._critique_runner = _require_runner(critique_runner or base_runner)
-        self._revision_runner = _require_runner(revision_runner or base_runner)
-        self._final_review_runner = _require_runner(final_review_runner or critique_runner or base_runner)
+        self._translation_runner = runner
         self._artifacts = artifacts
         self._default_attach_path = default_attach_path
         self._fingerprint_cache: dict[str, str] = {}
-        self._max_revision_passes = max_revision_passes
         self._checkpoints = StageCheckpoints(checkpoint_dir) if checkpoint_dir else None
         self._events = TranslationRunEventLogger(artifacts.run_id, artifacts.base_dir)
 
-    def source_analysis(self, request: TranslationRequest) -> StageResult[VoiceIntentPacket]:
-        lists = self._policy_lists(request)
-        context = build_source_analysis_context(
-            request,
-            writing_style_brief=str(request.metadata.get("writing_style_brief", "")),
-            style_constraints=lists["style_constraints"],
-            localization_brief=lists["localization_brief"],
-            borrowing_conventions=lists["borrowing_conventions"],
-            punctuation_conventions=lists["punctuation_conventions"],
-            discourse_conventions=lists["discourse_conventions"],
-            register_conventions=lists["register_conventions"],
-            review_checks=lists["review_checks"],
-            glossary_entries=lists["glossary"],
-            do_not_translate_entities=lists["do_not_translate_entities"],
-        )
-        return self._run_stage_with_repair(
-            runner=self._analysis_runner,
-            request=request,
-            stage="source_analysis",
-            context=context,
-        )
-
-    def terminology_policy(
-        self,
-        request: TranslationRequest,
-        source_analysis: VoiceIntentPacket | None = None,
-    ) -> StageResult[TerminologyPolicyPacket]:
-        if source_analysis is None:
-            source_analysis = self.source_analysis(request).payload
-        lists = self._policy_lists(request)
-        context = build_terminology_policy_context(
-            request,
-            source_analysis=source_analysis,
-            glossary_entries=lists["glossary"],
-            do_not_translate_entities=lists["do_not_translate_entities"],
-            style_constraints=lists["style_constraints"],
-            localization_brief=lists["localization_brief"],
-            borrowing_conventions=lists["borrowing_conventions"],
-            punctuation_conventions=lists["punctuation_conventions"],
-            discourse_conventions=lists["discourse_conventions"],
-            register_conventions=lists["register_conventions"],
-            review_checks=lists["review_checks"],
-        )
-        return self._run_stage_with_repair(
-            runner=self._terminology_runner,
-            request=request,
-            stage="terminology_policy",
-            context=context,
-        )
-
-    def translate(
-        self,
-        request: TranslationRequest,
-        source_analysis: VoiceIntentPacket | None = None,
-        terminology_policy: TerminologyPolicyPacket | None = None,
-    ) -> StageResult[TranslationOutput | CVTranslationOutput]:
-        if source_analysis is None:
-            source_analysis = self.source_analysis(request).payload
-        if terminology_policy is None:
-            terminology_policy = self.terminology_policy(request, source_analysis).payload
-        context = self._translation_context(
-            request,
-            source_analysis=source_analysis,
-            terminology_policy=terminology_policy,
-        )
-        return self._run_stage_with_repair(
-            runner=self._translation_runner,
-            request=request,
-            stage="translate",
-            context=context,
-        )
-
-    def critique(
-        self,
-        request: TranslationRequest,
-        translated: TranslationOutput | CVTranslationOutput,
-        *,
-        source_analysis: VoiceIntentPacket | None = None,
-        terminology_policy: TerminologyPolicyPacket | None = None,
-        pass_name: str | None = None,
-    ) -> StageResult[CritiqueOutput]:
-        if source_analysis is None:
-            source_analysis = self.source_analysis(request).payload
-        if terminology_policy is None:
-            terminology_policy = self.terminology_policy(request, source_analysis).payload
-        context = self._translation_context(
-            request,
-            source_analysis=source_analysis,
-            terminology_policy=terminology_policy,
-        )
-        context["translated_json"] = json.dumps(
-            _payload_to_dict(translated),
-            ensure_ascii=False,
-            sort_keys=True,
-            indent=2,
-        )
-        return self._run_stage_with_repair(
-            runner=self._critique_runner,
-            request=request,
-            stage="critique",
-            context=context,
-            pass_name=pass_name,
-        )
-
-    def revise(
-        self,
-        request: TranslationRequest,
-        translated: TranslationOutput | CVTranslationOutput,
-        critique: CritiqueOutput,
-        *,
-        source_analysis: VoiceIntentPacket | None = None,
-        terminology_policy: TerminologyPolicyPacket | None = None,
-        pass_name: str | None = None,
-    ) -> StageResult[RevisionOutput | CVRevisionOutput]:
-        if source_analysis is None:
-            source_analysis = self.source_analysis(request).payload
-        if terminology_policy is None:
-            terminology_policy = self.terminology_policy(request, source_analysis).payload
-        context = self._translation_context(
-            request,
-            source_analysis=source_analysis,
-            terminology_policy=terminology_policy,
-        )
-        context["translated_json"] = json.dumps(
-            _payload_to_dict(translated),
-            ensure_ascii=False,
-            sort_keys=True,
-            indent=2,
-        )
-        context["critique_json"] = json.dumps(
-            _payload_to_dict(critique),
-            ensure_ascii=False,
-            sort_keys=True,
-            indent=2,
-        )
-        return self._run_stage_with_repair(
-            runner=self._revision_runner,
-            request=request,
-            stage="revise",
-            context=context,
-            pass_name=pass_name,
-        )
-
-    def final_review(
-        self,
-        request: TranslationRequest,
-        translated: TranslationOutput | CVTranslationOutput,
-        critique: CritiqueOutput,
-        *,
-        revision_report: RevisionOutput | CVRevisionOutput | None = None,
-        source_analysis: VoiceIntentPacket | None = None,
-        terminology_policy: TerminologyPolicyPacket | None = None,
-        pass_name: str | None = None,
-    ) -> StageResult[FinalReviewOutput]:
-        if source_analysis is None:
-            source_analysis = self.source_analysis(request).payload
-        if terminology_policy is None:
-            terminology_policy = self.terminology_policy(request, source_analysis).payload
-        context = self._translation_context(
-            request,
-            source_analysis=source_analysis,
-            terminology_policy=terminology_policy,
-        )
-        context["translated_json"] = json.dumps(
-            _payload_to_dict(translated),
-            ensure_ascii=False,
-            sort_keys=True,
-            indent=2,
-        )
-        context["critique_json"] = json.dumps(
-            _payload_to_dict(critique),
-            ensure_ascii=False,
-            sort_keys=True,
-            indent=2,
-        )
-        context["revision_report_json"] = json.dumps(
-            _revision_report_dict(revision_report),
-            ensure_ascii=False,
-            sort_keys=True,
-            indent=2,
-        )
-        return self._run_stage_with_repair(
-            runner=self._final_review_runner,
-            request=request,
-            stage="final_review",
-            context=context,
-            pass_name=pass_name,
-        )
-
     def run_translation_pipeline(
-        self,
-        request: TranslationRequest,
-        *,
-        existing_translation: TranslationOutput | CVTranslationOutput | None = None,
+        self, request: TranslationRequest, *,
+        existing_translation: TranslationOutput | CVTranslationOutput | dict[str, Any] | None = None,
     ) -> OpenCodeProviderLoopResult:
-        stage_results: list[StageResult[ProviderPayload]] = []
-
-        source_analysis_result = self.source_analysis(request)
-        stage_results.append(source_analysis_result)
-        source_analysis = source_analysis_result.payload
-
-        terminology_result = self.terminology_policy(request, source_analysis)
-        stage_results.append(terminology_result)
-        terminology_policy = terminology_result.payload
-
-        if existing_translation is None:
-            translate_result = self.translate(request, source_analysis, terminology_policy)
-            stage_results.append(translate_result)
-            current_translation = translate_result.payload
-        else:
-            current_translation = existing_translation
-
-        for revision_pass in range(1, self._max_revision_passes + 1):
-            pass_name = f"pass-{revision_pass}"
-            critique_result = self.critique(
-                request,
-                current_translation,
-                source_analysis=source_analysis,
-                terminology_policy=terminology_policy,
-                pass_name=pass_name,
+        """Localize once; the durable runtime owns validation and bounded repair."""
+        if existing_translation is not None and (
+            request.metadata.get("revision_request") or request.metadata.get("deterministic_findings")
+        ):
+            request.metadata["previous_translation"] = (
+                existing_translation if isinstance(existing_translation, dict)
+                else _payload_to_dict(existing_translation)
             )
-            stage_results.append(critique_result)
+        result = self.localize(request)
+        return OpenCodeProviderLoopResult(result.payload, [result], 1, "localized")
 
-            revision_result: StageResult[RevisionOutput | CVRevisionOutput] | None = None
-            revised_translation = current_translation
-            if critique_result.payload.needs_refinement:
-                revision_result = self.revise(
-                    request,
-                    current_translation,
-                    critique_result.payload,
-                    source_analysis=source_analysis,
-                    terminology_policy=terminology_policy,
-                    pass_name=pass_name,
-                )
-                stage_results.append(revision_result)
-                revised_translation = _coerce_revision_payload(revision_result.payload)
-
-            final_review_result = self.final_review(
-                request,
-                revised_translation,
-                critique_result.payload,
-                revision_report=revision_result.payload if revision_result is not None else None,
-                source_analysis=source_analysis,
-                terminology_policy=terminology_policy,
-                pass_name=pass_name,
-            )
-            stage_results.append(final_review_result)
-
-            if final_review_result.payload.accept and final_review_result.payload.publish_ready:
-                return OpenCodeProviderLoopResult(
-                    final_translation=revised_translation,
-                    stage_results=stage_results,
-                    loops_completed=revision_pass,
-                    stop_reason="accepted",
-                )
-
-            request.metadata["final_review_feedback"] = _payload_to_dict(final_review_result.payload)
-            current_translation = revised_translation
-
-        raise OpenCodeProviderLoopError(
-            "Final review rejected localized output after revision passes"
+    def localize(self, request: TranslationRequest) -> StageResult[TranslationOutput | CVTranslationOutput]:
+        """Run the unattended writer directly against source and committed guidance."""
+        return self._run_stage_with_repair(
+            runner=self._translation_runner, request=request, stage="translate",
+            context=self._translation_context(request, source_analysis=None, terminology_policy=None),
         )
 
-    def run_translation_loop(self, request: TranslationRequest) -> OpenCodeProviderLoopResult:
-        """Backward-compatible alias for the full localization pipeline."""
-
-        return self.run_translation_pipeline(request)
-
-    def run_revision_loop(
-        self,
-        request: TranslationRequest,
-        existing_translation: TranslationOutput | CVTranslationOutput,
-    ) -> OpenCodeProviderLoopResult:
-        """Backward-compatible alias for revision-oriented entrypoint."""
-
-        return self.run_translation_pipeline(
-            request,
-            existing_translation=existing_translation,
-        )
-
-    def refine(
-        self,
-        request: TranslationRequest,
-        translated: TranslationOutput | CVTranslationOutput,
-        critique: CritiqueOutput,
-        *,
-        source_analysis: VoiceIntentPacket | None = None,
-        terminology_policy: TerminologyPolicyPacket | None = None,
-    ) -> StageResult[RevisionOutput | CVRevisionOutput]:
-        """Backward-compatible alias for revise."""
-
-        return self.revise(
-            request,
-            translated,
-            critique,
-            source_analysis=source_analysis,
-            terminology_policy=terminology_policy,
-        )
-
-    @overload
-    def _run_stage_with_repair(self, *, runner: OpenCodeRunnerLike,
-        request: TranslationRequest, stage: Literal["source_analysis"], context: Mapping[str, str],
-        pass_name: str | None = None) -> StageResult[VoiceIntentPacket]: ...
-
-    @overload
-    def _run_stage_with_repair(self, *, runner: OpenCodeRunnerLike,
-        request: TranslationRequest, stage: Literal["terminology_policy"], context: Mapping[str, str],
-        pass_name: str | None = None) -> StageResult[TerminologyPolicyPacket]: ...
 
     @overload
     def _run_stage_with_repair(self, *, runner: OpenCodeRunnerLike,
         request: TranslationRequest, stage: Literal["translate"], context: Mapping[str, str],
         pass_name: str | None = None) -> StageResult[TranslationOutput | CVTranslationOutput]: ...
 
-    @overload
-    def _run_stage_with_repair(self, *, runner: OpenCodeRunnerLike,
-        request: TranslationRequest, stage: Literal["critique"], context: Mapping[str, str],
-        pass_name: str | None = None) -> StageResult[CritiqueOutput]: ...
 
     @overload
     def _run_stage_with_repair(self, *, runner: OpenCodeRunnerLike,
-        request: TranslationRequest, stage: Literal["revise"], context: Mapping[str, str],
-        pass_name: str | None = None) -> StageResult[RevisionOutput | CVRevisionOutput]: ...
-
-    @overload
-    def _run_stage_with_repair(self, *, runner: OpenCodeRunnerLike,
-        request: TranslationRequest, stage: Literal["final_review"], context: Mapping[str, str],
-        pass_name: str | None = None) -> StageResult[FinalReviewOutput]: ...
+        request: TranslationRequest, stage: str, context: Mapping[str, str],
+        pass_name: str | None = None) -> StageResult[ProviderPayload]: ...
 
     def _run_stage_with_repair(
         self,
@@ -459,16 +124,31 @@ class OpenCodeTranslationProvider(TranslationProvider):
             prompt_version=request.prompt_version,
             artifact_type=artifact_type,
         )
+        prompt_text = (
+            "UNATTENDED LOCALIZATION AGENT\n"
+            "Complete the localization using the supplied source and official repository "
+            "locale guidance. Do not ask questions, request approval, or propose next steps. "
+            "Check your text against the guidance before returning the completed artifact.\n\n"
+            "LOCALIZATION AUTHORITY\n"
+            "The source controls meaning. The human-written localization brief and locale "
+            "rules control target-language expression. Explicit owner instructions and "
+            "protected source material remain binding. Writing references describe the "
+            "author's voice; their English examples are not Portuguese sentence templates.\n"
+            "Keep parenthetical asides in parentheses around the same thought, with their "
+            "contents localized. Do not replace them with commas or dashes or absorb them into "
+            "the main assertion. Preserve the author's conviction, irritation, enthusiasm, "
+            "irony, and deliberate rhetorical punctuation; do not add hedges or sober up "
+            "a personal voice.\n\n"
+            + prompt_text
+        )
         # Carry owner instructions and exact frontmatter through every stage.
         # These are part of the rendered prompt, so checkpoint identity covers them.
         supplement = {
             "source_frontmatter": {key: request.metadata.get(key, "" if key != "tags" else [])
                                    for key in ("title", "excerpt", "tags")},
             "owner_revision_instructions": request.metadata.get("revision_request", {}),
-            "previous_source": request.metadata.get("previous_source", {}),
-            "previous_final_review": request.metadata.get("final_review_feedback", {}),
-            "deterministic_validation_findings": request.metadata.get("deterministic_findings", "")
-                if stage in {"critique", "revise", "final_review"} else "",
+            "previous_translation": request.metadata.get("previous_translation", {}),
+            "deterministic_validation_findings": request.metadata.get("deterministic_findings", ""),
         }
         prompt_text += (
             "\n\nLOCALIZATION BOUNDARY\n"
@@ -481,9 +161,8 @@ class OpenCodeTranslationProvider(TranslationProvider):
             "editorial shortcomings. Revision instructions apply to the localized artifact.\n"
             "\nARTIFACT CONTEXT AND OWNER REVISION INSTRUCTIONS\n"
             "Use the exact source frontmatter when translating title, excerpt and tags. "
-            "Address the owner's requested corrections explicitly in critique, revision, "
-            "and final review. Resolve any previous final-review rejection and deterministic "
-            "validation findings; preserve exact source code and link destinations.\n"
+            "Apply supplied corrections and resolve deterministic validation findings. "
+            "Preserve exact source code and link destinations.\n"
             + json.dumps(supplement, ensure_ascii=False, sort_keys=True, indent=2)
         )
         if "mermaid" in request.source_text:
@@ -586,8 +265,8 @@ class OpenCodeTranslationProvider(TranslationProvider):
         self,
         request: TranslationRequest,
         *,
-        source_analysis: VoiceIntentPacket,
-        terminology_policy: TerminologyPolicyPacket,
+        source_analysis: VoiceIntentPacket | None,
+        terminology_policy: TerminologyPolicyPacket | None,
     ) -> dict[str, str]:
         lists = self._policy_lists(request)
         return build_translation_policy_context(
@@ -667,7 +346,7 @@ class OpenCodeTranslationProvider(TranslationProvider):
         cache_key = f"{artifact_type}:{prompt_version}"
         fingerprint = self._fingerprint_cache.get(cache_key)
         if fingerprint is None:
-            fingerprint = compute_prompt_pack_fingerprint(
+            fingerprint = compute_localization_prompt_fingerprint(
                 prompt_version=prompt_version,
                 artifact_type=artifact_type,
             )
@@ -735,47 +414,14 @@ def _payload_to_dict(payload: ProviderPayload | dict[str, Any]) -> dict[str, Any
     return asdict(payload)
 
 
-def _coerce_revision_payload(
-    payload: RevisionOutput | CVRevisionOutput,
-) -> TranslationOutput | CVTranslationOutput:
-    if isinstance(payload, CVRevisionOutput):
-        return payload.revised_cv
-    return TranslationOutput(
-        title=payload.title,
-        excerpt=payload.excerpt,
-        tags=payload.tags,
-        content=payload.content,
-    )
-
-
-def _revision_report_dict(
-    payload: RevisionOutput | CVRevisionOutput | None,
-) -> dict[str, Any]:
-    if payload is None:
-        return {
-            "applied_feedback": [],
-            "declined_feedback": [],
-            "rewrite_summary": [],
-            "unresolved_risks": [],
-        }
-    if isinstance(payload, CVRevisionOutput):
-        return asdict(payload.revision_report)
-    return {
-        "applied_feedback": payload.applied_feedback,
-        "declined_feedback": [asdict(item) for item in payload.declined_feedback],
-        "rewrite_summary": payload.rewrite_summary,
-        "unresolved_risks": payload.unresolved_risks,
-    }
-
-
 def _stage_launch_label(stage: str) -> str:
     labels = {
         "source_analysis": "analyze source voice and rhetoric",
         "terminology_policy": "derive terminology and borrowing policy",
         "translate": "generate localized draft",
         "critique": "editorial critique pass",
-        "revise": "rewrite using critique findings",
-        "final_review": "final quality review",
+        "revise": "localize against source and locale guidance",
+        "final_review": "independent source and locale review",
     }
     return labels.get(stage, f"launch stage {stage}")
 
@@ -794,9 +440,3 @@ def _stage_success_label(stage: str, model: str) -> str:
 
 def _stage_invalid_label(stage: str, exc: ContractValidationError) -> str:
     return f"{stage} produced schema-invalid output: {exc}"
-
-
-def _require_runner(runner: OpenCodeRunnerLike | None) -> OpenCodeRunnerLike:
-    if runner is None:
-        raise ValueError("Every localization stage requires a runner")
-    return runner

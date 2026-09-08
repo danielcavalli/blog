@@ -1,5 +1,5 @@
 TERMINOLOGY POLICY
-Set an artifact-wide borrowing and localization policy before drafting.
+Propose consistent terminology under the human localization guidance before drafting. Your proposals do not create binding rules or protected terms.
 
 Policy requirements:
 - Decide which terms should remain in English, which should be localized, and which are context-sensitive in {{target_locale}}.
@@ -38,7 +38,7 @@ REGISTER CONVENTIONS
 LOCALE REVIEW CHECKS
 {{review_checks}}
 
-SOURCE ANALYSIS JSON
+SOURCE ANALYSIS JSON (MODEL ADVICE)
 {{source_analysis_json}}
 
 GLOSSARY

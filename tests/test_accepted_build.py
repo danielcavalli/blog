@@ -44,6 +44,8 @@ import translations
 
 @pytest.fixture
 def site(tmp_path, monkeypatch):
+    monkeypatch.setattr("translation_v2.opencode_runner.OpenCodeHeadlessRunner.run_stage",
+                        lambda *a, **k: pytest.fail("Unmocked localization agent in build test"))
     repository = build.PROJECT_ROOT
     posts = tmp_path / "_source/posts"
     posts.mkdir(parents=True)
@@ -102,7 +104,7 @@ def test_real_build_preserves_source_and_acceptance_without_generation(site, mon
 
 
 @pytest.mark.parametrize("failure", ["outdated", "missing", "broken_link"])
-def test_failed_build_preserves_the_entire_previous_site(site, failure):
+def test_failed_build_preserves_the_entire_previous_site(site, monkeypatch, failure):
     path, _, _ = add_post(site)
     assert build.build(strict=True, skip_about_cv_translation=True)
     before = {lang: snapshot(site / lang) for lang in ("en", "pt")}
@@ -114,6 +116,9 @@ def test_failed_build_preserves_the_entire_previous_site(site, failure):
         # Source and acceptance are still current; complete-site validation must fail.
         (site / "en/about.html").write_text('<!doctype html><a href="/missing.html">Missing</a>')
         before["en"] = snapshot(site / "en")
+    def unavailable(*args, **kwargs):
+        raise RuntimeError("Localization provider unavailable")
+    monkeypatch.setattr("translation_v2.opencode_runner.OpenCodeHeadlessRunner.run_stage", unavailable)
     assert not build.build(strict=True, skip_about_cv_translation=True)
     assert {lang: snapshot(site / lang) for lang in ("en", "pt")} == before
 
@@ -139,10 +144,13 @@ def test_build_reports_all_pending_translations_before_writing_pages(site, monke
         path, _, _ = add_post(site, slug)
         path.write_text(path.read_text() + "\n\nNew source wording.")
     monkeypatch.setattr(build, "generate_post_html", lambda *a, **k: pytest.fail("Rendered before freshness check"))
+    def unavailable(*args, **kwargs):
+        raise RuntimeError("Localization provider unavailable")
+    monkeypatch.setattr("translation_v2.opencode_runner.OpenCodeHeadlessRunner.run_stage", unavailable)
     assert not build.build(strict=True, skip_about_cv_translation=True)
     output = capsys.readouterr().out
-    assert "Accepted translation outdated: first" in output
-    assert "Accepted translation outdated: second" in output
+    assert "first: Localization provider unavailable" in output
+    assert "second: Localization provider unavailable" in output
     assert not (site / "_staging").exists()
 
 
@@ -230,3 +238,130 @@ def test_translated_markup_filter_preserves_code_and_prose():
     assert "Before after " in "".join(clean.itertext())
     assert not any(name.startswith("on") or value.startswith("javascript:")
         for element in clean.iter() for name, value in element.attrib.items())
+
+
+@pytest.mark.parametrize("locale", ["en-us", "pt-br"])
+def test_strict_build_localizes_only_uncached_source_then_reuses_it(site, monkeypatch, locale):
+    from dataclasses import replace
+    from tests.test_opencode_provider_loop import _translation_result
+
+    path, identity, translation = add_post(site, locale=locale)
+    shutil.rmtree(site / "_source/translations")
+    original = path.read_bytes()
+    prompts = []
+
+    def localize(self, **kwargs):
+        prompts.append(kwargs["prompt_text"])
+        assert kwargs["stage"] == "translate"
+        return replace(_translation_result(translation["content"]), run_id=kwargs["request"].run_id)
+
+    monkeypatch.setattr("translation_v2.opencode_runner.OpenCodeHeadlessRunner.run_stage", localize)
+    assert build.build(strict=True, skip_about_cv_translation=True)
+    assert len(prompts) == 1
+    assert "UNATTENDED LOCALIZATION AGENT" in prompts[0]
+    assert "Do not ask questions" in prompts[0]
+    assert "LOCALIZATION BRIEF" in prompts[0] and "WRITING STYLE BRIEF" in prompts[0]
+    assert "Keep parenthetical asides in parentheses" in prompts[0]
+    store = AcceptedTranslations(site / "_source/translations")
+    accepted = store.current(identity)
+    assert accepted is not None
+    assert set(accepted["provenance"]["stage_models"]) == {"translate"}
+    assert "editorial_review" not in accepted["provenance"]
+    assert build.build(strict=True, skip_about_cv_translation=True)
+    assert len(prompts) == 1
+    assert store.current(identity) == accepted and path.read_bytes() == original
+
+
+@pytest.mark.parametrize("locale", ["en-us", "pt-br"])
+def test_non_strict_build_without_translation_has_no_broken_language_links(site, locale):
+    from html_validator import validate_generated_html
+    from link_checker import check_internal_links
+
+    path, identity, _ = add_post(site, locale=locale)
+    shutil.rmtree(site / "_source/translations")
+    assert build.build(strict=False, skip_about_cv_translation=True)
+    source_lang = build.locale_to_lang_key(locale)
+    target_lang = build.locale_to_lang_key(identity["target_locale"])
+    assert (site / source_lang / "blog/example.html").exists()
+    assert not (site / target_lang / "blog/example.html").exists()
+    html = (site / source_lang / "blog/example.html").read_text()
+    assert f'href="/{target_lang}/index.html" class="lang-toggle"' in html
+    assert f'hreflang="{target_lang}"' not in html
+    assert f'/{source_lang}/blog/example.html' in (site / "sitemap.xml").read_text()
+    assert f'/{target_lang}/blog/example.html' not in (site / "sitemap.xml").read_text()
+    assert validate_generated_html(site) == []
+    assert check_internal_links(site) == []
+
+
+def test_non_strict_source_links_fall_back_to_available_language(site):
+    target, identity, _ = add_post(site, "target", "pt-br")
+    shutil.rmtree(site / "_source/translations/post/target")
+    add_post(site, "linked", source="Read [this article](_source/posts/target.md#responsabilidade).",
+             localized="Leia [este artigo](_source/posts/target.md#responsabilidade).")
+    assert build.build(strict=False, skip_about_cv_translation=True)
+    html = (site / "en/blog/linked.html").read_text()
+    assert 'href="/pt/blog/target.html#responsabilidade"' in html
+
+
+def test_non_strict_build_can_omit_about_and_cv_translations(site):
+    from link_checker import check_internal_links
+
+    add_post(site)
+    assert build.build(strict=False)
+    assert (site / "en/about.html").exists() and (site / "en/cv.html").exists()
+    assert not (site / "pt/about.html").exists() and not (site / "pt/cv.html").exists()
+    assert check_internal_links(site) == []
+
+
+def test_explicit_no_strict_overrides_environment(monkeypatch):
+    modes = []
+    monkeypatch.setenv("STRICT_BUILD", "1")
+    monkeypatch.setattr(build, "build", lambda **kwargs: modes.append(kwargs["strict"]) or True)
+    assert build.main(["--no-strict"]) == 0
+    assert build.main(["--strict"]) == 0
+    assert build.main([]) == 0
+    assert modes == [False, True, True]
+
+
+def test_strict_content_validation_runs_once_in_the_source_locale_direction(site, monkeypatch):
+    add_post(site, locale="pt-br")
+    from translation_v2 import durable
+    validate = durable.validate_translation
+    calls = []
+
+    def record(source, translated, **kwargs):
+        calls.append(kwargs)
+        return validate(source, translated, **kwargs)
+
+    monkeypatch.setattr(durable, "validate_translation", record)
+    assert build.build(strict=True, skip_about_cv_translation=True)
+    assert calls == [{"source_locale": "pt-br", "target_locale": "en-us"}]
+
+
+def test_strict_content_validation_failure_preserves_site(site, monkeypatch):
+    add_post(site, locale="pt-br")
+    previous = snapshot(site)
+    monkeypatch.setattr("translation_v2.durable.validate_translation",
+                        lambda *a, **k: (False, ["ERROR: paragraph 1 appears untranslated"]))
+    assert not build.build(strict=True, skip_about_cv_translation=True)
+    assert all((site / name).read_bytes() == content for name, content in previous.items())
+    assert not (site / "_staging").exists()
+
+
+def test_presentation_marker_damage_fails_before_any_render(site, monkeypatch):
+    from tests.test_translation_v2_presentation_markers import SOURCE
+    path = site / "_source/posts/deck.md"
+    path.write_text("---\ntitle: Deck\ndate: 2026-09-07\nlang: en-us\ncontent_type: presentation\n---\n" + SOURCE)
+    post = parse_markdown_post(path)
+    identity = source_identity(
+        slug=post["slug"], source_text=post["raw_content"], source_locale="en-us",
+        target_locale="pt-br", artifact_type="presentation",
+        frontmatter={k: post[k] for k in ("title", "excerpt", "tags", "content_type")},
+    )
+    AcceptedTranslations(site / "_source/translations").accept(identity, {
+        "title": "Deck", "excerpt": "", "tags": [],
+        "content": SOURCE.replace('layout="lead"', 'layout="content"'),
+    }, {}, expected_revision=None)
+    monkeypatch.setattr(build, "generate_presentation_html", lambda *a, **k: pytest.fail("Rendered damaged content"))
+    assert not build.build(strict=False, skip_about_cv_translation=True)
+    assert not (site / "_staging").exists()

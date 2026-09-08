@@ -1,16 +1,15 @@
 FINAL REVIEW
-Review the localized About page as the final linguistic gate.
+Review the localized About page directly against the source and human localization guidance.
 
-Accept only if all of these are true:
-- the About page is faithful to the source
-- the prose reads as native {{target_locale}} writing rather than translated carryover
-- terminology choices are internally consistent
-- borrowing choices, punctuation, and discourse movement fit native editorial usage in {{target_locale}}
-- voice, force, humor, and autobiographical structure still feel authored
-- markdown structure and all protected material remain intact
-- if critique_json.needs_refinement is true, every critique finding was either fixed or explicitly declined for a valid protection-rule reason
-- if critique_json.needs_refinement is false, absence of revision_report changes is expected; do not reject merely because informational or minor findings were not applied
-- when a revision report exists, the critique findings and revision report agree with the actual About page; do not approve if the report claims a fix that is not visible in the artifact
+Review method:
+- Read the target prose continuously before comparing it with the source. Check every paragraph, including the opening, transitions, captions, and ending. Correct facts and grammar do not establish native writing.
+- Apply the localization brief to syntax, register, connective movement, punctuation, and conventional borrowings. Look for institutional language, nested passive constructions, source-language abstractions with target-language words, and phrases a native {{target_locale}} author would reconstruct.
+- Check every narrative semicolon and dash against target-locale rhythm. Do not approve a copied punctuation pattern merely because each sentence is grammatical. Code, URLs, and literal quotations have their own protection requirements.
+- Compare meaning at passage level: claims, agency, uncertainty, emphasis, and humor must survive. The source's grammatical subject, clause order, metaphor, and sentence boundaries are not protected.
+- Check terminology against human guidance and the actual source context. When localizing to PT-BR, conventional choices such as “app” do not become errors because another model prefers “aplicativo”.
+- Preserve autobiographical claims, humor, Markdown structure, links, and protected entities.
+- For each remaining defect, put the exact target passage, the relevant human guidance, and the concrete failure in residual_issues. Do not manufacture findings to defend a personal preference or demand literal source grammar.
+- Accept only when no source or human-guidance violation remains. A prior model's opinion, numerical score, or claimed fix cannot establish compliance.
 
 LOCALE DIRECTION
 - Source locale: {{source_locale}}
@@ -20,11 +19,8 @@ LOCALE DIRECTION
 LOCALIZATION BRIEF
 {{localization_brief}}
 
-SOURCE ANALYSIS JSON
-{{source_analysis_json}}
-
-TERMINOLOGY POLICY JSON
-{{terminology_policy_json}}
+STYLE CONSTRAINTS
+{{style_constraints}}
 
 BORROWING CONVENTIONS
 {{borrowing_conventions}}
@@ -41,34 +37,32 @@ REGISTER CONVENTIONS
 LOCALE REVIEW CHECKS
 {{review_checks}}
 
-CRITIQUE JSON
-{{critique_json}}
+WRITING STYLE BRIEF
+{{writing_style_brief}}
 
-REVISION REPORT JSON
-{{revision_report_json}}
+GLOSSARY
+{{glossary_entries}}
+
+DO_NOT_TRANSLATE_ENTITIES
+{{do_not_translate_entities}}
 
 SOURCE MARKDOWN
 {{source_markdown}}
 
-REVISED CANDIDATE JSON
+LOCALIZED CANDIDATE JSON
 {{translated_json}}
 
-REVIEW INSTRUCTIONS
-- Use critique_json explicitly to verify whether findings require revision.
-- Use revision_report_json explicitly to verify claimed applied fixes, declined findings, and protection-based exceptions when critique_json.needs_refinement is true.
-- If critique_json.needs_refinement is false, evaluate the About page directly and reject only for material defects that make it not publish-ready.
-- If critique_json.needs_refinement is true and critique_json and revision_report_json disagree, treat the mismatch as a residual issue and do not infer that the revision is complete.
-
 OUTPUT CONTRACT
-- Return exactly one JSON object.
-- Do not wrap in markdown fences.
+- Return exactly one JSON object without markdown fences.
+- residual_issues must be empty for acceptance; otherwise accept and publish_ready must be false.
+- Numerical scores are diagnostic only and cannot excuse a guidance violation.
 
 BEGIN_OUTPUT_JSON
 {
   "accept": true,
   "publish_ready": true,
   "confidence": 1.0,
-  "residual_issues": ["string"],
+  "residual_issues": [],
   "voice_score": 0,
   "terminology_score": 0,
   "locale_naturalness_score": 0

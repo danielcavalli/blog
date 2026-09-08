@@ -2,33 +2,27 @@
   "stages": [
     {
       "name": "source_analysis",
-      "role": "source context extraction",
-      "model": "openai/gpt-5.5-high"
+      "role": "advisory source context"
     },
     {
       "name": "terminology_policy",
-      "role": "deterministic terminology and entity policy packet",
-      "model": "openai/gpt-5.5-high"
+      "role": "terminology proposals under human locale guidance"
     },
     {
       "name": "translate",
-      "role": "draft translation",
-      "model": "openai/gpt-5.5-high"
+      "role": "draft translation"
     },
     {
       "name": "critique",
-      "role": "diagnostic critique only",
-      "model": "opencode-go/deepseek-v4-pro-high"
+      "role": "advisory source and locale diagnosis"
     },
     {
       "name": "revise",
-      "role": "revision using source, draft, and critique",
-      "model": "openai/gpt-5.5-high"
+      "role": "required localization against source and human guidance"
     },
     {
       "name": "final_review",
-      "role": "linguistic accept/reject gate",
-      "model": "opencode-go/deepseek-v4-pro-high"
+      "role": "independent source and human-guidance review"
     }
   ]
 }

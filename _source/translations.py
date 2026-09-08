@@ -20,10 +20,12 @@ from translation_v2.accepted import (
     matching_legacy_entry,
     source_identity,
 )
-from translation_v2.durable import validate_artifact
+from translation_v2.durable import validate_artifact, validate_new_translation
 from translation_v2.errors import TranslationV2Error
 from translation_v2.storage import file_lock, read_json
-from translation_v2.console import shutdown_console
+from translation_v2.console import (
+    configure_console, start_translation_batch, finish_translation_batch, shutdown_console,
+)
 
 
 def discover_artifacts() -> list[dict]:
@@ -155,7 +157,7 @@ def main(argv=None) -> int:
     parser.add_argument(
         "--refresh", action="store_true", help="Reassess already-current translations"
     )
-    parser.add_argument("--model", help="Translation/revision model for this explicit update")
+    parser.add_argument("--model", help="Localization agent model for this update")
     parser.add_argument(
         "--candidate-dir", type=Path, help="Isolated candidate store; required for accept"
     )
@@ -165,7 +167,9 @@ def main(argv=None) -> int:
     parser.add_argument(
         "--json", action="store_true", help="Structured status for CLI integrations"
     )
+    parser.add_argument("--verbose", action="store_true", help="Show model requests and stage diagnostics")
     args = parser.parse_args(argv)
+    configure_console(verbose=args.verbose)
     if args.json and args.command != "status":
         parser.error("--json currently applies to status")
     if args.command in {"accept", "diff"} and args.candidate_dir is None:
@@ -192,7 +196,6 @@ def main(argv=None) -> int:
 
             if args.model:
                 os.environ["TRANSLATION_V2_TRANSLATION_MODEL"] = args.model
-                os.environ["TRANSLATION_V2_REVISION_MODEL"] = args.model
             runtime = TranslationV2PostOrchestrator(
                 strict_validation=args.strict,
                 cache_dir=TRANSLATION_CACHE.parent,
@@ -200,6 +203,10 @@ def main(argv=None) -> int:
                 refresh=args.refresh,
             )
         cache = read_json(TRANSLATION_CACHE) if args.command == "import-cache" else None
+        if args.command == "update":
+            start_translation_batch(
+                len(artifacts), candidate_dir=str(args.candidate_dir) if args.candidate_dir else None,
+            )
         missing = 0
         status_rows = []
         for artifact in artifacts:
@@ -218,6 +225,7 @@ def main(argv=None) -> int:
                         "state": state,
                         "artifact_type": source["artifact_type"],
                         "slug": source["slug"],
+                        "title": source["frontmatter"]["title"],
                         "target_locale": source["target_locale"],
                     }
                 )
@@ -265,26 +273,26 @@ def main(argv=None) -> int:
                         rendered += "\n" + content + "\n"
                     return rendered.splitlines(keepends=True)
 
-                print(f"\n{label}")
-                print(
-                    "".join(
-                        difflib.unified_diff(
-                            text(accepted),
-                            text(current),
-                            fromfile="accepted",
-                            tofile="candidate",
-                        )
+                comparison = "".join(
+                    difflib.unified_diff(
+                        text(accepted),
+                        text(current),
+                        fromfile="accepted",
+                        tofile="candidate",
                     )
                 )
+                if comparison:
+                    print(f"\n{label}")
+                    print(comparison)
             elif args.command == "accept":
                 if current is None or current["source_hash"] != digest(source):
                     raise RuntimeError(f"Candidate missing or outdated: {label}")
-                validate_artifact(source, current["translation"], strict=args.strict)
                 destination = AcceptedTranslations(root)
                 existing = destination.current(source)
                 if existing == current:
                     print(f"unchanged {label}")
                     continue
+                validate_new_translation(source, current["translation"], strict=args.strict)
                 destination.promote(store, source)
                 print(f"accepted  {label}")
             else:
@@ -300,7 +308,6 @@ def main(argv=None) -> int:
                         attach_path=artifact["attach_path"],
                         do_not_translate_entities=artifact.get("do_not_translate_entities"),
                     )
-                print(f"accepted  {label}")
         if args.json:
             print(
                 json.dumps(
@@ -308,12 +315,14 @@ def main(argv=None) -> int:
                     ensure_ascii=False,
                 )
             )
+        if args.command == "update":
+            finish_translation_batch()
         return 1 if missing else 0
     except (RuntimeError, ValueError, OSError, TranslationV2Error) as exc:
-        print(f"Translation operation failed: {exc}")
+        finish_translation_batch(error=f"Translation operation failed: {exc}")
         return 1
     except KeyboardInterrupt:
-        print("Interrupted; completed stages can be resumed and accepted work is preserved.")
+        finish_translation_batch(error="Interrupted by user.", interrupted=True)
         return 130
     finally:
         shutdown_console()

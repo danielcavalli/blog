@@ -10,6 +10,11 @@ What to inspect:
 - fluency in {{target_locale}}, especially places that still sound like carried-over source syntax
 
 Findings policy:
+- Ground each finding in the source or a specific human localization rule. Cite that rule and the candidate passage; a generated terminology preference is not a violation of human policy.
+- Judge the candidate's prose independently of generated analysis and terminology proposals. In particular, replacing a consistent, conventional borrowing with a more formal synonym is not a quality fix by itself.
+- Read the candidate as target-locale prose before comparing it with the source. Quote awkward phrasing that needs rewriting; grammatical correctness alone does not establish native voice.
+- Diagnose semantic differences at passage level. A change of grammatical subject, clause order, sentence boundaries, punctuation, or metaphor is not an error when meaning and rhetorical effect survive.
+- For accuracy findings, explain which claim, qualification, actor, or relationship changed. Do not demand English sentence construction or identical surface wording as evidence of fidelity.
 - Report only concrete issues that can drive revision.
 - Make findings span-based: quote the relevant source or translated span inside each finding so the editor can locate the defect without guessing.
 - Name the defect class plainly: mistranslation, omission, terminology drift, calque, tone flattening, broken protection rule, formatting drift, or similar.
@@ -24,10 +29,10 @@ LOCALE DIRECTION
 LOCALIZATION BRIEF
 {{localization_brief}}
 
-SOURCE ANALYSIS JSON
+SOURCE ANALYSIS JSON (MODEL ADVICE)
 {{source_analysis_json}}
 
-TERMINOLOGY POLICY JSON
+TERMINOLOGY POLICY JSON (MODEL PROPOSAL)
 {{terminology_policy_json}}
 
 STYLE CONSTRAINTS

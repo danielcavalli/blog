@@ -82,20 +82,21 @@ def test_all_stage_prompts_include_strict_output_contract_markers():
             assert marker in template
 
 
-def test_static_final_review_prompts_allow_no_revision_when_critique_accepts_candidate():
-    for artifact_type in ("about", "cv"):
+def test_final_review_templates_only_take_source_candidate_and_human_guidance():
+    for artifact_type in ("post", "about", "cv", "presentation"):
         template = load_prompt_template(
             "final_review",
             prompt_version="v2",
             artifact_type=artifact_type,
         )
 
-        assert "critique_json.needs_refinement is false" in template
-        assert "absence of revision_report changes is expected" in template
-        assert "reject only for material defects" in template
-
-    post_template = load_prompt_template("final_review", prompt_version="v2")
-    assert "absence of revision_report changes is expected" not in post_template
+        assert "{{critique_json}}" not in template
+        assert "{{revision_report_json}}" not in template
+        assert "{{terminology_policy_json}}" not in template
+        assert "{{source_analysis_json}}" not in template
+        assert "{{source_markdown}}" in template
+        assert "{{translated_json}}" in template
+        assert "{{localization_brief}}" in template
 
 
 def test_prompts_include_protected_token_policy_constraints():
@@ -153,7 +154,7 @@ def test_cv_prompts_explicitly_guard_against_translationese():
     assert "calque" in critique_template.lower()
     assert "locale_naturalness" in critique_template
     assert "translated span" in critique_template.lower()
-    assert "education degree localization policy" in refine_template
+    assert "education degree localization" in refine_template
 
 
 def test_presentation_prompts_are_artifact_specific():

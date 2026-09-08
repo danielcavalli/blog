@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import Any
-from dataclasses import asdict
 from collections import Counter
 
 from presentation_translation import (
@@ -16,8 +15,9 @@ from .accepted import AcceptedTranslations, digest, source_identity
 from .contracts import validate_cv_translation_output, validate_translation_output
 from .locale_rules import get_default_locale_rules
 from .errors import ContractValidationError
-from .protected_markdown import protected_fences, footnote_identity
+from .protected_markdown import protected_fences, footnote_identity, validate_parenthetical_asides
 from .trigger import build_post_finished_trigger_event, build_request_from_trigger_event
+from .console import record_translation_reuse, start_artifact_status, finish_artifact_status, log_block
 
 
 def validate_artifact(source: dict[str, Any], translation: dict[str, Any], *, strict: bool) -> None:
@@ -69,6 +69,15 @@ def validate_artifact(source: dict[str, Any], translation: dict[str, Any], *, st
                 raise RuntimeError("; ".join(issues))
 
 
+def validate_new_translation(source: dict[str, Any], translation: dict[str, Any], *, strict: bool) -> None:
+    """Validate new content without retroactively invalidating accepted history."""
+    validate_artifact(source, translation, strict=strict)
+    if source["artifact_type"] != "cv":
+        validate_parenthetical_asides(source["text"], translation["content"])
+        for field in ("title", "excerpt"):
+            validate_parenthetical_asides(source["frontmatter"].get(field, ""), translation[field])
+
+
 class DurableTranslationRuntime:
     def __init__(self, owner: Any, root, *, refresh: bool):
         self.owner = owner
@@ -108,8 +117,14 @@ class DurableTranslationRuntime:
             and not (self.refresh or pending_revision)
         ):
             validate_artifact(source, current["translation"], strict=owner.strict_validation)
+            record_translation_reuse()
             return dict(current["translation"])
 
+        start_artifact_status(
+            slug, source["frontmatter"].get("title") or slug,
+            [("Language", f"{source_locale.upper()} → {target_locale.upper()}"),
+             ("Document", artifact_type.capitalize())],
+        )
         event = build_post_finished_trigger_event(
             slug=slug,
             source_locale=source_locale,
@@ -129,11 +144,10 @@ class DurableTranslationRuntime:
                 "artifact_type": artifact_type,
                 "writing_style_brief": owner.writing_style_brief,
                 "revision_request": revision.payload if revision else {},
-                "previous_source": current["source"] if current and not same_source else {},
                 "do_not_translate_entities": do_not_translate_entities or [],
             }
         )
-        if current:
+        if current and same_source:
             try:
                 validate_artifact(source, current["translation"], strict=owner.strict_validation)
             except (RuntimeError, ContractValidationError) as exc:
@@ -142,8 +156,6 @@ class DurableTranslationRuntime:
         recipe = {
             "provider": owner.provider_name,
             "translation_model": owner._model_id,
-            "critique_model": getattr(owner, "_critique_model_id", owner._model_id),
-            "revision_model": getattr(owner, "_revision_model_id", owner._model_id),
             "reasoning_effort": "high",
             "prompt_version": owner.prompt_version,
             "prompt_fingerprint": owner._prompt_fingerprint(artifact_type),
@@ -161,19 +173,21 @@ class DurableTranslationRuntime:
             request, existing_translation=current["translation"] if current else None,
         )
         try:
-            validate_artifact(source, translation, strict=owner.strict_validation)
+            validate_new_translation(source, translation, strict=owner.strict_validation)
         except (RuntimeError, ContractValidationError) as exc:
             # One bounded editorial repair, with the exact deterministic finding.
             # Never accept a shape/identity failure or silently weaken a gate.
+            log_block("Repairing localization", [("Check", str(exc))])
             request.metadata["deterministic_findings"] = str(exc)
             translation = owner._run_pipeline(request, existing_translation=translation)
-            validate_artifact(source, translation, strict=owner.strict_validation)
+            validate_new_translation(source, translation, strict=owner.strict_validation)
         result = getattr(owner, "last_pipeline_result", None)
         if result is not None:
-            recipe["editorial_review"] = asdict(result.stage_results[-1].payload)
             recipe["stage_models"] = {stage.stage: stage.model for stage in result.stage_results}
+        recipe["validation"] = {"structure": "passed", "strict": owner.strict_validation}
         self.store.accept(
             source=source, translation=translation, provenance=recipe,
             expected_revision=digest(current) if current else None,
         )
+        finish_artifact_status("updated")
         return translation

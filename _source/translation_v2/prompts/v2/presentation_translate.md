@@ -13,7 +13,7 @@ Execution rules:
 - Do not translate items in DO_NOT_TRANSLATE_ENTITIES.
 - Rewrite idioms, metaphors, sentence rhythm, connective phrasing, and clause order by meaning when a literal transfer would sound imported or translated.
 - Preserve authorial voice without preserving English sentence shape. Rebuild the sentence if that is what {{target_locale}} needs.
-- Apply borrowing decisions artifact-wide. Do not improvise term handling locally when the terminology policy has already settled it.
+- Use terms consistently according to the human locale guidance and glossary. Resolve terminology in context using the locale references, preserving native register and source meaning.
 - Normalize punctuation and paragraph flow to the target locale instead of reproducing source-language pacing.
 - Preserve specificity, nuance, and caveats. Do not flatten strong opinions into generic neutral prose.
 - Keep slide content concise enough for presentation use. Prefer sharper target-language phrasing over word-for-word expansion.
@@ -23,12 +23,6 @@ Execution rules:
 
 LOCALIZATION BRIEF
 {{localization_brief}}
-
-SOURCE ANALYSIS JSON
-{{source_analysis_json}}
-
-TERMINOLOGY POLICY JSON
-{{terminology_policy_json}}
 
 STYLE CONSTRAINTS
 {{style_constraints}}

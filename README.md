@@ -6,8 +6,8 @@
 | Date | 2026-09-05 |
 
 Write a post once, localize it into the other language, and publish static HTML.
-The source owns the writing. Accepted translations are versioned content;
-builds render them without model calls or translation cache writes.
+The source owns the writing. An unattended localization agent follows the
+committed locale guides. Its validated translations are versioned and reused.
 
 ## Publish and preview
 
@@ -15,7 +15,8 @@ With DanCLI installed, the blog is discoverable from any working directory:
 
 ```bash
 dan blog                        # translation status
-dan blog build                  # strict build and validation
+dan blog build --strict         # localize uncached documents, then build
+dan blog build --no-strict      # build with available translations, no agent calls
 dan blog serve                  # localhost preview, Ctrl-C to stop
 dan blog --help                  # commands and options
 dan --clean meta describe blog  # machine-readable discovery
@@ -32,9 +33,12 @@ uv run python _source/build.py --strict
 uv run python -m http.server 8000 --bind 127.0.0.1
 ```
 
-A normal build renders accepted translations without calling a model. HTML and
-internal links are checked before publication. Missing or outdated translations
-stop the build while preserving the previous generated site.
+DanCLI defaults to strict mode. It reuses translations for the current source
+and localizes missing or outdated documents before rendering. Non-strict mode
+renders the source and any current translations; unavailable language links
+lead to the available source or language index. Both modes validate HTML and
+internal links before replacing generated pages. A failed build preserves the
+previous site.
 
 ## Write the source
 
@@ -69,17 +73,28 @@ guide natural PT-BR and EN-US expression while preserving the argument, evidence
 qualifications, emphasis, and humor. It does not edit source files or impose a
 new outline. A change to policy, model, or renderer leaves accepted text valid.
 
+Human locale guidance governs expression; the source governs meaning. One agent
+localizes each uncached document directly from the source, with the full locale
+and writing references. It completes the work without questions or approval
+requests. Separate analysis, critic, and scoring calls are not part of the build.
+
+Localization preserves the author's force, irritation, enthusiasm, and irony.
+Parenthetical asides stay in parentheses around the same thought. New translations
+and candidate acceptance check those delimiters independently of model approval;
+changing the guidance does not invalidate previously accepted content.
+
 After writing or editing a post:
 
 ```bash
 dan blog status
-dan blog translate <post-slug>
-dan blog build
+dan blog build --strict
 dan blog serve
 ```
 
-Translation updates missing or outdated content and explicit revision requests.
-Unchanged accepted translations are reused. For a model trial or a policy
+`dan blog translate <post-slug>` also runs localization independently of a build
+and applies explicit revision requests. Unchanged accepted translations are
+reused. Progress shows document titles, elapsed time, and current/updated counts;
+`--verbose` adds model diagnostics. For a model trial or a policy
 revision, use a candidate, inspect its diff, and accept it deliberately; the
 [operations guide](docs/translation_v2_opencode_runbook.md#model-upgrades-and-revisions)
 owns that workflow and recovery instructions.

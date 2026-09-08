@@ -70,13 +70,8 @@ class TranslationProvider(ABC):
         self,
         request: TranslationRequest,
         translated: TranslationOutput | CVTranslationOutput,
-        critique: CritiqueOutput,
-        *,
-        revision_report: RevisionOutput | CVRevisionOutput | None = None,
-        source_analysis: VoiceIntentPacket | None = None,
-        terminology_policy: TerminologyPolicyPacket | None = None,
     ) -> StageResult[FinalReviewOutput]:
-        """Run final review and acceptance decision."""
+        """Review the source and localized artifact against human locale guidance."""
 
 
 ProviderPayload = (

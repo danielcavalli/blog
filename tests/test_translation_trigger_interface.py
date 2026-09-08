@@ -76,7 +76,7 @@ def test_revision_notes_are_applied_once_and_preserved_with_acceptance(tmp_path,
     assert digest(store.current(source())) == digest(accepted)
 
 
-def test_source_revision_preserves_previous_acceptance_and_supplies_both_sources(tmp_path, monkeypatch):
+def test_source_revision_preserves_history_and_localizes_the_current_source(tmp_path, monkeypatch):
     runtime = make_runtime(tmp_path)
     store = AcceptedTranslations(tmp_path / "accepted")
     previous = store.accept(source(), TRANSLATION, {}, expected_revision=None)
@@ -85,7 +85,8 @@ def test_source_revision_preserves_previous_acceptance_and_supplies_both_sources
     def pipeline(request, *, existing_translation=None):
         assert existing_translation == TRANSLATION
         assert request.source_text == original["text"]
-        assert request.metadata["previous_source"] == source()
+        assert "previous_source" not in request.metadata
+        assert "deterministic_findings" not in request.metadata
         return {**TRANSLATION, "content": "A fonte revisada apresenta outra ideia."}
 
     monkeypatch.setattr(runtime, "_run_pipeline", pipeline)

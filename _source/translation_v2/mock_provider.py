@@ -225,11 +225,6 @@ class DeterministicMockTranslationProvider(TranslationProvider):
         self,
         request: TranslationRequest,
         translated: TranslationOutput | CVTranslationOutput,  # noqa: ARG002
-        critique: CritiqueOutput,  # noqa: ARG002
-        *,
-        revision_report: RevisionOutput | CVRevisionOutput | None = None,  # noqa: ARG002
-        source_analysis: VoiceIntentPacket | None = None,  # noqa: ARG002
-        terminology_policy: TerminologyPolicyPacket | None = None,  # noqa: ARG002
     ) -> StageResult[FinalReviewOutput]:
         fixture = self._fixture_for_request(request)
         payload = validate_final_review_output(

@@ -6,6 +6,8 @@ Method:
 - Preserve meaning, voice, argument structure, caveats, and humor.
 - Rebuild sentence movement and connective logic when literal transfer from Portuguese sounds translated.
 - Prefer the wording an English-language technical writer would naturally publish, even when that requires recasting the sentence.
+- Preserve parenthetical asides in parentheses around the same thought; localize their contents without promoting them into the main assertion or replacing their delimiters with commas or dashes.
+- Preserve the author's degree of conviction, irritation, enthusiasm, irony, and deliberate rhetorical punctuation. Do not add hedges, soften judgments, explain jokes, or make a personal voice more institutional.
 
 Register:
 - Serious, readable, technically precise prose.

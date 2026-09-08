@@ -38,7 +38,7 @@ class VoiceIntentPacket:
 
 @dataclass(slots=True)
 class TerminologyPolicyPacket:
-    """Artifact-wide borrowing and localization policy."""
+    """Model terminology proposals, subordinate to human locale guidance."""
 
     keep_english: list[str] = field(default_factory=list)
     localize: list[str] = field(default_factory=list)
@@ -52,7 +52,7 @@ class TerminologyPolicyPacket:
 
 @dataclass(slots=True)
 class TerminologyDecision:
-    """Resolved artifact-level decision for one ambiguous source term."""
+    """Proposed artifact-level rendering for an ambiguous source term."""
 
     source_term: str
     preferred_rendering: str
@@ -138,7 +138,7 @@ class CritiqueFinding:
 
 @dataclass(slots=True)
 class CritiqueOutput:
-    """Structured output for critique stage."""
+    """Advisory critique; its verdict cannot skip localization revision."""
 
     score: float
     feedback: str

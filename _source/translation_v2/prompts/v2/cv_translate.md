@@ -17,12 +17,6 @@ Execution rules:
 LOCALIZATION BRIEF
 {{localization_brief}}
 
-SOURCE ANALYSIS JSON
-{{source_analysis_json}}
-
-TERMINOLOGY POLICY JSON
-{{terminology_policy_json}}
-
 STYLE CONSTRAINTS
 {{style_constraints}}
 

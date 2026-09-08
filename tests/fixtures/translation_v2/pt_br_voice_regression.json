@@ -1,0 +1,13 @@
+{
+  "description": "Owner-reported parenthetical aside promoted into the main assertion; real source and accepted PT-BR snapshot.",
+  "source_revision": "8231cbf3e5a10f07f28868e0dbbc3016c67b72e52ef56b3bb86c5b13c09efcce",
+  "source": "The thing is, the problem showed up right after the excitement... Each app comes with its own login, its own database, its own job runner, its own way of calling a model, and even its own Design! And every one of those is a decision I have already made once and have no interest in making again, let alone maintaining in a handful of slightly different flavors. I don't mind paying agents to build things for me, but I do mind having to re-explain to them choices that were already made (and even then seeing them drift apart).",
+  "rejected_translation": "Só que o problema apareceu logo depois da empolgação... Cada app vem com seu próprio login, seu próprio banco de dados, seu próprio executor de tarefas, seu próprio jeito de chamar um modelo e até seu próprio design! Por trás de cada item há uma decisão que já tomei e não tenho interesse algum em tomar de novo, muito menos em manter em meia dúzia de versões ligeiramente diferentes. Não me incomoda pagar para que os agentes construam coisas para mim, mas me incomoda ter de explicar novamente escolhas já feitas e, mesmo assim, ver os apps divergirem.",
+  "localized_example": "Só que o problema apareceu logo depois da empolgação... Cada app vem com seu próprio login, seu próprio banco de dados, seu próprio executor de tarefas, seu próprio jeito de chamar um modelo e até seu próprio design! E cada uma dessas escolhas eu já fiz uma vez e não tenho o menor interesse em fazer de novo, muito menos em ficar mantendo várias versões ligeiramente diferentes delas. Não me incomodo de pagar para os agentes construírem coisas para mim, mas me incomodo de ter que explicar de novo escolhas que já foram feitas (e ainda assim ver cada um seguir por um caminho).",
+  "review_requirements": [
+    "The aside remains parenthetical, around the same thought.",
+    "The complaint, emphatic repetition, ellipsis, and exclamation remain.",
+    "The speaker sounds Brazilian and personally irritated, not institutionally neutral."
+  ],
+  "localized_example_note": "Assistant-written regression example for the reported aside and register; not an owner-approved translation or a required wording template."
+}

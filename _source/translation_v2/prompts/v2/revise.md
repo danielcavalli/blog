@@ -2,16 +2,20 @@ REVISE
 Rewrite the translated candidate using the source artifact and critique.
 
 Revision rules:
-- Preserve everything already correct.
-- Fix every justified critique finding.
+- Localize the entire candidate against the source and the human locale brief. This pass is required even when critique says no refinement is needed.
+- Read each paragraph as target-language writing. Reconstruct any imported syntax, stiff abstraction, bureaucratic phrasing, or copied punctuation from the paragraph's meaning. A critic's silence or approval does not establish that a passage is correct.
+- Preserve passages that already satisfy the source and locale guidance. Fix justified critique findings, but do not limit your work to the critic's list.
+- Explain substantive locale-driven rewrites in the revision report, including improvements the critic missed. Do not make a glossary substitution stand in for a prose revision.
+- Treat critique as an editorial proposal. Decline a finding that misreads the source or demands source-language grammar at the expense of natural target-locale expression; explain the preserved meaning in declined_feedback.
 - Re-anchor disputed passages in the source rather than paraphrasing the draft loosely.
 - Preserve voice, rhetorical layering, and target-locale fluency while correcting accuracy or terminology defects.
 - When the draft sounds translated, rewrite the full sentence or paragraph instead of patching individual words.
 - Repair borrowing drift, punctuation drift, and connective drift so the result reads as authored {{target_locale}} prose.
 - Keep markdown structure unchanged.
 - Keep markdown links, URLs, inline code, fenced code, placeholders, citations, and DO_NOT_TRANSLATE_ENTITIES unchanged where protected.
-- If a critique request conflicts with a protection rule, keep the protected text unchanged and mention that in applied_feedback.
-- applied_feedback should map to actual edits or explicit non-edits, not generic promises.
+- If a critique request conflicts with a protection rule, keep the protected text unchanged and record the reason in declined_feedback.
+- applied_feedback should describe actual edits; declined_feedback records justified non-edits.
+- Keep source claims and protected material intact when declining a finding. Locale naturalness never permits changing a fact, an actor's responsibility, or the force of a qualification.
 
 LOCALE DIRECTION
 - Source locale: {{source_locale}}
@@ -21,10 +25,10 @@ LOCALE DIRECTION
 LOCALIZATION BRIEF
 {{localization_brief}}
 
-SOURCE ANALYSIS JSON
+SOURCE ANALYSIS JSON (MODEL ADVICE)
 {{source_analysis_json}}
 
-TERMINOLOGY POLICY JSON
+TERMINOLOGY POLICY JSON (MODEL PROPOSAL)
 {{terminology_policy_json}}
 
 STYLE CONSTRAINTS
@@ -68,6 +72,7 @@ BEGIN_OUTPUT_JSON
   "tags": ["string"],
   "content": "string",
   "applied_feedback": ["string"],
+  "declined_feedback": [{"finding_id": "string", "status": "declined", "rationale": "string"}],
   "rewrite_summary": ["string"],
   "unresolved_risks": ["string"]
 }

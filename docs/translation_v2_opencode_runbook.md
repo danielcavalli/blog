@@ -5,33 +5,41 @@
 | Author(s) | Daniel Cavalli |
 | Date | 2026-09-05 |
 
-Translation is an explicit content operation. `build.py` renders accepted source
-artifacts without model calls and validates the proposed site before publication.
+Strict builds localize uncached documents with an unattended agent, then render
+and validate the site. Non-strict builds use the source and available current
+translations without calling an agent.
 
 ## Routine work
 
 ```bash
 dan blog status
-dan blog translate <post-slug>
-dan blog build
+dan blog build --strict
 dan blog serve
+# Or preview without waiting for localization:
+dan blog build --no-strict
 ```
 
 Artifact selectors are post slugs, source filenames, `about`, or `cv`. With no
-selectors, update processes missing/outdated artifacts and pending revision
+selectors, `dan blog translate` processes missing/outdated artifacts and pending revision
 requests. It reuses all other accepted translations.
 
 Use `dan blog --help` for discovery and `dan --clean meta describe blog` for the
 agent contract. Every command accepts `--path`; `DAN_BLOG_ROOT` selects a checkout
 from any directory. DanCLI delegates to this repository through `uv --locked`.
 The native entrypoints remain available without DanCLI: `translations.py`
-provides `status`, `update`, `diff`, and `accept`; `build.py --strict` renders.
+provides `status`, `update`, `diff`, and `accept`; `build.py` accepts `--strict`
+and `--no-strict`. DanCLI defaults to strict mode. The agent needs no interactive
+approval and receives localization instructions, not repository collaboration rules.
+Human progress shows titles, language direction, elapsed time, and current/updated
+counts. Use `--verbose` for model diagnostics; clean JSON remains on stdout alone.
 
 The source freshness check includes body, title, excerpt, tags, locales, and
 artifact type. A model/prompt/style change does not invalidate accepted content.
 Deleting generated HTML or `_cache/` does not require translating accepted content.
-Builds check accepted content first and report all pending artifacts together,
-before writing generated pages.
+Strict builds generate missing or outdated content before writing generated pages.
+Non-strict builds omit unavailable translations, remove their alternate-language
+metadata, and resolve links to available source pages. Damaged accepted JSON still
+fails explicitly in either mode.
 
 Use [source post paths](../README.md#link-to-another-post) for links between posts.
 The renderer resolves them to the reader's language using frontmatter slugs.
@@ -48,8 +56,19 @@ apply an authoring checklist to reorganize the localized article. Missing or
 empty authoring guidance stops generation. Rendering accepted content does not
 load that guidance or initialize a model runner.
 
-Translation/revision default to `openai/gpt-5.6-sol`; critique/final review use
-`opencode-go/deepseek-v4-pro`. Both use high reasoning. OpenCode retains configured
+The PT-BR brief permits native grammatical subjects, sentence boundaries, and
+punctuation while preserving meaning, qualification, and voice. Semicolons should
+earn their place in Brazilian prose rather than mirror the English source.
+The agent checks its text against the supplied guidance and returns the completed
+document. Separate source-analysis, terminology-proposal, critique, revision, and
+final-scoring calls have been removed from production. Deterministic checks
+protect source structure, code, links, and parenthetical asides; one repair is
+allowed when those checks find damage. These checks do not prove native prose.
+The [build-mode decision](adr/018-unattended-localization.md) records this workflow.
+
+The localization agent defaults to `openai/gpt-5.6-sol` with high reasoning.
+Set `TRANSLATION_V2_TRANSLATION_MODEL` to select the agent model for builds.
+OpenCode retains configured
 provider authentication, while each model invocation uses a dedicated tool-free
 agent in a temporary directory. Source and editorial instructions are supplied
 in the prompt. See [OpenCode runtime configuration](https://opencode.ai/docs/config/).
@@ -79,10 +98,10 @@ posts:
       notes: Explain the particular correction here.
 ```
 
-Run `dan blog translate some-post`. The notes reach every editorial stage.
+Run `dan blog translate some-post`. The notes reach the localization agent.
 The accepted revision records the satisfied marker. Use a changed request or
-`--refresh` to reassess again. An ordinary render continues using accepted content
-until a revision is accepted.
+`--refresh` to reassess again. Source-current content is reused by builds; an
+explicit revision request is applied by the translate command.
 
 ## Persistence and recovery
 
@@ -95,11 +114,10 @@ editorial metadata from frontmatter without writing derived state beside it.
 - `_cache/translation-runs/<run_id>/` holds prompts, responses, attempts, and events.
 - `_cache/publication.json` and `publication-backup/` recover interrupted publishing.
 
-A failed late stage leaves earlier checkpoints reusable. Repeat the update command.
+A completed agent response remains reusable if a later write fails. Repeat the command.
 Checkpoint reuse requires matching effective prompts, model, reasoning, and
-contracts. A rejected final review remains rerunnable. The next critique receives
-final-review findings; deterministic artifact failures get one bounded editorial
-repair before the update fails. Accepted content is unchanged on failure.
+contracts. Deterministic artifact failures get one bounded localization repair
+before the update fails. Accepted content is unchanged on failure.
 Malformed model responses get one schema-correction attempt. Mermaid flowchart
 labels and accessibility text may be localized; graph structure, configuration,
 embedded markup, links, and footnote identifiers remain protected.
@@ -136,7 +154,7 @@ dan blog build --post <post-slug>
 ```
 
 This changes the selected bilingual post and preserves other posts, indexes,
-sitemap, and all four About/CV pages. Both default and strict CLI builds stage their
+sitemap, and all four About/CV pages. Both strict and non-strict builds stage their
 outputs. HTML and internal links are checked against the complete proposed site,
 including untouched pages in a focused build. No files are promoted on validation
 failure. Publication errors restore every touched file; crashes recover on the next
@@ -166,7 +184,9 @@ The corpus check renders `_source/posts/` in the browser through request
 interception, so unpublished source edits can be reviewed without changing
 generated pages or invoking translation.
 
-CI rebuilds from committed accepted content without installing OpenCode. Frozen
+CI rebuilds from committed, current translations without installing OpenCode;
+missing or outdated translations make a strict CI build fail until localized and
+committed. Frozen
 fixtures test regressions; live candidate comparisons provide separate evidence
 about model behavior and editorial quality. Publication to GitHub Pages still
 happens through the normal generated-output commit and push.

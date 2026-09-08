@@ -48,8 +48,7 @@ from renderer import (
 )
 from presentation_compiler import compile_presentation_markdown, presentation_document_to_dict
 from presentation_translation import compare_presentation_translation_invariants
-from translation_common import validate_translation
-from accepted_content import AcceptedContent
+from accepted_content import AcceptedContent, UnavailableTranslation
 from translation_v2.console import (
     configure_console,
     log_blank,
@@ -57,6 +56,8 @@ from translation_v2.console import (
     log_build_footer,
     log_line,
     shutdown_console,
+    start_translation_batch,
+    finish_translation_batch,
 )
 
 def normalize_locale(locale: str) -> str:
@@ -344,17 +345,17 @@ def _build(
 ):
     """Render source and accepted translations, validate, then publish.
 
-    Normal builds are staged and make no model calls. Missing or outdated
-    accepted translations fail before publication. A focused build replaces
+    Strict builds localize uncached source with an unattended agent. Non-strict
+    builds render source and available translations without models. A focused build replaces
     only its rendered files. Skip-about/cv leaves all four static pages intact.
 
-    Strict mode adds deterministic translation heuristics. Every build validates
+    Strict mode also enforces translation heuristics. Every build validates
     the complete proposed site before recoverable publication.
     """
     configure_console(verbose=verbose)
     log_block("Building bilingual blog", [
         ("Validation", "strict" if strict else "default"),
-        ("Content", "source and accepted translations"),
+        ("Localization", "Generate missing or outdated translations" if strict else "Use available translations; no agent calls"),
     ])
     staging_dir = STAGING_DIR
 
@@ -404,15 +405,6 @@ def _build(
     all_source_posts: list[dict[str, Any]] = []
     rendered_posts_by_lang = {"en": [], "pt": []}
 
-    # Translation quality tracking
-    quality_stats = {
-        "translated": 0,
-        "validated_ok": 0,
-        "validated_warnings": 0,
-        "failed": 0,
-        "issues": [],  # (slug, [issues]) pairs for the summary
-    }
-
     for md_file in md_files:
         try:
             post_source = parse_markdown_post(md_file)
@@ -445,12 +437,26 @@ def _build(
             log_line(f"Error: {e}", indent=1, status="error")
             return False
 
+    translation_root = PROJECT_ROOT / "_source" / "translations"
+
+    def translation_agent():
+        from translation_v2.orchestrator import TranslationV2PostOrchestrator
+        return TranslationV2PostOrchestrator(
+            strict_validation=True, cache_dir=PROJECT_ROOT / "_cache", accepted_path=translation_root,
+        )
+
     accepted = AcceptedContent(
-        root=PROJECT_ROOT / "_source" / "translations", strict_validation=strict,
+        root=translation_root, strict_validation=strict,
+        translator_factory=translation_agent if strict else None,
     )
     failures: list[str] = []
     static_content: dict[str, dict[str, Any]] = {}
-    log_block("Checking accepted translations")
+    missing_pages: dict[str, str] = {}
+    if strict:
+        start_translation_batch(len(parsed_posts) + (0 if skip_about_cv_translation else 2),
+                                next_step="Continuing with rendering and site validation.")
+    else:
+        log_block("Loading available translations")
     if not skip_about_cv_translation:
         for name, read in (
             ("about", lambda: _read_about_pt(accepted, dict(LANGUAGES["en"]["about"]))),
@@ -458,8 +464,13 @@ def _build(
         ):
             try:
                 static_content[name] = read()
+            except UnavailableTranslation as exc:
+                if strict:
+                    failures.append(str(exc))
+                else:
+                    missing_pages[f"/pt/{name}.html"] = f"/en/{name}.html"
             except Exception as exc:
-                failures.append(str(exc))
+                failures.append(f"{name}: {exc}")
 
     for parsed_post in parsed_posts:
         md_file = parsed_post["md_file"]
@@ -473,69 +484,21 @@ def _build(
                 post_source,
                 target_locale=target_locale,
             )
-            if not translated_post:
-                quality_stats["failed"] += 1
-                raise Exception(
-                    f"Translation failed for {md_file.name} "
-                    f"({source_locale} -> {target_locale})"
-                )
-            quality_stats["translated"] += 1
-            source_content = str(post_source.get("raw_content", ""))
-            translated_content = str(
-                translated_post.get("raw_content", translated_post.get("content", ""))
-            )
-            if _is_presentation_post(post_source):
-                markers_valid, marker_issues = validate_presentation_translation(
-                    source_content,
-                    translated_content,
-                )
-                if not markers_valid:
-                    quality_stats["failed"] += 1
-                    for issue in marker_issues:
-                        log_line(
-                            f"[presentation] {post_source['slug']}: {issue}",
-                            indent=1,
-                            status="error",
-                        )
-                    raise Exception(
-                        "Presentation marker validation failed for "
-                        f"{post_source['slug']}"
-                    )
-                translated_post = _prepare_presentation_post(translated_post)
-                is_valid, issues = True, []
+            rendered_posts_by_lang[target_lang_key].append(_prepare_presentation_post(translated_post))
+        except UnavailableTranslation as exc:
+            if strict:
+                failures.append(str(exc))
             else:
-                is_valid, issues = validate_translation(
-                    source_content,
-                    translated_content,
-                    source_locale=normalize_locale(source_locale),
-                    target_locale=normalize_locale(target_locale),
+                missing_pages[f"/{target_lang_key}/blog/{post_source['slug']}.html"] = (
+                    f"/{parsed_post['source_lang_key']}/blog/{post_source['slug']}.html"
                 )
-
-            if not issues:
-                quality_stats["validated_ok"] += 1
-            elif is_valid:
-                quality_stats["validated_warnings"] += 1
-                quality_stats["issues"].append((post_source["slug"], issues))
-                for issue in issues:
-                    log_line(f"[quality] {post_source['slug']}: {issue}", indent=1, status="info")
-            else:
-                quality_stats["issues"].append((post_source["slug"], issues))
-                for issue in issues:
-                    log_line(f"[quality] {post_source['slug']}: {issue}", indent=1, status="error")
-                if strict:
-                    quality_stats["failed"] += 1
-                    raise RuntimeError(f"Translation validation failed for {post_source['slug']}")
-                quality_stats["validated_warnings"] += 1
-                log_line(
-                    f"(non-strict: continuing despite errors for {post_source['slug']})",
-                    indent=1,
-                    status="info",
-                )
-
-            rendered_posts_by_lang[target_lang_key].append(translated_post)
+                log_line(f"Source only: {post_source['title']} ({source_locale.upper()})")
         except Exception as exc:
-            failures.append(str(exc))
+            failures.append(f"{post_source['slug']}: {exc}")
 
+    if strict:
+        finish_translation_batch(error="\n".join(failures) if failures else None)
+        shutdown_console()
     if failures:
         log_block("Accepted content needs attention", status="error")
         for failure in failures:
@@ -562,8 +525,10 @@ def _build(
         if not skip_about_cv_translation:
             _commit_source_about_output(lang_key="en", staging_dir=staging_dir)
             _commit_source_cv_output(lang_key="en", staging_dir=staging_dir)
-            _commit_translated_about_output(static_content["about"], staging_dir=staging_dir)
-            _commit_translated_cv_output(static_content["cv"], staging_dir=staging_dir)
+            if "about" in static_content:
+                _commit_translated_about_output(static_content["about"], staging_dir=staging_dir)
+            if "cv" in static_content:
+                _commit_translated_cv_output(static_content["cv"], staging_dir=staging_dir)
     except Exception as exc:
         log_line(f"Error rendering pages: {exc}", indent=1, status="error")
         return False
@@ -604,6 +569,9 @@ def _build(
             log_line(str(exc), status="error")
             return False
 
+    if missing_pages:
+        from partial_localization import adapt_unavailable_links
+        adapt_unavailable_links(staging_dir, missing_pages)
     try:
         validate_staged(PROJECT_ROOT, staging_dir, full=not focused_post_build,
                         preserve_static=skip_about_cv_translation)
@@ -616,55 +584,13 @@ def _build(
         log_line(f"Publication failed: {exc}", status="error")
         return False
 
-    lang_count = len(get_language_codes()) if posts_pt else 1
     log_blank()
     log_block(
         "Build summary",
-        [
-            ("Posts", len(posts_en)),
-            ("Languages", lang_count),
-        ],
+        [("Posts", len(parsed_posts)),
+         ("Languages", sum(bool(posts) for posts in rendered_posts_by_lang.values()))],
         status="success",
     )
-
-    # ---------------------------------------------------------------
-    # Translation quality summary
-    # ---------------------------------------------------------------
-    if quality_stats["translated"] > 0:
-        total = quality_stats["translated"]
-        ok = quality_stats["validated_ok"]
-        warn = quality_stats["validated_warnings"]
-        fail = quality_stats["failed"]
-        mode = "strict" if strict else "default"
-
-        log_blank()
-        log_block(
-            f"Translation quality report ({mode} mode)",
-            [
-                ("Rendered", total),
-                ("Validated OK", ok),
-                ("Validated w/ warnings", warn),
-                ("Failed", fail),
-            ],
-        )
-
-        if quality_stats["issues"]:
-            log_blank()
-            log_block("Posts with quality warnings", indent=1)
-            for slug, issues in quality_stats["issues"]:
-                error_count = sum(1 for i in issues if i.startswith("ERROR:"))
-                warn_count = len(issues) - error_count
-                parts = []
-                if error_count:
-                    parts.append(f"{error_count} error(s)")
-                if warn_count:
-                    parts.append(f"{warn_count} warning(s)")
-                log_line(f"{slug}: {', '.join(parts)}", indent=2, status="error" if error_count else "info")
-
-        if warn > 0 and not strict:
-            log_blank()
-            log_line(f"{warn} translation(s) had quality warnings", indent=1, status="info")
-            log_line("Run with --strict to enforce all quality gates", indent=1, status="info")
 
     log_blank()
     return True
@@ -682,11 +608,15 @@ def main(argv: list[str] | None = None) -> int:
     """CLI entrypoint for the blog build."""
 
     parser = argparse.ArgumentParser(description="Build bilingual blog outputs")
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
         "--strict",
         action="store_true",
-        help="Enforce deterministic translation quality checks",
+        default=None,
+        help="Localize missing/outdated documents and enforce translation checks",
     )
+    mode.add_argument("--no-strict", action="store_false", dest="strict",
+                      help="Build source and available translations without calling agents")
     parser.add_argument(
         "--post",
         default=None,
@@ -706,7 +636,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     # STRICT_BUILD=1 remains as env fallback for non-CLI automation.
-    strict_mode = args.strict or os.environ.get("STRICT_BUILD") == "1"
+    strict_mode = args.strict if args.strict is not None else os.environ.get("STRICT_BUILD") == "1"
     try:
         success = build(
             strict=strict_mode,
@@ -718,6 +648,7 @@ def main(argv: list[str] | None = None) -> int:
         log_line(str(exc), status="error")
         success = False
     except KeyboardInterrupt:
+        finish_translation_batch(error="Interrupted by user.", interrupted=True)
         shutdown_console()
         log_build_footer(outcome="interrupted")
         return 130

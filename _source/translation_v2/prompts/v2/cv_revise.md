@@ -2,15 +2,18 @@ REVISE
 Rewrite the translated CV candidate using the source CV and critique. Return both the revised CV and a structured revision report.
 
 Revision rules:
-- Preserve everything already correct.
-- Fix every justified critique finding.
+- Localize the entire candidate against the source and the human locale brief. This pass is required even when critique says no refinement is needed.
+- Read each paragraph as target-language writing. Reconstruct any imported syntax, stiff abstraction, bureaucratic phrasing, or copied punctuation from the paragraph's meaning. A critic's silence or approval does not establish that a passage is correct.
+- Preserve passages that already satisfy the source and locale guidance. Fix justified critique findings, but do not limit your work to the critic's list.
+- Explain substantive locale-driven rewrites in the revision report, including improvements the critic missed. Do not make a glossary substitution stand in for a prose revision.
+- Decline a finding that misreads the source or demands source-language grammar at the expense of natural target-locale expression. Explain the preserved achievement or qualification in revision_report.declined_findings; protected-field exceptions are needed only when an invariant field is involved.
 - Re-anchor disputed wording in the source CV rather than paraphrasing loosely.
 - Preserve professional tone, credibility, and hiring signal while correcting accuracy or terminology defects.
 - Rewrite the full field when necessary; do not patch translated-sounding wording word by word.
 - Repair borrowing drift, degree-handling drift, punctuation drift, and hiring-register drift so the CV reads as native {{target_locale}} material.
 - Keep invariant identity/reference fields unchanged.
 - Keep JSON structure unchanged.
-- Apply the settled terminology policy consistently, including the education degree localization policy for every education.degree value.
+- Keep terminology and education degree localization consistent with the human guidance, preserving the actual credential. Generated terminology and degree policies are proposals to check against that guidance.
 - Every critique finding id must be represented in revision_report.applied_findings or revision_report.declined_findings.
 - If a critique request conflicts with invariant-field protection, keep the protected value unchanged, record the decline, and add a protected-field exception entry.
 - revision_report entries must describe actual edits or explicit non-edits, not generic promises.
@@ -23,10 +26,10 @@ LOCALE DIRECTION
 LOCALIZATION BRIEF
 {{localization_brief}}
 
-SOURCE ANALYSIS JSON
+SOURCE ANALYSIS JSON (MODEL ADVICE)
 {{source_analysis_json}}
 
-TERMINOLOGY POLICY JSON
+TERMINOLOGY POLICY JSON (MODEL PROPOSAL)
 {{terminology_policy_json}}
 
 STYLE CONSTRAINTS

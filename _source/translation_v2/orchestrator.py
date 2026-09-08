@@ -11,21 +11,17 @@ from typing import Any
 from uuid import uuid4
 
 from .artifacts import TranslationRunArtifacts
-from .contracts import (
-    TranslationRequest,
-    validate_cv_translation_output,
-    validate_translation_output,
-)
+from .contracts import TranslationRequest
 from .durable import DurableTranslationRuntime
 from .opencode_runner import DEFAULT_MODEL_ID, OpenCodeHeadlessRunner
-from .prompt_registry import compute_prompt_pack_fingerprint
+from .prompt_registry import compute_localization_prompt_fingerprint
 from .providers.opencode import OpenCodeTranslationProvider
 from .revision_manifest import TranslationRevisionManifest
 from .style_loader import compute_writing_style_fingerprint, load_writing_style_brief
 
 
 class TranslationV2PostOrchestrator:
-    """Update accepted content through the V2 editorial stage graph."""
+    """Localize uncached source with an unattended, guidance-driven agent."""
 
     provider_name = "opencode"
 
@@ -55,19 +51,9 @@ class TranslationV2PostOrchestrator:
             base_dir=os.getenv("TRANSLATION_V2_ARTIFACT_BASE_DIR", str(cache_dir / "translation-runs")),
         )
         self._model_id = os.getenv("TRANSLATION_V2_TRANSLATION_MODEL", DEFAULT_MODEL_ID).strip()
-        self._critique_model_id = os.getenv(
-            "TRANSLATION_V2_CRITIQUE_MODEL", "opencode-go/deepseek-v4-pro"
-        ).strip()
-        self._revision_model_id = os.getenv("TRANSLATION_V2_REVISION_MODEL", self._model_id).strip()
         translation_runner = OpenCodeHeadlessRunner(model_id=self._model_id, reasoning_effort="high")
-        critique_runner = OpenCodeHeadlessRunner(model_id=self._critique_model_id, reasoning_effort="high")
         self.provider = OpenCodeTranslationProvider(
             runner=translation_runner,
-            analysis_runner=translation_runner,
-            terminology_runner=translation_runner,
-            critique_runner=critique_runner,
-            revision_runner=OpenCodeHeadlessRunner(model_id=self._revision_model_id, reasoning_effort="high"),
-            final_review_runner=critique_runner,
             artifacts=self.artifacts,
             default_attach_path=os.getenv("TRANSLATION_V2_ATTACH_PATH", "_source/posts"),
             checkpoint_dir=str(cache_dir / "translation-stages"),
@@ -102,7 +88,7 @@ class TranslationV2PostOrchestrator:
 
     def _prompt_fingerprint(self, artifact_type: str) -> str:
         if artifact_type not in self._prompt_fingerprint_cache:
-            self._prompt_fingerprint_cache[artifact_type] = compute_prompt_pack_fingerprint(
+            self._prompt_fingerprint_cache[artifact_type] = compute_localization_prompt_fingerprint(
                 prompt_version=self.prompt_version, artifact_type=artifact_type,
             )
         return self._prompt_fingerprint_cache[artifact_type]
@@ -110,15 +96,7 @@ class TranslationV2PostOrchestrator:
     def _run_pipeline(
         self, request: TranslationRequest, *, existing_translation: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        existing = None
-        if existing_translation is not None:
-            validate = (
-                validate_cv_translation_output
-                if request.metadata["artifact_type"] == "cv"
-                else validate_translation_output
-            )
-            existing = validate(existing_translation, run_id=request.run_id, stage="revise")
         self.last_pipeline_result = self.provider.run_translation_pipeline(
-            request, existing_translation=existing,
+            request, existing_translation=existing_translation,
         )
         return asdict(self.last_pipeline_result.final_translation)

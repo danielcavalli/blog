@@ -10,6 +10,9 @@ What to inspect:
 - fluency in {{target_locale}}, especially where the CV still sounds like literal transfer from the source locale
 
 Findings policy:
+- Ground each finding in the source or a specific human localization rule. Cite that rule and the candidate passage; a generated terminology preference is not a violation of human policy.
+- Judge the candidate's prose independently of generated analysis and terminology proposals. In particular, replacing a consistent, conventional borrowing with a more formal synonym is not a quality fix by itself.
+- Diagnose semantic differences in context. Changed grammatical subjects, clause order, or punctuation are not errors when the achievement, qualification, actor, and meaning survive in natural target-locale prose.
 - Report only concrete issues that can drive revision.
 - Make findings span-based: quote the relevant source or translated span inside each finding so the editor can locate the defect quickly.
 - Name the defect class plainly: mistranslation, terminology drift, invariant-field change, structure drift, calque, tone inflation, tone flattening, or similar.
@@ -24,10 +27,10 @@ LOCALE DIRECTION
 LOCALIZATION BRIEF
 {{localization_brief}}
 
-SOURCE ANALYSIS JSON
+SOURCE ANALYSIS JSON (MODEL ADVICE)
 {{source_analysis_json}}
 
-TERMINOLOGY POLICY JSON
+TERMINOLOGY POLICY JSON (MODEL PROPOSAL)
 {{terminology_policy_json}}
 
 STYLE CONSTRAINTS

@@ -110,7 +110,6 @@ def _configure(monkeypatch, tmp_path: Path):
     monkeypatch.setattr(build, "generate_cv_html", lambda *a, **k: "<html>cv</html>")
     monkeypatch.setattr(build, "generate_root_index", lambda: "<html>root</html>")
     monkeypatch.setattr(build, "AcceptedContent", lambda **_: _FakePresentationOrchestrator())
-    monkeypatch.setattr(build, "validate_translation", lambda *a, **k: (True, []))
 
 
 

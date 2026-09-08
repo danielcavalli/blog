@@ -115,7 +115,8 @@ def generate_sitemap(posts_en, posts_pt):
     </url>""")
 
     # Blog posts
-    for post in posts_en:
+    # Either language can be the source, including when no translation exists.
+    for post in {post['slug']: post for post in [*posts_pt, *posts_en]}.values():
         slug = post['slug']
         # lastmod: prefer frontmatter 'updated' field (author-controlled),
         # fall back to frontmatter 'date'. Omit unknown dates: running a build

@@ -23,12 +23,7 @@ from translation_v2.errors import MissingFieldError
 from tests.test_opencode_provider_loop import (
     _FakeRunner,
     _request,
-    _source_analysis_result,
-    _terminology_policy_result,
     _translation_result,
-    _critique_result,
-    _revision_result,
-    _final_review_result,
 )
 
 
@@ -161,23 +156,19 @@ def test_update_command_resumes_failure_and_reuses_acceptance_after_cache_loss(t
     monkeypatch.setattr(translations, "PROJECT_ROOT", tmp_path)
     monkeypatch.setattr(translations, "TRANSLATION_CACHE", cache / "translation-cache.json")
     monkeypatch.setattr(translations, "discover_artifacts", lambda: [{"source": source(), "attach_path": "example.md"}])
-    first = _FakeRunner([
-        _source_analysis_result(), _terminology_policy_result(),
-        _translation_result("O sistema cumpre suas promessas."), _critique_result(0.95),
-        RuntimeError("review provider unavailable"),
-    ])
+    first = _FakeRunner([RuntimeError("localization provider unavailable")])
     monkeypatch.setattr(OpenCodeHeadlessRunner, "run_stage", lambda self, **kwargs: first.run_stage(**kwargs))
     store = AcceptedTranslations(tmp_path / "_source/translations")
     assert translations.main(["update", "example"]) == 1
     assert store.current(source()) is None
 
-    resumed = _FakeRunner([_final_review_result(accept=True, publish_ready=True)])
+    resumed = _FakeRunner([_translation_result("O sistema cumpre suas promessas.")])
     monkeypatch.setattr(OpenCodeHeadlessRunner, "run_stage", lambda self, **kwargs: resumed.run_stage(**kwargs))
     assert translations.main(["update", "example"]) == 0
-    assert [call["stage"] for call in resumed.calls] == ["final_review"]
+    assert [call["stage"] for call in resumed.calls] == ["translate"]
     accepted = store.current(source())
     assert accepted["translation"]["content"] == "O sistema cumpre suas promessas."
-    assert accepted["provenance"]["editorial_review"]["accept"] is True
+    assert accepted["provenance"]["validation"]["structure"] == "passed"
 
     shutil.rmtree(cache)
     monkeypatch.setenv("TRANSLATION_V2_TRANSLATION_MODEL", "different/model")
@@ -195,90 +186,52 @@ def make_provider(tmp_path, runner, run):
     )
 
 
-def test_late_failure_resumes_completed_stages_with_new_run_id(tmp_path):
-    first = _FakeRunner(
-        [
-            _source_analysis_result(),
-            _terminology_policy_result(),
-            _translation_result("Traduzido"),
-            RuntimeError("provider unavailable"),
-        ]
-    )
-    with pytest.raises(RuntimeError, match="unavailable"):
-        make_provider(tmp_path, first, "first").run_translation_pipeline(_request())
-    second = _FakeRunner(
-        [_critique_result(0.95), _final_review_result(accept=True, publish_ready=True)]
-    )
+def test_completed_agent_call_resumes_after_output_storage_failure(tmp_path, monkeypatch):
+    first = _FakeRunner([_translation_result("Traduzido")])
+    provider = make_provider(tmp_path, first, "first")
+    def storage_failure(*args, **kwargs):
+        raise RuntimeError("storage unavailable")
+    monkeypatch.setattr(provider._artifacts, "write_structured_response", storage_failure)
+    with pytest.raises(RuntimeError, match="storage unavailable"):
+        provider.run_translation_pipeline(_request())
+    second = _FakeRunner([])
     request = _request()
     request.run_id = "second-run"
     result = make_provider(tmp_path, second, "second").run_translation_pipeline(request)
     assert result.final_translation.content == "Traduzido"
-    assert [c["stage"] for c in second.calls] == ["critique", "final_review"]
-    events = [
-        json.loads(line)
-        for line in (tmp_path / "runs/second/stage-events.jsonl").read_text().splitlines()
-    ]
-    assert [e["outcome"] for e in events[:3]] == ["resumed"] * 3
+    assert second.calls == []
+    events = [json.loads(line) for line in (tmp_path / "runs/second/stage-events.jsonl").read_text().splitlines()]
+    assert events[0]["outcome"] == "resumed"
 
 
-def test_owner_revision_notes_reach_every_stage(tmp_path):
-    runner = _FakeRunner(
-        [
-            _source_analysis_result(),
-            _terminology_policy_result(),
-            _critique_result(0.8, needs_refinement=True),
-            _revision_result("Revisado"),
-            _final_review_result(accept=True, publish_ready=True),
-        ]
-    )
+
+def test_owner_revision_notes_reach_the_localization_agent(tmp_path):
+    runner = _FakeRunner([_translation_result("Revisado")])
     request = _request()
     request.metadata["revision_request"] = {"notes": "OWNER_CORRECTION_SENTINEL"}
-    make_provider(tmp_path, runner, "notes").run_translation_pipeline(
-        request,
-        existing_translation=_translation_result("Anterior").payload,
-    )
-    assert len(runner.calls) == 5
-    assert all("OWNER_CORRECTION_SENTINEL" in c["prompt_text"] for c in runner.calls)
+    make_provider(tmp_path, runner, "notes").run_translation_pipeline(request, existing_translation=_translation_result("Anterior").payload)
+    assert len(runner.calls) == 1
+    assert "OWNER_CORRECTION_SENTINEL" in runner.calls[0]["prompt_text"]
+    assert "Anterior" in runner.calls[0]["prompt_text"]
 
 
-def test_final_review_feedback_reaches_next_critique(tmp_path):
-    runner = _FakeRunner(
-        [
-            _source_analysis_result(),
-            _terminology_policy_result(),
-            _translation_result("Traduzido"),
-            _critique_result(0.95),
-            _final_review_result(
-                accept=False, publish_ready=False, residual_issues=["FIX_THE_FINAL_SENTENCE"]
-            ),
-            _critique_result(0.8, needs_refinement=True),
-            _revision_result("Revisado"),
-            _final_review_result(accept=True, publish_ready=True),
-        ]
-    )
-    make_provider(tmp_path, runner, "review").run_translation_pipeline(_request())
-    assert "FIX_THE_FINAL_SENTENCE" in runner.calls[5]["prompt_text"]
 
 
-def test_schema_repair_preserves_completed_work_and_resumes_success(tmp_path):
-    runner = _FakeRunner(
-        [
-            _source_analysis_result(),
-            _terminology_policy_result(),
-            _translation_result("Traduzido"),
-            MissingFieldError("missing quality_score", run_id="test", stage="critique"),
-            _critique_result(0.95),
-            _final_review_result(accept=True, publish_ready=True),
-        ]
-    )
+
+
+def test_schema_repair_is_bounded_and_resumes_success(tmp_path):
+    runner = _FakeRunner([
+        MissingFieldError("missing content", run_id="test", stage="translate"),
+        _translation_result("Traduzido"),
+    ])
     result = make_provider(tmp_path, runner, "repair").run_translation_pipeline(_request())
     assert result.final_translation.content == "Traduzido"
-    assert [call["stage"] for call in runner.calls].count("translate") == 1
-    assert "missing quality_score" in runner.calls[4]["prompt_text"]
-    # A successfully repaired typed result is reusable on the original request.
+    assert len(runner.calls) == 2
+    assert "missing content" in runner.calls[1]["prompt_text"]
     resumed = _FakeRunner([])
     make_provider(tmp_path, resumed, "resume-repair").run_translation_pipeline(_request())
     assert resumed.calls == []
+
 
 
 @pytest.mark.parametrize("repair_succeeds", [True, False])

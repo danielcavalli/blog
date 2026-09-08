@@ -170,48 +170,6 @@ def test_pt_br_source_routes_translated_output_to_en(monkeypatch, tmp_path):
     assert (tmp_path / "en" / "blog" / "pt-source.html").exists()
 
 
-def test_build_validates_pt_br_to_en_us_with_locale_direction(monkeypatch, tmp_path):
-    source_post = _mk_post("pt-source", "pt-br")
-    _configure_build_for_test(tmp_path, monkeypatch, source_post)
-
-    calls = []
-
-    def _fake_validate(source_text, translated_text, **kwargs):
-        calls.append(
-            {
-                "source_text": source_text,
-                "translated_text": translated_text,
-                "source_locale": kwargs.get("source_locale"),
-                "target_locale": kwargs.get("target_locale"),
-            }
-        )
-        return (True, [])
-
-    monkeypatch.setattr(build, "validate_translation", _fake_validate)
-
-    ok = build.build(strict=False, skip_about_cv_translation=True)
-
-    assert ok is True
-    assert len(calls) == 1
-    assert calls[0]["source_locale"] == "pt-br"
-    assert calls[0]["target_locale"] == "en-us"
-
-
-def test_strict_build_fails_on_pt_br_to_en_us_validation_error(monkeypatch, tmp_path):
-    source_post = _mk_post("pt-source", "pt-br")
-    _configure_build_for_test(tmp_path, monkeypatch, source_post)
-
-    monkeypatch.setattr(
-        build,
-        "validate_translation",
-        lambda *_a, **_k: (False, ["ERROR: paragraph 1 appears untranslated"]),
-    )
-
-    ok = build.build(strict=True, skip_about_cv_translation=True)
-
-    assert ok is False
-
-
 def test_en_us_source_routes_translated_output_to_pt(monkeypatch, tmp_path):
     source_post = _mk_post("en-source", "en-us")
     _configure_build_for_test(tmp_path, monkeypatch, source_post)
