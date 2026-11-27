@@ -1,0 +1,84 @@
+contact:
+  email: daniel@cavalli.dev
+  github: danielcavalli
+  linkedin: cavallidaniel
+  phone: +55(21)985979780
+education:
+- degree: Bacharelado em Economia
+  period: March 2017 - December 2023
+  school: Federal University of Rio de Janeiro
+- degree: Tecnólogo em Desenvolvimento de Jogos e Engenharia de Software
+  period: 2014 - 2016
+  school: Nucleo Avançado em Educação - NAVE
+experience:
+- achievements:
+  - Orquestrando uma migração greenfield completa de um processo de implantação baseado em shell scripts para infraestrutura como código com Pulumi, substituindo todo o ferramental existente e integrando, em escala, os requisitos de rede, OAuth e segurança do Nubank.
+  - Liderando a atualização do Kubeflow 1.7 (distribuição AWS) para o Kubeflow 1.11 (Community Manifests) em uma reconstrução completa da plataforma, com adoção de KFP v2, políticas de rede aprimoradas e ferramentas baseadas em padrões abertos, sem reaproveitamento da stack anterior.
+  company: Nubank
+  description: Liderando a próxima geração da infraestrutura da AI Platform do Nubank, que atende 150+ cientistas de dados e engenheiros de Machine Learning em toda a organização.
+  location: Rio de Janeiro, Brazil
+  period: February 2026 - Present
+  title: Engenheiro de Machine Learning Sênior
+- achievements:
+  - Conduzi a otimização de treinamento distribuído em GPU com estratégias multi-cluster e multi-GPU, reduzindo o tempo de treinamento de modelos grandes de 21 dias para 3 dias e encurtando ciclos de iteração de desenvolvimento de ~25 minutos para menos de 2 minutos.
+  - Aumentei a confiabilidade e a reutilização da plataforma ao aprimorar integrações entre Kubeflow, Dagster, Argo, Tekton, Clojure Services e a biblioteca interna CPW, reformulando componentes centrais para ampliar a velocidade de desenvolvimento em escala.
+  - Arquitetei um framework de expansão geo-agnóstico para a AI Platform do Nubank, permitindo a integração fluida de novos países sem retrabalho de infraestrutura e apoiando diretamente a estratégia de crescimento internacional da empresa.
+  company: Nubank
+  description: Escalei a AI Platform do Nubank para atender 150+ cientistas de dados em múltiplas unidades de negócio, dando suporte a 200+ modelos em produção.
+  location: Brazil
+  period: September 2023 - February 2026
+  title: Engenheiro de Machine Learning
+- achievements:
+  - Elevei a taxa de contribuição do time de menos de 2 PRs/mês para 50+ PRs/mês ao desenhar um framework de MLOps em AWS SageMaker mais rápido e acessível, incorporando cientistas de dados ao workflow de desenvolvimento e permitindo que os primeiros modelos em tempo real de crédito e empréstimos da unidade chegassem à produção.
+  - Construí pipelines de DataOps para 150+ conjuntos de dados totalmente integrados ao DataLake da empresa, garantindo acesso confiável e consistente a dados para análises e treinamento de modelos em diferentes workflows.
+  - Desenhei infraestrutura de MLOps de ponta a ponta para implantação, monitoramento e experimentação de modelos em tempo real.
+  company: PicPay
+  description: Estabeleci as bases da infraestrutura de Machine Learning e dados da unidade High Income do PicPay, criando sistemas escaláveis que integravam práticas de Data Engineering e MLOps.
+  location: Brazil
+  period: May 2022 - September 2023
+  title: Engenheiro de Machine Learning Sênior
+- achievements:
+  - Desenhei modelos de Machine Learning para expandir ferramentas de gestão de risco e prevenção à fraude, ao mesmo tempo em que melhorei a eficiência da implantação de modelos por meio de soluções internas de MLOps.
+  - Avaliei e integrei provedores externos de dados para melhorar a performance dos modelos e a eficiência de custo em workflows de análise.
+  company: frete.com
+  description: Desenvolvi as primeiras bases de MLOps e modelos de Machine Learning para aprimorar os sistemas de gestão de risco e detecção de fraude da empresa para caminhoneiros e operações de frete.
+  location: Brazil
+  period: November 2021 - May 2022
+  title: Engenheiro de Machine Learning
+- achievements:
+  - Desenvolvi um sistema antifraude de ponta a ponta para pagamentos online, combinando um motor baseado em regras e um modelo de Machine Learning, reduzindo fraudes em ~30% e prevenindo ~15.000 transações fraudulentas/mês a um custo inferior a $0.01 por transação avaliada.
+  - Construí uma plataforma de MLOps com GitOps, AWS SageMaker e Terraform, acelerando a entrega de modelos de 1 implantação/ano para 1 implantação/mês.
+  - Defendi e defini a plataforma antifraude como uma iniciativa-chave de produto, alinhando times de engenharia e negócio em torno de seu valor estratégico e de sua implantação em múltiplos ambientes de produção.
+  company: M4U
+  description: Construí a primeira solução antifraude e a primeira AI Platform da M4U, da concepção à produção, estabelecendo infraestrutura de Machine Learning como uma capacidade central de produto em um time pequeno de Machine Learning.
+  location: Brazil
+  period: September 2020 - November 2021
+  title: Engenheiro de Machine Learning
+- achievements:
+  - Desenhei e mantive ferramentas de observabilidade para modelos de Machine Learning em staging e produção, permitindo detectar drift de dados e de conceito em toda a plataforma.
+  - Entreguei análises exploratórias e descritivas para 4 empresas do setor de telecom e 2 times internos de plataforma (Recharging e Recurrence), produzindo relatórios visuais que aceleraram diagnósticos operacionais e identificaram melhorias fundamentais.
+  company: M4U
+  description: Atuei em todo o workflow de Machine Learning enquanto ajudava a estruturar as primeiras bases de dados que depois evoluiriam para a AI Platform da empresa.
+  location: Brazil
+  period: May 2019 - September 2020
+  title: Cientista de Dados Júnior
+- achievements:
+  - Desenvolvi um dos primeiros modelos de NLP com BERT, antes da ascensão dos LLMs, para analisar respostas abertas de pesquisas com usuários e extrair automaticamente insights para times de produto e design.
+  - Conduzi estudos analíticos e exploratórios para validar hipóteses levantadas pelo time de UX sobre comportamento de usuários e padrões de engajamento.
+  - Recuperei e estruturei dados que serviram de base para melhorias de UX e tomada de decisão em canais web e mobile.
+  company: Oi S.A
+  description: Comecei minha carreira no UX Research Lab da Oi, onde combinei analytics, pesquisa com usuários e ciência de dados para melhorar experiências digitais de milhões de usuários da plataforma Minha Oi.
+  location: Rio de Janeiro Area, Brazil
+  period: November 2018 - May 2019
+  title: Cientista de Dados Júnior
+languages_spoken:
+- Português (Nativo ou Bilíngue)
+- Inglês (Proficiência Profissional Completa)
+location: Rio de Janeiro, Rio de Janeiro, Brazil
+name: Daniel Cavalli
+skills:
+- Kubeflow
+- sistemas distribuídos
+- infraestrutura de Machine Learning
+summary: Engenheiro de infraestrutura de Machine Learning no Nubank, atuando na construção e escala da AI Platform da empresa, que atende 150+ cientistas de dados e engenheiros de Machine Learning em múltiplas unidades de negócio. Meu trabalho conecta infraestrutura e Machine Learning aplicado, com otimização de treinamento distribuído por meio de estratégias multi-cluster e multi-GPU e desenho de workflows de implantação com Argo e Tekton. Tenho foco em criar sistemas confiáveis e reutilizáveis, capazes de transformar modelos complexos em serviços prontos para produção. Meus interesses estão em MLOps, sistemas distribuídos e infraestrutura de Machine Learning, especialmente onde essas áreas convergem com inovação em fintech e produtos de dados em larga escala.
+tagline: Engenheiro de Machine Learning Sênior @ Nubank | MLOps, IA, infraestrutura de Machine Learning
