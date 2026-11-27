@@ -66,7 +66,8 @@ npm run translate -- revise posts/<slug>.pt-br.md  # revise a translation by the
 
 `--force` translates a current document again, `--model` and `--effort` choose the model (default
 `gpt-5.6-sol` at `high`), `--dry-run` calls nothing and writes nothing, and `--out <dir>` writes
-under another folder instead of the repository, for trials. Each document prints its tokens and cost.
+under another folder instead of the repository, for trials. Each document prints its tokens, and its
+cost when the Hub reports one (it reports none for a model it serves from a subscription).
 
 - **The checks** compare the answer with the source: footnotes, fenced code, link destinations
   (a link to another post must point to that post in the translation's language), picture paths,

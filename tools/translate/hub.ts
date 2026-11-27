@@ -34,8 +34,10 @@ export interface Question {
 
 export interface Usage {
   prompt_tokens?: number;
+  /** The answer and the thinking before it. */
   completion_tokens?: number;
   total_tokens?: number;
+  /** Present for a metered model; absent for one the Hub serves from a subscription. */
   cost_usd?: number;
   [key: string]: unknown;
 }

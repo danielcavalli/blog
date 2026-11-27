@@ -441,5 +441,8 @@ test("a command line that makes no sense is refused with the usage", async () =>
 
 test("the cost of a document is its calls added up", () => {
   assert.equal(costLine([{ prompt_tokens: 12_345, completion_tokens: 678, cost_usd: 0.1234 }]), "1 call, 12,345 tokens in, 678 out, $0.1234");
-  assert.equal(costLine([{ prompt_tokens: 1, completion_tokens: 2 }, { prompt_tokens: 3, completion_tokens: 4, cost_usd: 1 }]), "2 calls, 4 tokens in, 6 out, cost not reported");
+  // What the Hub's answer for a subscription model carries: tokens, and no cost.
+  const unpriced = { cache_write_tokens: 0, cached_tokens: 0, completion_tokens: 5580, prompt_tokens: 13_498, total_tokens: 19_078 };
+  assert.equal(costLine([unpriced]), "1 call, 13,498 tokens in, 5,580 out, no cost reported by the Hub");
+  assert.equal(costLine([{ prompt_tokens: 1, completion_tokens: 2 }, { prompt_tokens: 3, completion_tokens: 4, cost_usd: 1 }]), "2 calls, 4 tokens in, 6 out, no cost reported by the Hub");
 });

@@ -46,8 +46,10 @@ export interface Io {
 }
 
 const USAGE = `usage: npm run translate -- status [--json]
-       npm run translate -- <file>… | --all [--force] [--model <id>] [--effort <level>] [--dry-run] [--out <dir>]
-       npm run translate -- revise <translation file> [--model <id>] [--effort <level>] [--dry-run] [--out <dir>]`;
+       npm run translate -- <file>… | --all [--force] [options]
+       npm run translate -- revise <translation file> [options]
+
+options: --model <id>  --effort <level>  --max-tokens <n>  --dry-run  --out <dir>`;
 
 class UsageError extends Error {}
 
@@ -59,12 +61,15 @@ const today = (): string => {
 
 const number = (n: unknown): string => (typeof n === "number" ? n.toLocaleString("en-US") : "?");
 
-/** What a document's calls cost, in one line. */
+/**
+ * What a document's calls cost, in one line. The Hub prices metered models; for one it serves from a
+ * subscription (the default, `gpt-5.6-sol`, is one) its answer carries tokens and no `cost_usd`.
+ */
 export function costLine(usages: Usage[]): string {
   const sum = (key: string) => usages.reduce((total, usage) => total + (typeof usage[key] === "number" ? (usage[key] as number) : 0), 0);
   const priced = usages.every((usage) => typeof usage.cost_usd === "number");
   const calls = usages.length === 1 ? "1 call" : `${usages.length} calls`;
-  return `${calls}, ${number(sum("prompt_tokens"))} tokens in, ${number(sum("completion_tokens"))} out, ${priced ? `$${sum("cost_usd").toFixed(4)}` : "cost not reported"}`;
+  return `${calls}, ${number(sum("prompt_tokens"))} tokens in, ${number(sum("completion_tokens"))} out, ${priced ? `$${sum("cost_usd").toFixed(4)}` : "no cost reported by the Hub"}`;
 }
 
 // The source a file argument names: the source itself, or its translation.
