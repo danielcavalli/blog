@@ -12,8 +12,9 @@
     "test": "node --test \"tools/**/*.test.*\"",
     "conversations:check": "node tools/git/conversations.mjs check",
     "conversations:refresh": "node tools/git/conversations.mjs refresh",
-    "check": "tsc --noEmit -p tsconfig.json",
-    "deploy": "npm run build && cf deploy dist"
+    "check": "astro sync && tsc --noEmit -p tsconfig.json",
+    "deploy": "npm run build && cf deploy dist",
+    "translate": "node tools/translate/cli.ts"
   },
   "engines": {
     "node": ">=22.23.4"

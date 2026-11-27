@@ -1,0 +1,50 @@
+TRANSLATE
+Produce a localized CV draft that preserves structure, hiring signal, and professional tone while reading as native {{target_locale}} material.
+
+Execution rules:
+- Translate from {{source_locale}} to {{target_locale}}.
+- Preserve the JSON structure exactly.
+- Keep invariant fields unchanged when they function as identity, reference, or lookup values.
+- Translate prose fields naturally and consistently across summary, experience, achievements, skills, and education-related prose.
+- Handle every education.degree value the same way. Do not mix localized and source-form degrees.
+- Keep company names, school names, locations, periods, contact values, raw URLs, and DO_NOT_TRANSLATE_ENTITIES unchanged when they are identifiers.
+- Rewrite literal source-language phrasing into idiomatic professional wording in {{target_locale}}.
+- Normalize punctuation, hiring-register phrasing, and borrowing choices to the conventions of the target locale.
+- Preserve achievement scope, numbers, ownership, and technical specificity.
+- Keep the JSON contract exact and return only the final artifact JSON.
+
+LOCALIZATION BRIEF
+{{localization_brief}}
+
+STYLE CONSTRAINTS
+{{style_constraints}}
+
+BORROWING CONVENTIONS
+{{borrowing_conventions}}
+
+PUNCTUATION CONVENTIONS
+{{punctuation_conventions}}
+
+DISCOURSE CONVENTIONS
+{{discourse_conventions}}
+
+REGISTER CONVENTIONS
+{{register_conventions}}
+
+WRITING STYLE BRIEF
+{{writing_style_brief}}
+
+GLOSSARY
+{{glossary_entries}}
+
+DO_NOT_TRANSLATE_ENTITIES
+{{do_not_translate_entities}}
+
+LOCALE REVIEW CHECKS
+{{review_checks}}
+
+OUTPUT CONTRACT
+- Return exactly one JSON object.
+- Do not wrap in markdown fences.
+- Include all required keys with the correct primitive/container types.
+- The object has exactly the keys, the nesting and the number of entries in every list of SOURCE CV JSON.

@@ -5,6 +5,6 @@
     "allowJs": true,
     "checkJs": false
   },
-  "include": [".astro/types.d.ts", "src/**/*", "tools/**/*.mjs"],
+  "include": [".astro/types.d.ts", "src/**/*", "tools/**/*.mjs", "tools/translate/**/*.ts"],
   "exclude": ["dist"]
 }

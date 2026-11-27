@@ -160,9 +160,41 @@ The conversations are kept in `.git/reef-conversations/`, on this machine only.
 
 ## Translations
 
-A translation's front matter says what it translates (`translation_of`), which model wrote it
-(`translated_by`) and which text it was made from (`source_digest`). When the source's title, excerpt,
-tags or body change, the digest no longer matches and the translation is stale.
+A translation is the file beside its source. Its front matter says what it translates
+(`translation_of`), which model wrote it (`translated_by`) and which text it was made from
+(`source_digest`). When the source's title, excerpt, tags or body change, the digest no longer
+matches and the translation is stale. You read a translation in Reef like any other document, and a
+comment in its margin is how you ask for it to be revised.
+
+A model translates a document through the Maré Hub, which this machine reaches over the tailnet
+with no credential. Its answer is written only if it passes the checks.
+
+```sh
+npm run translate -- status                        # where every translation stands; fails unless all are current
+npm run translate -- posts/<slug>.md               # translate it if its translation is missing or stale
+npm run translate -- --all                         # the same, for every post, page and the CV
+npm run translate -- revise posts/<slug>.pt-br.md  # revise a translation by the open comments in its margin
+```
+
+`--force` translates a current document again, `--model` and `--effort` choose the model (default
+`gpt-5.6-sol` at `high`), `--dry-run` calls nothing and writes nothing, and `--out <dir>` writes
+under another folder instead of the repository, for trials. Each document prints its tokens, and its
+cost when the Hub reports one (it reports none for a model it serves from a subscription).
+
+- **The checks** compare the answer with the source: footnotes, fenced code, link destinations
+  (a link to another post must point to that post in the translation's language), picture paths,
+  parenthetical asides, a presentation's slide markers, About's paragraphs, the CV's entries and
+  contact details, and that the text was translated at all. After a failed check the model is asked
+  once more with the exact findings; if that fails too, nothing is written.
+- **A translation's reef trailer is never rewritten.** Translating a document again replaces its
+  body and keeps the conversation at its end byte for byte.
+- **`revise`** is for a translation you reviewed in Reef. It sends the source, the translation and
+  your open comments to the model, writes the revised text, and sets each comment the model acted on
+  from `open` to `addressed`. A comment it did not act on (a question, say) stays open, with the
+  model's reason printed.
+- **The guidance** the model is given is Markdown: the locale briefs, rules and glossaries in
+  `tools/translate/guides/`, the prompt around them in `tools/translate/prompts/`, and the writing
+  references under `.agents/skills/`. Edit those to change how translations read.
 
 ## Licence
 

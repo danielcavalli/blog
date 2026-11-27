@@ -8,6 +8,11 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    env:
+      # The Maré Design System is a private package. With a token that can read it (read:packages on
+      # mare-rio) in this repository's secrets, everything below runs; without one, everything that
+      # does not need the design system still does.
+      NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -20,31 +25,31 @@ jobs:
       - name: No Reef conversation in what git stores
         run: node tools/git/conversations.mjs check
 
-      - name: Tests
-        run: node --test "tools/**/*.test.*"
-
-      # From here on the Maré Design System is needed. It is a private package: these steps run when
-      # the repository has a token that can read it (NODE_AUTH_TOKEN: read:packages on mare-rio).
-      - name: Is the design system readable?
-        id: mds
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
-        run: echo "readable=${{ secrets.NODE_AUTH_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
-
       - name: Install
-        if: steps.mds.outputs.readable == 'true'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
-        run: npm ci
+        run: |
+          if [ -n "$NODE_AUTH_TOKEN" ]; then
+            npm ci
+            echo "DESIGN_SYSTEM=true" >> "$GITHUB_ENV"
+          else
+            node -e 'const fs = require("fs"); const p = JSON.parse(fs.readFileSync("package.json")); delete p.dependencies["@mare-rio/design-system"]; fs.writeFileSync("package.json", JSON.stringify(p, null, 2));'
+            npm install --no-package-lock --ignore-scripts
+          fi
+
+      - name: Tests
+        run: npm test
+
+      # A source that changed since its translation was made fails here: translate it, or revise it.
+      - name: Every translation is current
+        run: npm run translate -- status
 
       - name: Types
-        if: steps.mds.outputs.readable == 'true'
+        if: env.DESIGN_SYSTEM == 'true'
         run: npm run check
 
       - name: The design system's conformance check
-        if: steps.mds.outputs.readable == 'true'
+        if: env.DESIGN_SYSTEM == 'true'
         run: npx --no-install mare-conformance src
 
       - name: Build
-        if: steps.mds.outputs.readable == 'true'
+        if: env.DESIGN_SYSTEM == 'true'
         run: npm run build

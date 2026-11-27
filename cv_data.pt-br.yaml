@@ -1,3 +1,8 @@
+# The CV in pt-br: a translation of cv_data.yaml. `npm run translate` writes this file; edit the source.
+# translation_of: cv_data.yaml
+# source_digest: e20434e09c2e5f5bf271094ac8d1cc075eccf4ee7276aaa78ea08645a8fb087c
+# translated_by: openai/gpt-5.5, via opencode
+
 contact:
   email: daniel@cavalli.dev
   github: danielcavalli
