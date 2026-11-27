@@ -1,10 +1,10 @@
 // The index: the newest post as the page's head on its ground wash, then every other post by year.
 // The reader orders it by when a post was published or last changed, narrows it to a year or a tag,
-// or searches every post's text; each change is a turn of the one canvas, not a new page, but the filters open and close at once.
+// or searches every post's text; each change is a turn of the one canvas, not a new page, but the filters unfold in place, the list moving with them.
 
 import { useEffect, useState } from "react";
 
-import { Button, Choice, Empty, Entries, Entry, Field, Mark, PageHead, Reading, ReadingHead, Tag, Tags, turn } from "@mare-rio/design-system/react";
+import { Button, Choice, Empty, Entries, Entry, Field, Mark, PageHead, Reading, ReadingHead, Tag, Tags, turn, Unfold } from "@mare-rio/design-system/react";
 
 import type { IndexModel } from "./models";
 import { search, type Searchable } from "./search";
@@ -54,7 +54,6 @@ export function IndexBody({ index }: { index: IndexModel }) {
       <Reading measure="index">
         <PageHead title={words.index.title} note={`${words.posts(posts.length)} · en / pt`}>
           <Choice label={words.index.sortBy} named="beside" of="view" options={orders} value={order} onChange={(next) => turn(() => setOrder(next))} />
-          {/* (the filters open and close at once: the list simply moves down and up, with no cross-fade) */}
           <Button size="small" onPress={() => setFilters(!filters)}>{words.index.filter}</Button>
           <Mark glyph="search" label={words.index.search} expanded={searching} onPress={() => turn(() => { setSearching(!searching); setQuery(""); })} />
         </PageHead>
@@ -72,12 +71,15 @@ export function IndexBody({ index }: { index: IndexModel }) {
             <Empty title={words.index.nothing}>{words.index.nothingHelp}</Empty>
           ) : null
         ) : null}
-        {!asked && filters ? (
-          <Tags label={lower(words.index.filter)}>
-            {chips.map((chip) => (
-              <Tag key={chip} chosen={pick === chip} onPress={() => turn(() => setPick(pick === chip ? "" : chip))}>{chip}</Tag>
-            ))}
-          </Tags>
+        {/* the filters unfold under their button and fold away, the list moving down and up with them; nothing fades */}
+        {!asked ? (
+          <Unfold open={filters}>
+            <Tags label={lower(words.index.filter)}>
+              {chips.map((chip) => (
+                <Tag key={chip} chosen={pick === chip} onPress={() => turn(() => setPick(pick === chip ? "" : chip))}>{chip}</Tag>
+              ))}
+            </Tags>
+          </Unfold>
         ) : null}
         {!asked && feature ? (
           <ReadingHead
