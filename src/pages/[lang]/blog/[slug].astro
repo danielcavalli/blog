@@ -1,7 +1,8 @@
 ---
 import Site from "../../../layouts/Site.astro";
 import { posts, postUrl, type Lang, type Post } from "../../../content/documents";
-import { postModel } from "../../../site/models";
+import { DeckPage } from "../../../site/DeckPage";
+import { deckModel, postModel } from "../../../site/models";
 import { PostPage } from "../../../site/PostPage";
 import { postData } from "../../../site/seo";
 
@@ -14,7 +15,8 @@ interface Props {
   lang: Lang;
 }
 const { post, lang } = Astro.props;
-const model = postModel(post, lang);
+const deck = post.kind === "presentation" ? deckModel(post, lang) : undefined;
+const model = deck ?? postModel(post, lang);
 const path = postUrl(post, lang);
 ---
 <Site
@@ -27,5 +29,5 @@ const path = postUrl(post, lang);
   data={postData(post, lang, path)}
   markdown={`${path}.md`}
 >
-  <PostPage client:load post={model} />
+  {deck ? <DeckPage client:load deck={deck} /> : <PostPage client:load post={postModel(post, lang)} />}
 </Site>
