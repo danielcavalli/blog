@@ -1,0 +1,77 @@
+---
+// Every page's document: the design system's stylesheet, fonts and page-to-page canvas, the light
+// set before the first paint and turned as the earth turns, and what search engines read.
+//
+// The site's paint box is Folha, set once on the document (data-box on <html>). A <Page> is not
+// given a box of its own: that would also hold it in the day's light until its components run, and
+// a reader by dusk or by the moon would see the day's paper first.
+import "@mare-rio/design-system/fonts";
+import "@mare-rio/design-system/css";
+import "@mare-rio/design-system/canvas";
+import { THEME_BOOT } from "@mare-rio/design-system/theme";
+
+import type { Alternates, Lang } from "../site/words";
+
+interface Props {
+  title: string;
+  description: string;
+  lang: Lang;
+  /** This page's own address, and the same page's address in each language it exists in. */
+  path: string;
+  alternates?: Alternates;
+  /** The address search engines should keep, when it is not this page's own (the root shows /en/). */
+  canonical?: string;
+  /** A post: when it was published and last changed, and its tags. */
+  article?: { published: string; updated?: string; tags: string[] };
+  /** What the page is, as schema.org says it. */
+  data?: Record<string, unknown>;
+  /** The same text as Markdown. */
+  markdown?: string;
+  /** Kept out of search engines (the page for an address that is not there). */
+  hidden?: boolean;
+}
+const { title, description, lang, path, alternates = {}, canonical, article, data, markdown, hidden } = Astro.props;
+const site = Astro.site!;
+const url = (to: string) => new URL(to, site).href;
+const locale = (code: Lang) => (code === "pt" ? "pt_BR" : "en_US");
+const other: Lang = lang === "pt" ? "en" : "pt";
+---
+<!doctype html>
+<html lang={lang === "pt" ? "pt-BR" : "en"} data-box="folha">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content="Daniel Cavalli" />
+    {hidden ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={url(canonical ?? path)} />}
+    {!hidden && Object.entries(alternates).map(([code, to]) => <link rel="alternate" hreflang={code === "pt" ? "pt-BR" : "en"} href={url(to!)} />)}
+    {!hidden && <link rel="alternate" hreflang="x-default" href={url(alternates.en ?? path)} />}
+    <link rel="alternate" type="application/atom+xml" title={`dan.rio (${lang})`} href={url(`/${lang}/feed.xml`)} />
+    {markdown && <link rel="alternate" type="text/markdown" href={url(markdown)} />}
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <meta property="og:site_name" content="dan.rio" />
+    <meta property="og:type" content={article ? "article" : "website"} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={url(canonical ?? path)} />
+    <meta property="og:locale" content={locale(lang)} />
+    {alternates[other] && <meta property="og:locale:alternate" content={locale(other)} />}
+    {article && <meta property="article:published_time" content={article.published} />}
+    {article?.updated && <meta property="article:modified_time" content={article.updated} />}
+    {article && <meta property="article:author" content="Daniel Cavalli" />}
+    {article?.tags.map((tag) => <meta property="article:tag" content={tag} />)}
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:creator" content="@dancavlli" />
+    {data && <script is:inline type="application/ld+json" set:html={JSON.stringify(data).replaceAll("<", "\\u003c")} />}
+    <script is:inline set:html={THEME_BOOT}></script>
+    <slot name="head" />
+  </head>
+  <body>
+    <slot />
+    <script>
+      // Every change of light is a turn of the earth.
+      import "@mare-rio/design-system/turn";
+    </script>
+  </body>
+</html>

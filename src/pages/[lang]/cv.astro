@@ -1,0 +1,16 @@
+---
+import Site from "../../layouts/Site.astro";
+import { cvModel } from "../../site/models";
+import { PlainPage } from "../../site/PlainPage";
+import { personData } from "../../site/seo";
+import type { Lang } from "../../site/words";
+
+export const getStaticPaths = () => [{ params: { lang: "en" } }, { params: { lang: "pt" } }];
+
+const lang = Astro.params.lang as Lang;
+const model = cvModel(lang);
+const path = `/${lang}/cv`;
+---
+<Site title={`${model.title} · dan.rio`} description={model.description} lang={lang} path={path} alternates={model.alternates} data={personData(lang, path, model.description)}>
+  <PlainPage client:load page={model} />
+</Site>

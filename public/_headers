@@ -1,0 +1,10 @@
+# Files the build names by their content never change: a browser may keep them.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*/feed.xml
+  Content-Type: application/atom+xml; charset=utf-8
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

@@ -8,32 +8,48 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    env:
+      # The Maré Design System is a private package. With a token that can read it (read:packages on
+      # mare-rio) in this repository's secrets, everything below runs; without one, everything that
+      # does not need the design system still does.
+      NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
 
-      - name: Install dependencies
-        run: uv sync --all-extras --locked
+      # Reef conversations are private and this repository is public: nothing git stores may hold one.
+      - name: No Reef conversation in what git stores
+        run: node tools/git/conversations.mjs check
 
-      - name: Ruff lint
-        run: uv run --extra dev ruff check .
-
-      - name: Run unit tests
-        run: uv run pytest tests/ -v
-
-      - name: Check translation source freshness
-        run: uv run python _source/translations.py status
-
-      - name: Rebuild from accepted translations without model access
+      - name: Install
         run: |
-          uv run python _source/build.py --strict
-          git diff --exit-code -- en pt index.html sitemap.xml
+          if [ -n "$NODE_AUTH_TOKEN" ]; then
+            npm ci
+            echo "DESIGN_SYSTEM=true" >> "$GITHUB_ENV"
+          else
+            node -e 'const fs = require("fs"); const p = JSON.parse(fs.readFileSync("package.json")); delete p.dependencies["@mare-rio/design-system"]; fs.writeFileSync("package.json", JSON.stringify(p, null, 2));'
+            npm install --no-package-lock --ignore-scripts
+          fi
 
-      - name: Check internal links
-        run: uv run python _source/link_checker.py
+      - name: Tests
+        run: npm test
 
-      - name: Validate generated HTML
-        run: uv run --extra dev python _source/html_validator.py
+      # A source that changed since its translation was made fails here: translate it, or revise it.
+      - name: Every translation is current
+        run: npm run translate -- status
+
+      - name: Types
+        if: env.DESIGN_SYSTEM == 'true'
+        run: npm run check
+
+      - name: The design system's conformance check
+        if: env.DESIGN_SYSTEM == 'true'
+        run: npx --no-install mare-conformance src
+
+      - name: Build
+        if: env.DESIGN_SYSTEM == 'true'
+        run: npm run build
