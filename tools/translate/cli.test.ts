@@ -6,6 +6,7 @@ import { parse as parseYaml } from "yaml";
 
 import { costLine, main } from "./cli.ts";
 import { discover, readMarkdown, stateOf } from "./documents.ts";
+import { json } from "./prompt.ts";
 import { fakeHub, repository } from "./testing.ts";
 import type { FakeHub, Reply } from "./testing.ts";
 
@@ -84,6 +85,7 @@ function world(files: Record<string, string> = {}, trace?: string): World {
         hub: { baseUrl: hub.baseUrl, backoffMs: () => 1 },
         today: "2026-11-26",
         trace: trace ?? "",
+        runId: RUN,
       }),
     read: (file) => fs.readFileSync(path.join(root, file), "utf8"),
     exists: (file) => fs.existsSync(path.join(root, file)),
@@ -91,6 +93,54 @@ function world(files: Record<string, string> = {}, trace?: string): World {
 }
 
 const reply = (...replies: Reply[]) => hub.replies.push(...replies);
+
+// What the other stages answer. The fake Hub reports every call as 1,000 tokens in, 200 out, $0.01.
+const RUN = "20261126T120000Z";
+const ANALYSIS = {
+  author_voice_summary: "Dry, first person.",
+  tone: "wry",
+  register: "technical-editorial",
+  sentence_rhythm: ["short"],
+  connective_tissue: ["as"],
+  rhetorical_moves: ["aside"],
+  humor_signals: ["understatement"],
+  stance_markers: [],
+  must_preserve: ["(more or less)"],
+};
+const POLICY = { keep_english: [], localize: ["tide"], context_sensitive: [], do_not_translate: [], resolved_decisions: [], consistency_rules: [], rationale_notes: [] };
+const critique = (needs: boolean) => ({
+  score: needs ? 78.5 : 96,
+  feedback: needs ? "One calque." : "No material defect.",
+  needs_refinement: needs,
+  dimension_scores: { accuracy_completeness: 95, terminology_entities: 95, markdown_code_link_fidelity: 100, locale_naturalness: 80, borrowing_consistency: 95, rhetorical_structure: 90 },
+  critical_errors: 0,
+  major_core_errors: needs ? 1 : 0,
+  confidence: 0.8,
+  findings: needs ? [{ id: "finding-1", severity: "major", dimension: "locale_naturalness", source_span: "comes in", target_span: "sobe", description: "Calque.", fix_hint: "Use enche." }] : [],
+});
+const review = (accept: boolean) => ({
+  accept,
+  publish_ready: accept,
+  confidence: 0.9,
+  residual_issues: accept ? [] : ['"sobe" is still the dictionary verb for the tide (review checks: literal calques)'],
+  voice_score: 90.5,
+  terminology_score: 92,
+  locale_naturalness_score: accept ? 88 : 61,
+});
+const revised = (content: string) => ({ ...GOOD, content, applied_feedback: ["finding-1"], declined_feedback: [], rewrite_summary: [], unresolved_risks: [] });
+
+// A whole run whose critic asks for nothing and whose reviewer accepts: the draft is what is written.
+const passing = (...draft: Reply[]): Reply[] => [{ answer: ANALYSIS }, { answer: POLICY }, ...draft, { answer: critique(false) }, { answer: review(true) }];
+
+// The lines a passing run prints between its first line and the one that says what it wrote.
+const STAGE_LINES = (draftCost = "$0.0100") => [
+  "  source analysis            1 call, 1,000 tokens in, 200 out, $0.0100",
+  "  terminology policy         1 call, 1,000 tokens in, 200 out, $0.0100",
+  `  translate                  1 call, 1,000 tokens in, 200 out, ${draftCost}`,
+  "  pass 1 critique            1 call, 1,000 tokens in, 200 out, $0.0100; no refinement needed (score 96, 0 findings)",
+  "  pass 1 final review        1 call, 1,000 tokens in, 200 out, $0.0100; accepted: voice 90.5, terminology 92, locale naturalness 88 (confidence 0.9)",
+  "  accepted in pass 1 of 2: voice 90.5, terminology 92, locale naturalness 88 (confidence 0.9)",
+];
 
 // A translation of tide.md as the tool would have written it, current unless told otherwise.
 function translated(root: string, { digest, trailer = "" }: { digest?: string; trailer?: string } = {}): string {
@@ -151,9 +201,9 @@ test("this repository's own translations are all current", async () => {
 
 // ---------- translate ----------
 
-test("a missing translation is translated and written with its front matter", async () => {
+test("a missing translation goes through every stage and is written with its front matter", async () => {
   const w = world();
-  reply({ answer: GOOD, cost: 0.0421 });
+  reply(...passing({ answer: GOOD, cost: 0.0421 }));
   assert.equal(await w.run("posts/tide.md"), 0, w.errors.join("\n"));
 
   assert.equal(
@@ -163,28 +213,53 @@ test("a missing translation is translated and written with its front matter", as
   );
   assert.equal(stateOf(w.root, discover(w.root)[1]!).status, "current");
   assert.deepEqual(w.lines, [
-    "missing  posts/tide.md: translating with gpt-5.6-sol (high)…",
-    "  wrote posts/tide.pt-br.md: 1 call, 1,000 tokens in, 200 out, $0.0421",
+    "missing  posts/tide.md: translating with gpt-5.6-sol (high), critic claude-opus-5-5 (medium)…",
+    ...STAGE_LINES("$0.0421"),
+    "  wrote posts/tide.pt-br.md: 5 calls, 5,000 tokens in, 1,000 out, $0.0821",
+    `  stage outputs: .translate-runs/${RUN}/posts/tide`,
   ]);
 
-  const [asked] = hub.asked;
-  assert.equal(hub.asked.length, 1);
-  assert.equal(asked!.model, "gpt-5.6-sol");
-  assert.equal(asked!.reasoning_effort, "high");
-  assert.equal(asked!.max_tokens, 64_000);
-  assert.equal(asked!.response_format.json_schema.name, "translation");
-  assert.deepEqual(asked!.messages.map((message) => message.role), ["system", "user"]);
-  assert.match(asked!.messages[0]!.content, /^UNATTENDED LOCALIZATION AGENT\n/);
-  assert.ok(asked!.messages[1]!.content.includes("- `lua.en-us.md` is written `lua.md`\n- `wave.md#big` is written `wave.pt-br.md#big`"));
-  assert.ok(asked!.messages[1]!.content.includes("The tide comes in twice a day (more or less)"));
+  assert.equal(hub.asked.length, 5);
+  assert.deepEqual(
+    hub.asked.map((asked) => [asked.response_format.json_schema.name, asked.model, asked.reasoning_effort, asked.max_tokens]),
+    [
+      ["source_analysis", "gpt-5.6-sol", "high", 64_000],
+      ["terminology_policy", "gpt-5.6-sol", "high", 64_000],
+      ["translation", "gpt-5.6-sol", "high", 64_000],
+      ["critique", "claude-opus-5-5", "medium", 64_000],
+      ["final_review", "claude-opus-5-5", "medium", 64_000],
+    ],
+  );
+  const draft = hub.asked[2]!;
+  assert.deepEqual(draft.messages.map((message) => message.role), ["system", "user"]);
+  assert.match(draft.messages[0]!.content, /^LOCALIZATION AUTHORITY\n[\s\S]*\nTRANSLATE\n/);
+  assert.ok(draft.messages[1]!.content.includes("- `lua.en-us.md` is written `lua.md`\n- `wave.md#big` is written `wave.pt-br.md#big`"));
+  assert.ok(draft.messages[1]!.content.includes(`SOURCE ANALYSIS JSON (MODEL ADVICE)\n${json(ANALYSIS)}`));
+  assert.ok(draft.messages[1]!.content.includes("TERMINOLOGY POLICY JSON (MODEL PROPOSAL)\n{"));
+  assert.ok(draft.messages[1]!.content.includes("The tide comes in twice a day (more or less)"));
+  assert.ok(hub.asked[4]!.messages[1]!.content.includes(`LOCALIZED CANDIDATE JSON\n${json(GOOD)}`), "the final review reads what is written");
 });
 
-test("--model, --effort and --max-tokens choose the model, and the translation says which it was", async () => {
+test("--model, --effort, --critic-model, --critic-effort and --max-tokens choose the models, and the translation says which wrote it", async () => {
   const w = world();
-  reply({ answer: GOOD });
-  assert.equal(await w.run("posts/tide.md", "--model", "claude-opus-5", "--effort", "medium", "--max-tokens", "32000"), 0);
-  assert.deepEqual([hub.asked[0]!.model, hub.asked[0]!.reasoning_effort, hub.asked[0]!.max_tokens], ["claude-opus-5", "medium", 32_000]);
+  reply(...passing({ answer: GOOD }));
+  assert.equal(
+    await w.run("posts/tide.md", "--model", "claude-opus-5", "--effort", "medium", "--critic-model", "gpt-5.6-sol", "--critic-effort", "low", "--max-tokens", "32000"),
+    0,
+    w.errors.join("\n"),
+  );
+  assert.deepEqual(
+    hub.asked.map((asked) => [asked.model, asked.reasoning_effort, asked.max_tokens]),
+    [
+      ["claude-opus-5", "medium", 32_000],
+      ["claude-opus-5", "medium", 32_000],
+      ["claude-opus-5", "medium", 32_000],
+      ["gpt-5.6-sol", "low", 32_000],
+      ["gpt-5.6-sol", "low", 32_000],
+    ],
+  );
   assert.equal(readMarkdown(w.read("posts/tide.pt-br.md")).meta.translated_by, "claude-opus-5 (medium), via mare-hub");
+  assert.equal(w.lines[0], "missing  posts/tide.md: translating with claude-opus-5 (medium), critic gpt-5.6-sol (low)…");
 });
 
 test("a translation that is current is left alone, unless --force", async () => {
@@ -195,9 +270,9 @@ test("a translation that is current is left alone, unless --force", async () => 
   assert.deepEqual(w.lines, ["current  posts/tide.md -> posts/tide.pt-br.md: nothing to do (--force translates it again)"]);
   assert.equal(w.read("posts/tide.pt-br.md"), translated(w.root));
 
-  reply({ answer: { ...GOOD, title: "A maré, de novo" } });
+  reply(...passing({ answer: { ...GOOD, title: "A maré, de novo" } }));
   assert.equal(await w.run("posts/tide.pt-br.md", "--force"), 0, "a translation's own path names its source");
-  assert.equal(hub.asked.length, 1);
+  assert.equal(hub.asked.length, 5);
   assert.equal(readMarkdown(w.read("posts/tide.pt-br.md")).meta.title, "A maré, de novo");
 });
 
@@ -205,7 +280,7 @@ test("a stale translation is translated again, and the trailer at its end is kep
   const w = world();
   const stale = translated(w.root, { digest: "b".repeat(64), trailer: COMMENTS });
   fs.writeFileSync(path.join(w.root, "posts/tide.pt-br.md"), stale.replace("lang: pt-br\n", "lang: pt-br\nreviewed_by: Daniel\n"));
-  reply({ answer: { ...GOOD, content: GOOD.content.replace("sobe", "enche") } });
+  reply(...passing({ answer: { ...GOOD, content: GOOD.content.replace("sobe", "enche") } }));
   assert.equal(await w.run("posts/tide.md"), 0, w.errors.join("\n"));
   const after = w.read("posts/tide.pt-br.md");
   assert.ok(after.endsWith(`\n\n${COMMENTS}`));
@@ -213,16 +288,31 @@ test("a stale translation is translated again, and the trailer at its end is kep
   assert.ok(after.includes("A maré enche duas vezes"));
   assert.equal(readMarkdown(after).meta.reviewed_by, "Daniel");
   assert.equal(stateOf(w.root, discover(w.root)[1]!).status, "current");
-  assert.equal(w.lines[0], "stale    posts/tide.md: translating with gpt-5.6-sol (high)…");
+  assert.equal(w.lines[0], "stale    posts/tide.md: translating with gpt-5.6-sol (high), critic claude-opus-5-5 (medium)…");
+});
+
+test("a critique that asks for refinement brings a revision, and the revision is what is written", async () => {
+  const w = world();
+  const better = revised(GOOD.content.replace("sobe", "enche"));
+  reply({ answer: ANALYSIS }, { answer: POLICY }, { answer: GOOD }, { answer: critique(true) }, { answer: better }, { answer: review(true) });
+  assert.equal(await w.run("posts/tide.md"), 0, w.errors.join("\n"));
+  assert.deepEqual(hub.asked.map((asked) => asked.response_format.json_schema.name), ["source_analysis", "terminology_policy", "translation", "critique", "revision", "final_review"]);
+  const revision = hub.asked[4]!;
+  assert.equal(revision.model, "gpt-5.6-sol");
+  assert.ok(revision.messages[1]!.content.includes(`TRANSLATED CANDIDATE JSON\n${json(GOOD)}`));
+  assert.ok(revision.messages[1]!.content.includes('CRITIQUE JSON\n{\n  "confidence": 0.8,'));
+  assert.ok(w.read("posts/tide.pt-br.md").includes("A maré enche duas vezes"));
+  assert.ok(w.lines.includes("  pass 1 critique            1 call, 1,000 tokens in, 200 out, $0.0100; needs refinement (score 78.5, 1 finding)"));
+  assert.ok(w.lines.includes("  pass 1 revise              1 call, 1,000 tokens in, 200 out, $0.0100; 1 applied, 0 declined"));
 });
 
 test("--all translates what is missing or stale, and nothing else", async () => {
   const w = world();
   const wave = discover(w.root).find((source) => source.file === "posts/wave.md")!;
   fs.writeFileSync(path.join(w.root, "posts/wave.pt-br.md"), post("pt-br", "Ondas.", `translation_of: wave.md\nsource_digest: ${wave.digest}\n`));
-  reply({ answer: { title: "T", excerpt: "E", tags: ["x"], content: "The moon." } }, { answer: GOOD });
+  reply(...passing({ answer: { title: "T", excerpt: "E", tags: ["x"], content: "The moon." } }), ...passing({ answer: GOOD }));
   assert.equal(await w.run("--all"), 0, w.errors.join("\n"));
-  assert.equal(hub.asked.length, 2);
+  assert.equal(hub.asked.length, 10);
   assert.ok(hub.asked[0]!.messages[1]!.content.startsWith("DOCUMENT\nposts/lua.md (post), pt-br to en-us"));
   assert.ok(hub.asked[0]!.messages[0]!.content.includes("Target: publishable US English technical-editorial prose."));
   assert.equal(readMarkdown(w.read("posts/lua.en-us.md")).meta.lang, "en-us");
@@ -231,16 +321,17 @@ test("--all translates what is missing or stale, and nothing else", async () => 
 
 test("an answer that fails a check is repaired once, with the exact finding", async () => {
   const w = world();
-  reply({ answer: DASHED, cost: 0.03 }, { answer: GOOD, cost: 0.02 });
+  reply({ answer: ANALYSIS }, { answer: POLICY }, { answer: DASHED, cost: 0.03 }, { answer: GOOD, cost: 0.02 }, { answer: critique(false) }, { answer: review(true) });
   assert.equal(await w.run("posts/tide.md"), 0, w.errors.join("\n"));
-  assert.equal(hub.asked.length, 2);
-  const messages = hub.asked[1]!.messages;
+  assert.equal(hub.asked.length, 6);
+  const messages = hub.asked[3]!.messages;
   assert.deepEqual(messages.map((message) => message.role), ["system", "user", "assistant", "user"]);
   assert.equal(messages[2]!.content, JSON.stringify(DASHED));
   assert.match(messages[3]!.content, /^DETERMINISTIC VALIDATION FINDINGS\n/);
   assert.match(messages[3]!.content, /- Translation changed parenthetical asides: preserve parentheses around the same thoughts.*The source has 1 and the translation 0\. The source's, in order: 1\. "\(more or less\)"/);
   assert.equal(readMarkdown(w.read("posts/tide.pt-br.md")).body, GOOD.content);
-  assert.equal(w.lines.at(-1), "  wrote posts/tide.pt-br.md: 2 calls, 2,000 tokens in, 400 out, $0.0500");
+  assert.ok(w.lines.includes("  translate                  2 calls, 2,000 tokens in, 400 out, $0.0500 after one repair"));
+  assert.equal(w.lines.at(-2), "  wrote posts/tide.pt-br.md: 6 calls, 6,000 tokens in, 1,200 out, $0.0900");
   assert.ok(w.errors.some((line) => line.includes("failed 1 check(s), asking for a repair")));
 });
 
@@ -248,38 +339,115 @@ test("an answer that still fails after the repair is never written", async () =>
   const w = world();
   const stale = translated(w.root, { digest: "b".repeat(64), trailer: COMMENTS });
   fs.writeFileSync(path.join(w.root, "posts/tide.pt-br.md"), stale);
-  reply({ answer: DASHED }, { answer: { ...DASHED, content: DASHED.content.replace("lua.md", "lua.en-us.md") } }, { answer: GOOD });
+  reply({ answer: ANALYSIS }, { answer: POLICY }, { answer: DASHED }, { answer: { ...DASHED, content: DASHED.content.replace("lua.md", "lua.en-us.md") } }, { answer: GOOD });
   assert.equal(await w.run("posts/tide.md"), 1);
-  assert.equal(hub.asked.length, 2, "one repair, not two");
+  assert.equal(hub.asked.length, 4, "one repair, not two, and no stage after the failed one");
   assert.equal(w.read("posts/tide.pt-br.md"), stale, "the file is as it was");
   const said = w.errors.join("\n");
   assert.match(said, /posts\/tide\.md: The translation failed its checks after one repair:/);
   assert.match(said, /- Translation changed protected link destinations: missing link `lua\.md`; not in the source link `lua\.en-us\.md`/);
   assert.match(said, /- Translation changed parenthetical asides/);
-  assert.match(said, /2 calls, 2,000 tokens in, 400 out, \$0\.0200; nothing was written/);
+  assert.match(said, /4 calls, 4,000 tokens in, 800 out, \$0\.0400; nothing was written/);
 
   const fresh = world();
-  reply({ answer: "not json at all" }, { answer: { title: "only a title" } });
+  reply({ answer: ANALYSIS }, { answer: POLICY }, { answer: "not json at all" }, { answer: { title: "only a title" } });
   assert.equal(await fresh.run("posts/tide.md"), 1);
   assert.ok(!fresh.exists("posts/tide.pt-br.md"), "no file appears for a translation that failed");
-  assert.match(fresh.errors.join("\n"), /Missing required field "content"/);
+  assert.match(fresh.errors.join("\n"), /Missing required field "excerpt"/);
+});
+
+test("a translation the final review still rejects after the last pass is never written, and the reviewer's issues are said", async () => {
+  const w = world();
+  const stale = translated(w.root, { digest: "b".repeat(64), trailer: COMMENTS });
+  fs.writeFileSync(path.join(w.root, "posts/tide.pt-br.md"), stale);
+  const better = revised(GOOD.content.replace("sobe", "enche"));
+  reply(
+    { answer: ANALYSIS },
+    { answer: POLICY },
+    { answer: GOOD },
+    { answer: critique(true) },
+    { answer: better },
+    { answer: review(false) },
+    { answer: critique(false) },
+    { answer: review(false) },
+    { answer: review(true) },
+  );
+  assert.equal(await w.run("posts/tide.md"), 1);
+  assert.equal(hub.asked.length, 8, "two passes, not three");
+  assert.equal(w.read("posts/tide.pt-br.md"), stale, "the file is as it was");
+  assert.ok(w.lines.includes("  pass 2 final review        1 call, 1,000 tokens in, 200 out, $0.0100; not accepted: voice 90.5, terminology 92, locale naturalness 61 (confidence 0.9), 1 residual issue"));
+  assert.deepEqual(w.errors.join("\n").split("\n"), [
+    "posts/tide.md: The final review rejected the translation after 2 of 2 passes; its residual issues:",
+    '  - "sobe" is still the dictionary verb for the tide (review checks: literal calques)',
+    "  8 calls, 8,000 tokens in, 1,600 out, $0.0800; nothing was written",
+  ]);
+  const summary = JSON.parse(w.read(`.translate-runs/${RUN}/posts/tide/summary.json`)) as Record<string, unknown>;
+  assert.equal(summary.accepted, false);
+  assert.equal(summary.passes, 2);
+  assert.deepEqual((summary.final_review as { residual_issues: string[] }).residual_issues, review(false).residual_issues);
+});
+
+test("every stage's answer is kept under .translate-runs for the author to read, and none of it is published", async () => {
+  const w = world();
+  const better = revised(GOOD.content.replace("sobe", "enche"));
+  reply({ answer: ANALYSIS }, { answer: POLICY }, { answer: DASHED }, { answer: GOOD }, { answer: critique(true) }, { answer: better }, { answer: review(true) });
+  assert.equal(await w.run("posts/tide.md"), 0, w.errors.join("\n"));
+  const dir = `.translate-runs/${RUN}/posts/tide`;
+  assert.deepEqual(fs.readdirSync(path.join(w.root, dir)).sort(), [
+    "01-source_analysis.json",
+    "01-source_analysis.prompt.md",
+    "02-terminology_policy.json",
+    "02-terminology_policy.prompt.md",
+    "03-translate.json",
+    "03-translate.prompt.md",
+    "04-pass-1-critique.json",
+    "04-pass-1-critique.prompt.md",
+    "05-pass-1-revise.json",
+    "05-pass-1-revise.prompt.md",
+    "06-pass-1-final_review.json",
+    "06-pass-1-final_review.prompt.md",
+    "summary.json",
+  ]);
+  const stage = (name: string) => JSON.parse(w.read(`${dir}/${name}.json`)) as Record<string, unknown>;
+  assert.deepEqual(stage("01-source_analysis").output, ANALYSIS);
+  assert.deepEqual((stage("02-terminology_policy").output as Record<string, unknown>).education_degree_localization_policy, null);
+  const draft = stage("03-translate");
+  assert.equal(draft.model, "gpt-5.6-sol");
+  assert.equal((draft.usages as unknown[]).length, 2, "the repair is part of the stage");
+  assert.equal((draft.repaired as string[]).length, 1);
+  assert.deepEqual(draft.output, GOOD);
+  assert.equal((stage("04-pass-1-critique").output as { needs_refinement: boolean }).needs_refinement, true);
+  assert.equal(stage("04-pass-1-critique").effort, "medium");
+  assert.deepEqual((stage("05-pass-1-revise").output as { applied_feedback: string[] }).applied_feedback, ["finding-1"]);
+  assert.deepEqual(stage("06-pass-1-final_review").output, review(true));
+  const prompt = w.read(`${dir}/04-pass-1-critique.prompt.md`);
+  assert.match(prompt, /^## system\n\nLOCALIZATION AUTHORITY\n[\s\S]*\n## user\n\nDOCUMENT\n[\s\S]*\n## assistant\n\n\{/);
+  const summary = JSON.parse(w.read(`${dir}/summary.json`)) as { accepted: boolean; passes: number; stages: Record<string, unknown>[] };
+  assert.equal(summary.accepted, true);
+  assert.equal(summary.passes, 1);
+  assert.deepEqual(summary.stages[2], { stage: "translate", model: "gpt-5.6-sol (high)", calls: 2, prompt_tokens: 2000, completion_tokens: 400, cost_usd: 0.02 });
+  assert.equal(summary.stages[3]!.model, "claude-opus-5-5 (medium)");
+
+  const published = w.read("posts/tide.pt-br.md");
+  for (const word of ["SOURCE ANALYSIS", "critique", "residual_issues", "voice_score", ".translate-runs"]) assert.ok(!published.includes(word), `${word} is not in the translation`);
+  assert.match(fs.readFileSync(path.resolve(import.meta.dirname, "../../.gitignore"), "utf8"), /^\.translate-runs\/$/m, "git ignores the runs");
 });
 
 test("a trace keeps every question and the whole answer, the refused one too", async () => {
   const trace = path.join(repository({}), "trace.jsonl");
   const w = world({}, trace);
-  reply({ answer: DASHED }, { answer: GOOD });
+  reply({ answer: ANALYSIS }, { answer: POLICY }, { answer: DASHED }, { answer: GOOD }, { answer: critique(false) }, { answer: review(true) });
   assert.equal(await w.run("posts/tide.md"), 0, w.errors.join("\n"));
   const entries = fs.readFileSync(trace, "utf8").trim().split("\n").map((line) => JSON.parse(line) as { question: { messages: unknown[] }; answer: { content: string; usage: { cost_usd: number } } });
-  assert.equal(entries.length, 2);
-  assert.deepEqual(entries.map((entry) => entry.question.messages.length), [2, 4]);
-  assert.equal(entries[0]!.answer.content, JSON.stringify(DASHED));
-  assert.equal(entries[1]!.answer.usage.cost_usd, 0.01);
+  assert.equal(entries.length, 6);
+  assert.deepEqual(entries.map((entry) => entry.question.messages.length), [2, 2, 2, 4, 2, 2]);
+  assert.equal(entries[2]!.answer.content, JSON.stringify(DASHED));
+  assert.equal(entries[3]!.answer.usage.cost_usd, 0.01);
 });
 
 test("one document failing does not stop the others, and the run still fails", async () => {
   const w = world();
-  reply({ status: 400, message: "unknown model 'gpt-9'" }, { answer: GOOD }, { answer: { title: "T", excerpt: "E", tags: ["x"], content: "Ondas." } });
+  reply({ status: 400, message: "unknown model 'gpt-9'" }, ...passing({ answer: GOOD }), ...passing({ answer: { title: "T", excerpt: "E", tags: ["x"], content: "Ondas." } }));
   assert.equal(await w.run("--all", "--model", "gpt-9"), 1);
   assert.match(w.errors.join("\n"), /posts\/lua\.md: The Hub answered 400: unknown model 'gpt-9'/);
   assert.ok(!w.exists("posts/lua.en-us.md"));
@@ -291,13 +459,14 @@ test("--out writes under another folder and leaves the repository as it was", as
   const existing = translated(w.root, { digest: "b".repeat(64), trailer: COMMENTS });
   fs.writeFileSync(path.join(w.root, "posts/tide.pt-br.md"), existing);
   const out = repository({});
-  reply({ answer: GOOD });
+  reply(...passing({ answer: GOOD }));
   assert.equal(await w.run("posts/tide.md", "--out", out), 0, w.errors.join("\n"));
   assert.equal(w.read("posts/tide.pt-br.md"), existing);
   const written = fs.readFileSync(path.join(out, "posts/tide.pt-br.md"), "utf8");
   assert.equal(readMarkdown(written).meta.translated_by, "gpt-5.6-sol (high), via mare-hub");
   assert.equal(readMarkdown(written).trailer, COMMENTS, "it is the file that would have been written");
-  assert.deepEqual(fs.readdirSync(out), ["posts"]);
+  assert.deepEqual(fs.readdirSync(out).sort(), [".translate-runs", "posts"], "the stages' answers go with it");
+  assert.ok(!w.exists(".translate-runs"));
 });
 
 test("--dry-run says what would be done, asks no model and writes nothing", async () => {
@@ -305,19 +474,28 @@ test("--dry-run says what would be done, asks no model and writes nothing", asyn
   assert.equal(await w.run("--all", "--dry-run"), 0);
   assert.equal(hub.asked.length, 0);
   assert.equal(w.lines.length, 3);
-  assert.match(w.lines[1]!, /^missing {2}posts\/tide\.md: would translate into posts\/tide\.pt-br\.md with gpt-5\.6-sol \(high\); [\d,]+ characters of guidance, [\d,]+ of document$/);
+  assert.equal(
+    w.lines[1],
+    "missing  posts/tide.md: would translate into posts/tide.pt-br.md with gpt-5.6-sol (high), critic claude-opus-5-5 (medium); " +
+      "5 to 9 calls: source analysis, terminology policy, draft, then up to 2 passes of critique, revision (when the critique asks) and final review",
+  );
   assert.deepEqual(fs.readdirSync(path.join(w.root, "posts")).sort(), ["lua.md", "tide.md", "wave.md"]);
+  assert.ok(!w.exists(".translate-runs"));
 });
 
-test("the CV is translated to YAML that says what it translates", async () => {
+test("the CV is translated to YAML that says what it translates, through its own stage prompts", async () => {
   const cv = "# The CV.\nname: Daniel\ntagline: Engineer\ncontact:\n  email: d@example.com\nskills:\n- Distributed Systems\n";
   const w = world({ "cv_data.yaml": cv });
+  reply({ answer: ANALYSIS }, { answer: { ...POLICY, education_degree_localization_policy: { decision: "localize_equivalent", apply_consistently: true, rule: "r", exceptions: [] } } });
   reply({ answer: { name: "Daniel", tagline: "Engenheiro", contact: { email: "d@exemplo.com" }, skills: ["sistemas distribuídos"] } });
   reply({ answer: { tagline: "Engenheiro", name: "Daniel", skills: ["sistemas distribuídos"], contact: { email: "d@example.com" } } });
+  reply({ answer: critique(false) }, { answer: review(true) });
   assert.equal(await w.run("cv_data.yaml"), 0, w.errors.join("\n"));
-  assert.equal(hub.asked[0]!.response_format.json_schema.name, "cv_translation");
-  assert.match(hub.asked[0]!.messages[0]!.content, /Produce a localized CV draft/);
-  assert.match(hub.asked[1]!.messages[3]!.content, /- CV translation changed contact details/);
+  assert.deepEqual(hub.asked.map((asked) => asked.response_format.json_schema.name), ["source_analysis", "terminology_policy", "cv_translation", "cv_translation", "critique", "final_review"]);
+  assert.match(hub.asked[0]!.messages[0]!.content, /structured CV artifact/);
+  assert.match(hub.asked[2]!.messages[0]!.content, /Produce a localized CV draft/);
+  assert.match(hub.asked[3]!.messages[3]!.content, /- CV translation changed contact details/);
+  assert.match(hub.asked[5]!.messages[0]!.content, /Review the localized CV directly/);
   const text = w.read("cv_data.pt-br.yaml");
   assert.deepEqual(parseYaml(text), { name: "Daniel", tagline: "Engenheiro", contact: { email: "d@example.com" }, skills: ["sistemas distribuídos"] });
   assert.ok(text.includes("# translation_of: cv_data.yaml\n# source_digest: "));
@@ -327,30 +505,38 @@ test("the CV is translated to YAML that says what it translates", async () => {
 
 // ---------- revise ----------
 
-const revision = (comments: unknown[], content = GOOD.content.replace("sobe", "enche")) => ({ ...GOOD, content, comments });
+const revision = (comments: unknown[], content = GOOD.content.replace("sobe", "enche")) => ({ ...revised(content), comments });
 
-test("revise sends the open comments as the owner's instructions and marks the handled ones addressed", async () => {
+// The translation `translated()` writes, as a candidate.
+const CURRENT = { title: "A maré", excerpt: "Por que a maré importa (um pouco).", tags: ["mar"], content: GOOD.content };
+
+test("revise sends the open comments to the revise stage as the owner's instructions, then critique and final review, and marks the handled ones addressed", async () => {
   const w = world();
   const before = translated(w.root, { trailer: COMMENTS });
   fs.writeFileSync(path.join(w.root, "posts/tide.pt-br.md"), before);
-  reply({
-    answer: revision([
-      { id: 1, addressed: true, note: '"sobe" virou "enche".' },
-      { id: 2, addressed: false, note: "É uma pergunta: sim, a legenda corresponde à fonte." },
-    ]),
-  });
+  reply(
+    ...passing({
+      answer: revision([
+        { id: 1, addressed: true, note: '"sobe" virou "enche".' },
+        { id: 2, addressed: false, note: "É uma pergunta: sim, a legenda corresponde à fonte." },
+      ]),
+    }),
+  );
   assert.equal(await w.run("revise", "posts/tide.pt-br.md"), 0, w.errors.join("\n"));
 
-  const [asked] = hub.asked;
-  assert.equal(hub.asked.length, 1);
-  assert.equal(asked!.response_format.json_schema.name, "revision");
-  assert.match(asked!.messages[0]!.content, /\nOWNER REVISION\n/);
-  const user = asked!.messages[1]!.content;
-  assert.ok(user.includes(`<current_translation>\n${GOOD.content}\n</current_translation>`));
+  assert.deepEqual(hub.asked.map((asked) => asked.response_format.json_schema.name), ["source_analysis", "terminology_policy", "owner_revision", "critique", "final_review"]);
+  const asked = hub.asked[2]!;
+  assert.equal(asked.model, "gpt-5.6-sol");
+  assert.match(asked.messages[0]!.content, /\nREVISE\nRewrite the translated candidate[\s\S]*\nOWNER REVISION\n/);
+  const user = asked.messages[1]!.content;
+  assert.ok(user.includes(`TRANSLATED CANDIDATE JSON\n${json(CURRENT)}`), "the translation as it stands");
+  assert.ok(user.includes(`SOURCE ANALYSIS JSON (MODEL ADVICE)\n${json(ANALYSIS)}`));
   assert.ok(user.includes('Comment 1, line 1\nQuoted passage:\n> sobe\nAround it: …A maré [the passage] duas vezes por dia…\nDaniel Cavalli wrote:\nPrefiro "enche".'));
   assert.ok(user.includes("Comment 2, line 3\nQuoted passage:\n> Maré baixa\nDaniel Cavalli wrote:\nIsso está certo?"));
   assert.ok(!user.includes("Resolvido."), "a comment that is not open is not an instruction");
   assert.ok(user.includes("The tide comes in twice a day"), "the source goes too");
+  for (const other of hub.asked) assert.ok(other.messages[1]!.content.includes("OWNER REVISION INSTRUCTIONS\nComment 1, line 1"), "every stage holds the owner's instructions");
+  assert.ok(hub.asked[3]!.messages[1]!.content.includes(`TRANSLATED CANDIDATE JSON\n${json({ ...CURRENT, content: GOOD.content.replace("sobe", "enche") })}`), "the critic reads the revision");
 
   const after = w.read("posts/tide.pt-br.md");
   const written = readMarkdown(after);
@@ -359,10 +545,32 @@ test("revise sends the open comments as the owner's instructions and marks the h
   assert.equal(written.meta.translated_by, "gpt-5.6-sol (high), via mare-hub");
   assert.equal(stateOf(w.root, discover(w.root)[1]!).status, "current");
   assert.deepEqual(w.lines, [
-    "revised posts/tide.pt-br.md: 1 call, 1,000 tokens in, 200 out, $0.0100",
+    "  source analysis            1 call, 1,000 tokens in, 200 out, $0.0100",
+    "  terminology policy         1 call, 1,000 tokens in, 200 out, $0.0100",
+    "  revise (owner's comments)  1 call, 1,000 tokens in, 200 out, $0.0100",
+    ...STAGE_LINES().slice(3),
+    "revised posts/tide.pt-br.md: 5 calls, 5,000 tokens in, 1,000 out, $0.0500",
     '  #1 addressed: "sobe" virou "enche".',
     "  #2 left open: É uma pergunta: sim, a legenda corresponde à fonte.",
+    `  stage outputs: .translate-runs/${RUN}/posts/tide`,
   ]);
+  const summary = JSON.parse(w.read(`.translate-runs/${RUN}/posts/tide/summary.json`)) as { comments: unknown[] };
+  assert.deepEqual(summary.comments, [
+    { id: 1, addressed: true, note: '"sobe" virou "enche".' },
+    { id: 2, addressed: false, note: "É uma pergunta: sim, a legenda corresponde à fonte." },
+  ]);
+  assert.ok(fs.existsSync(path.join(w.root, `.translate-runs/${RUN}/posts/tide/03-revise-owner.json`)));
+});
+
+test("an owner's revision the final review rejects is not written, and no comment is marked", async () => {
+  const w = world();
+  const before = translated(w.root, { trailer: COMMENTS });
+  fs.writeFileSync(path.join(w.root, "posts/tide.pt-br.md"), before);
+  const answered = revision([{ id: 1, addressed: true, note: "feito" }, { id: 2, addressed: false, note: "pergunta" }]);
+  reply({ answer: ANALYSIS }, { answer: POLICY }, { answer: answered }, { answer: critique(false) }, { answer: review(false) }, { answer: critique(false) }, { answer: review(false) });
+  assert.equal(await w.run("revise", "posts/tide.pt-br.md"), 1);
+  assert.equal(w.read("posts/tide.pt-br.md"), before);
+  assert.match(w.errors.join("\n"), /posts\/tide\.pt-br\.md: The final review rejected the translation after 2 of 2 passes/);
 });
 
 test("revise with no open comment does nothing", async () => {
@@ -373,6 +581,7 @@ test("revise with no open comment does nothing", async () => {
   assert.equal(hub.asked.length, 0);
   assert.equal(w.read("posts/tide.pt-br.md"), before);
   assert.deepEqual(w.lines, ["posts/tide.pt-br.md: no open comments, nothing to revise"]);
+  assert.ok(!w.exists(".translate-runs"));
 });
 
 test("a revision must pass the same checks, account for every comment, and change something", async () => {
@@ -380,16 +589,23 @@ test("a revision must pass the same checks, account for every comment, and chang
   const before = translated(w.root, { trailer: COMMENTS });
   fs.writeFileSync(path.join(w.root, "posts/tide.pt-br.md"), before);
   reply(
+    { answer: ANALYSIS },
+    { answer: POLICY },
     { answer: revision([{ id: 1, addressed: true, note: "feito" }]) },
     { answer: revision([{ id: 1, addressed: true, note: "feito" }, { id: 2, addressed: true, note: "feito" }], GOOD.content) },
   );
   assert.equal(await w.run("revise", "posts/tide.pt-br.md"), 1);
-  assert.equal(hub.asked.length, 2);
-  assert.match(hub.asked[1]!.messages[3]!.content, /- "comments" must have exactly one entry for comment 2, and has 0/);
+  assert.equal(hub.asked.length, 4);
+  assert.match(hub.asked[3]!.messages[3]!.content, /- "comments" must have exactly one entry for comment 2, and has 0/);
   assert.match(w.errors.join("\n"), /The answer says comments are addressed and changes nothing in the translation/);
   assert.equal(w.read("posts/tide.pt-br.md"), before, "nothing was written, and no comment was marked");
 
-  reply({ answer: revision([{ id: 1, addressed: true, note: "feito" }, { id: 2, addressed: true, note: "feito" }], DASHED.content) }, { answer: DASHED });
+  reply(
+    { answer: ANALYSIS },
+    { answer: POLICY },
+    { answer: revision([{ id: 1, addressed: true, note: "feito" }, { id: 2, addressed: true, note: "feito" }], DASHED.content) },
+    { answer: DASHED },
+  );
   assert.equal(await w.run("revise", "posts/tide.pt-br.md"), 1);
   assert.match(w.errors.join("\n"), /Translation changed parenthetical asides/);
   assert.equal(w.read("posts/tide.pt-br.md"), before);
@@ -412,14 +628,15 @@ test("revise --dry-run lists the comments that would be sent; --out leaves the r
   fs.writeFileSync(path.join(w.root, "posts/tide.pt-br.md"), before);
   assert.equal(await w.run("revise", "posts/tide.pt-br.md", "--dry-run"), 0);
   assert.deepEqual(w.lines, [
-    "posts/tide.pt-br.md: 2 open comment(s) would go to gpt-5.6-sol (high)",
+    "posts/tide.pt-br.md: 2 open comment(s) would go to gpt-5.6-sol (high), critic claude-opus-5-5 (medium); " +
+      "5 to 9 calls: source analysis, terminology policy, revision by the comments, then up to 2 passes of critique, revision (when the critique asks) and final review",
     '  #1 Daniel Cavalli: Prefiro "enche".',
     "  #2 Daniel Cavalli: Isso está certo?",
   ]);
   assert.equal(hub.asked.length, 0);
 
   const out = repository({});
-  reply({ answer: revision([{ id: 1, addressed: true, note: "feito" }, { id: 2, addressed: true, note: "feito" }]) });
+  reply(...passing({ answer: revision([{ id: 1, addressed: true, note: "feito" }, { id: 2, addressed: true, note: "feito" }]) }));
   assert.equal(await w.run("revise", "posts/tide.pt-br.md", "--out", out), 0, w.errors.join("\n"));
   assert.equal(w.read("posts/tide.pt-br.md"), before);
   assert.equal(readMarkdown(fs.readFileSync(path.join(out, "posts/tide.pt-br.md"), "utf8")).trailer, COMMENTS.replaceAll(" · open · ", " · addressed · "));

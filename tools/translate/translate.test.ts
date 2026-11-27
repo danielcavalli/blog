@@ -2,15 +2,20 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { parse as parseYaml } from "yaml";
 
+import { readComments } from "./comments.ts";
 import { cvHeader, readMarkdown } from "./documents.ts";
 import type { CvDocument, ProseDocument } from "./documents.ts";
 import type { Answer, Question } from "./hub.ts";
-import { CheckError, converse, renderCv, renderProse } from "./translate.ts";
+import { json } from "./prompt.ts";
+import { DocumentRun, stageName } from "./runs.ts";
+import { CheckError, MAX_REVISION_PASSES, RejectedError, accepted, converse, localize, renderCv, renderProse } from "./translate.ts";
 import type { Settings } from "./translate.ts";
 
 const settings = (over: Partial<Settings> = {}): Settings => ({
   model: "gpt-5.6-sol",
   effort: "high",
+  criticModel: "claude-opus-5-5",
+  criticEffort: "medium",
   maxTokens: 64_000,
   today: "2026-11-26",
   ...over,
@@ -207,4 +212,219 @@ test("an answer that is not JSON is a finding like any other", async () => {
   const outcome = await converse(job, settings({ ask }));
   assert.deepEqual(outcome.answer, { ok: true }, "a code fence around the JSON is not held against the model");
   assert.match(asked[1]!.messages[3]!.content, /- The answer is not valid JSON: /);
+});
+
+// ---------- the process ----------
+
+const TIDE = source({ body: "The tide comes in twice a day (more or less).\n\nIt should sound familiar.", digest: "e".repeat(64) });
+
+const ANALYSIS = {
+  author_voice_summary: "Dry, first person.",
+  tone: "wry",
+  register: "technical-editorial",
+  sentence_rhythm: ["short"],
+  connective_tissue: ["but"],
+  rhetorical_moves: ["analogy"],
+  humor_signals: ["understatement"],
+  stance_markers: ["I think"],
+  must_preserve: ["the aside"],
+};
+const POLICY = {
+  keep_english: ["prompt"],
+  localize: ["tide"],
+  context_sensitive: [],
+  do_not_translate: ["Claude Code"],
+  resolved_decisions: [{ source_term: "tide", approved_rendering: "maré", decision: "localize", scope: "artifact-wide", applies_to: ["body"], notes: "plain word" }],
+  consistency_rules: [],
+  rationale_notes: [],
+};
+const DRAFT = { title: "A maré: uma nota", excerpt: "Por que importa.", tags: ["mar", "lua"], content: "A maré sobe duas vezes por dia (mais ou menos).\n\nDeveria soar familiar." };
+const SCORES = { accuracy_completeness: 90, terminology_entities: 90, markdown_code_link_fidelity: 99, locale_naturalness: 70, borrowing_consistency: 90, rhetorical_structure: 85 };
+const critique = (needs: boolean) => ({
+  score: needs ? 78.5 : 96,
+  feedback: needs ? "One calque." : "No material defect.",
+  needs_refinement: needs,
+  dimension_scores: SCORES,
+  critical_errors: 0,
+  major_core_errors: needs ? 1 : 0,
+  confidence: 0.8,
+  findings: needs
+    ? [{ id: "finding-1", severity: "major", dimension: "locale_naturalness", source_span: "It should sound familiar.", target_span: "Deveria soar familiar.", description: "Calque.", fix_hint: "Rebuild it." }]
+    : [],
+});
+const revised = (content: string) => ({
+  ...DRAFT,
+  content,
+  applied_feedback: ["finding-1: rebuilt the closing sentence"],
+  declined_feedback: [],
+  rewrite_summary: ["closing sentence"],
+  unresolved_risks: [],
+});
+const FIRST = revised("A maré enche duas vezes por dia (mais ou menos).\n\nE isso deveria soar familiar.");
+const SECOND = revised("A maré enche duas vezes por dia (mais ou menos).\n\nSe isso soa familiar, não é por acaso.");
+const review = (accept: boolean, issues: string[] = accept ? [] : ['"E isso deveria" still copies the English movement (punctuation conventions)']) => ({
+  accept,
+  publish_ready: accept,
+  confidence: 0.9,
+  residual_issues: issues,
+  voice_score: 90.5,
+  terminology_score: 92,
+  locale_naturalness_score: accept ? 88 : 61,
+});
+
+// A model that gives these answers in turn (as JSON), and remembers what it was asked.
+function scripted(...answers: unknown[]) {
+  return model(...answers.map((answer) => (typeof answer === "string" ? answer : JSON.stringify(answer))));
+}
+
+const prose = (value: typeof FIRST) => ({ title: value.title, excerpt: value.excerpt, tags: value.tags, content: value.content });
+const user = (question: Question) => question.messages[1]!.content;
+const system = (question: Question) => question.messages[0]!.content;
+
+test("the stages run in the old engine's order, each on its model, each given what came before it", async () => {
+  const { asked, ask } = scripted(ANALYSIS, POLICY, DRAFT, critique(true), FIRST, review(true));
+  const run = new DocumentRun();
+  const result = await localize(TIDE, [TIDE], settings({ ask }), { run });
+
+  assert.deepEqual(
+    asked.map((question) => [question.schema.name, question.model, question.effort]),
+    [
+      ["source_analysis", "gpt-5.6-sol", "high"],
+      ["terminology_policy", "gpt-5.6-sol", "high"],
+      ["translation", "gpt-5.6-sol", "high"],
+      ["critique", "claude-opus-5-5", "medium"],
+      ["revision", "gpt-5.6-sol", "high"],
+      ["final_review", "claude-opus-5-5", "medium"],
+    ],
+  );
+  assert.deepEqual(
+    asked.map((question) => /\n(SOURCE ANALYSIS|TERMINOLOGY POLICY|TRANSLATE|CRITIQUE|REVISE|FINAL REVIEW)\n/.exec(system(question))![1]),
+    ["SOURCE ANALYSIS", "TERMINOLOGY POLICY", "TRANSLATE", "CRITIQUE", "REVISE", "FINAL REVIEW"],
+  );
+  const [analysis, policy, draft, critic, revision, final] = asked.map(user);
+  const analysisJson = `SOURCE ANALYSIS JSON (MODEL ADVICE)\n${json(ANALYSIS)}`;
+  const policyJson = /TERMINOLOGY POLICY JSON \(MODEL PROPOSAL\)\n\{[\s\S]*?\n\}/;
+  assert.ok(!analysis!.includes("SOURCE ANALYSIS JSON") && analysis!.includes("The tide comes in"), "the analysis reads the source alone");
+  for (const later of [policy, draft, critic, revision]) assert.ok(later!.includes(analysisJson), "the analysis goes to every stage after it but the final review");
+  for (const later of [draft, critic, revision]) assert.match(later!, policyJson);
+  assert.ok(policy!.indexOf("SOURCE ANALYSIS JSON") < policy!.indexOf("SOURCE MARKDOWN"));
+  assert.ok(draft!.includes('"preferred_rendering": "maré"'), "the policy as its contract normalized it, as the old engine passed it on");
+  assert.ok(critic!.includes(`TRANSLATED CANDIDATE JSON\n${json(DRAFT)}`), "the critic reads the draft");
+  assert.ok(revision!.includes(`TRANSLATED CANDIDATE JSON\n${json(DRAFT)}`) && revision!.includes('CRITIQUE JSON\n{\n  "confidence": 0.8,'));
+  assert.ok(revision!.includes('"rewrite_instruction": "Rebuild it."'), "the critique as its contract normalized it");
+  assert.ok(final!.includes(`LOCALIZED CANDIDATE JSON\n${json(prose(FIRST))}`), "the final review reads the revision");
+  for (const absent of ["SOURCE ANALYSIS JSON", "TERMINOLOGY POLICY JSON", "CRITIQUE JSON", "TRANSLATED CANDIDATE JSON"]) {
+    assert.ok(!final!.includes(absent), `the final review is not given ${absent}`);
+  }
+
+  assert.deepEqual(result.candidate, prose(FIRST));
+  assert.equal(result.passes, 1);
+  assert.equal(result.review.locale_naturalness_score, 88);
+  assert.equal(result.usages.length, 6);
+  assert.deepEqual(run.stages.map(stageName), ["source_analysis", "terminology_policy", "translate", "pass-1-critique", "pass-1-revise", "pass-1-final_review"]);
+});
+
+test("a critique that asks for nothing goes straight to the final review", async () => {
+  const { asked, ask } = scripted(ANALYSIS, POLICY, DRAFT, critique(false), review(true));
+  const result = await localize(TIDE, [TIDE], settings({ ask }));
+  assert.deepEqual(asked.map((question) => question.schema.name), ["source_analysis", "terminology_policy", "translation", "critique", "final_review"]);
+  assert.ok(user(asked[4]!).includes(`LOCALIZED CANDIDATE JSON\n${json(DRAFT)}`), "the draft, unrevised");
+  assert.deepEqual(result.candidate, DRAFT);
+});
+
+test("a rejected pass is followed by another on the revised text, until a review accepts", async () => {
+  const { asked, ask } = scripted(ANALYSIS, POLICY, DRAFT, critique(true), FIRST, review(false), critique(true), SECOND, review(true));
+  const run = new DocumentRun();
+  const result = await localize(TIDE, [TIDE], settings({ ask }), { run });
+  assert.equal(asked.length, 9);
+  assert.ok(user(asked[6]!).includes(`TRANSLATED CANDIDATE JSON\n${json(prose(FIRST))}`), "pass 2's critic reads pass 1's revision");
+  assert.ok(user(asked[7]!).includes(`TRANSLATED CANDIDATE JSON\n${json(prose(FIRST))}`), "and so does pass 2's revision");
+  assert.deepEqual(result.candidate, prose(SECOND));
+  assert.equal(result.passes, 2);
+  assert.deepEqual(run.stages.slice(6).map(stageName), ["pass-2-critique", "pass-2-revise", "pass-2-final_review"]);
+});
+
+test(`still rejected after pass ${MAX_REVISION_PASSES}, the document fails with the reviewer's residual issues`, async () => {
+  assert.equal(MAX_REVISION_PASSES, 2, "the old engine's _max_revision_passes");
+  const { asked, ask } = scripted(ANALYSIS, POLICY, DRAFT, critique(true), FIRST, review(false), critique(false), review(false), review(true));
+  await assert.rejects(localize(TIDE, [TIDE], settings({ ask })), (error: unknown) => {
+    assert.ok(error instanceof RejectedError);
+    assert.equal(error.passes, 2);
+    assert.deepEqual(error.review.residual_issues, ['"E isso deveria" still copies the English movement (punctuation conventions)']);
+    assert.match(error.message, /rejected the translation after 2 of 2 passes; its residual issues:\n {2}- "E isso deveria" still copies/);
+    return true;
+  });
+  assert.equal(asked.length, 8, "no third pass");
+});
+
+test("a review that accepts with residual issues has not accepted", async () => {
+  const { ask } = scripted(ANALYSIS, POLICY, DRAFT, critique(false), review(true, ["the caption is still English"]), critique(false), review(true));
+  const result = await localize(TIDE, [TIDE], settings({ ask }));
+  assert.equal(result.passes, 2);
+  assert.equal(accepted(review(true, ["x"])), false);
+  assert.equal(accepted({ ...review(true), publish_ready: false }), false);
+});
+
+test("an answer that breaks its stage's contract is repaired once, and fails the document the second time", async () => {
+  const broken = { ...critique(false), needs_refinement: "no" };
+  const { asked, ask } = scripted(ANALYSIS, POLICY, DRAFT, broken, broken);
+  const run = new DocumentRun();
+  await assert.rejects(localize(TIDE, [TIDE], settings({ ask }), { run }), (error: unknown) => {
+    assert.ok(error instanceof CheckError);
+    assert.deepEqual(error.findings, ['Field "needs_refinement" must be a boolean, and is a string']);
+    return true;
+  });
+  assert.equal(asked.length, 5);
+  assert.match(asked[4]!.messages[3]!.content, /^DETERMINISTIC VALIDATION FINDINGS\n[\s\S]*- Field "needs_refinement" must be a boolean/);
+  assert.deepEqual(run.stages.at(-1)!.findings, ['Field "needs_refinement" must be a boolean, and is a string']);
+  assert.equal(run.stages.at(-1)!.usages.length, 2);
+});
+
+test("a revision is held to the same deterministic checks as the draft, with its one repair", async () => {
+  const dashed = revised("A maré enche duas vezes por dia — mais ou menos.\n\nE isso deveria soar familiar.");
+  const { asked, ask } = scripted(ANALYSIS, POLICY, DRAFT, critique(true), dashed, FIRST, review(true));
+  const run = new DocumentRun();
+  const result = await localize(TIDE, [TIDE], settings({ ask }), { run });
+  assert.match(asked[5]!.messages[3]!.content, /- Translation changed parenthetical asides/);
+  assert.deepEqual(result.candidate, prose(FIRST));
+  assert.equal(run.stages[4]!.repaired.length, 1);
+});
+
+test("the owner's revision: his comments reach the revise stage first, then critique and final review, and every stage sees them", async () => {
+  const comments = readComments(
+    "<!-- reef comment 4 · open · Daniel Cavalli · 2026-10-05T14:02Z · line 1\n> sobe\nPrefiro \"enche\".\n-->\n" +
+      "<!-- reef comment 5 · open · Daniel Cavalli · 2026-10-05T14:03Z · line 3\n> Deveria\nIsso está certo?\n-->",
+  );
+  const owner = { current: DRAFT, comments };
+  const answered = { ...FIRST, comments: [{ id: 4, addressed: true, note: '"sobe" virou "enche".' }, { id: 5, addressed: false, note: "Uma pergunta." }] };
+  const { asked, ask } = scripted(ANALYSIS, POLICY, answered, critique(false), review(true));
+  const run = new DocumentRun();
+  const result = await localize(TIDE, [TIDE], settings({ ask }), { owner, run });
+
+  assert.deepEqual(asked.map((question) => question.schema.name), ["source_analysis", "terminology_policy", "owner_revision", "critique", "final_review"]);
+  const revise = asked[2]!;
+  assert.equal(revise.model, "gpt-5.6-sol");
+  assert.match(system(revise), /\nREVISE\nRewrite the translated candidate using the source artifact and critique\.[\s\S]*\nOWNER REVISION\nThe owner read the translation in TRANSLATED CANDIDATE JSON/);
+  assert.ok(user(revise).includes(`TRANSLATED CANDIDATE JSON\n${json(DRAFT)}`), "the translation as it stands is the candidate");
+  for (const question of asked) {
+    assert.ok(user(question).includes('OWNER REVISION INSTRUCTIONS\nComment 4, line 1\nQuoted passage:\n> sobe\nDaniel Cavalli wrote:\nPrefiro "enche".'), `${question.schema.name} sees the comments`);
+  }
+  assert.ok(user(asked[3]!).includes(`TRANSLATED CANDIDATE JSON\n${json(prose(FIRST))}`), "the critic reads the owner's revision");
+  assert.deepEqual(result.handled.map(({ comment, addressed }) => [comment.id, addressed]), [[4, true], [5, false]]);
+  assert.deepEqual(result.candidate, prose(FIRST));
+  assert.deepEqual(run.stages.map(stageName), ["source_analysis", "terminology_policy", "revise-owner", "pass-1-critique", "pass-1-final_review"]);
+});
+
+test("a CV goes through the same stages with its own prompts, and its revision is checked against its shape", async () => {
+  const cv: CvDocument = { kind: "cv", file: "cv_data.yaml", lang: "en-us", target: "pt-br", translation: "cv_data.pt-br.yaml", digest: "c".repeat(64), data: { name: "Daniel", tagline: "Engineer", contact: { email: "d@example.com" } } };
+  const draft = { name: "Daniel", tagline: "Engenheiro", contact: { email: "d@example.com" } };
+  const policy = { ...POLICY, education_degree_localization_policy: { decision: "localize_equivalent", apply_consistently: true, rule: "r", exceptions: [] } };
+  const report = { applied_findings: [{ finding_id: "finding-1", field_path: "tagline", change_summary: "c" }], declined_findings: [], protected_field_exceptions: [] };
+  const { asked, ask } = scripted(ANALYSIS, policy, draft, critique(true), { revised_cv: { ...draft, tagline: "Engenheiro de ML" }, revision_report: report }, review(true));
+  const result = await localize(cv, [cv], settings({ ask }));
+  assert.deepEqual(asked.map((question) => question.schema.name), ["source_analysis", "terminology_policy", "cv_translation", "critique", "cv_revision", "final_review"]);
+  assert.match(system(asked[0]!), /You are preparing a localized translation for a structured CV artifact\./);
+  assert.match(system(asked[4]!), /Rewrite the translated CV candidate using the source CV and critique\./);
+  assert.ok(user(asked[2]!).includes('"education_degree_localization_policy": {'));
+  assert.deepEqual(result.candidate, { ...draft, tagline: "Engenheiro de ML" });
 });

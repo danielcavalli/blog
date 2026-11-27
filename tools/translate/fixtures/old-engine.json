@@ -1,0 +1,1084 @@
+{
+  "about": "The old engine's v2 stage prompts for this post: rendered at 2d9a250 (the wording in use), and the headings of the same templates at 8c6735a. Made by old_engine.py, beside this file.",
+  "post": {
+    "file": "posts/tide.md",
+    "title": "The tide (a note)",
+    "excerpt": "Why the tide matters.",
+    "tags": [
+      "sea",
+      "moon"
+    ],
+    "body": "The tide comes in twice a day (more or less), as [the wave post](https://example.com/waves) explains.\n\nIf any of this sounds familiar, it should."
+  },
+  "candidate": {
+    "title": "A maré (uma nota)",
+    "excerpt": "Por que a maré importa.",
+    "tags": [
+      "mar",
+      "lua"
+    ],
+    "content": "A maré enche duas vezes por dia (mais ou menos), como [o post das ondas](https://example.com/waves) explica.\n\nSe algo disso soa familiar, deveria."
+  },
+  "payloads": {
+    "source_analysis": {
+      "author_voice_summary": "First person, dry, impatient with hype; argues by historical analogy.",
+      "tone": "wry and urgent",
+      "register": "personal technical-editorial",
+      "sentence_rhythm": [
+        "short declaratives after long setups"
+      ],
+      "connective_tissue": [
+        "But",
+        "So",
+        "Which is to say"
+      ],
+      "rhetorical_moves": [
+        "the nail-maker analogy carried to the present"
+      ],
+      "humor_signals": [
+        "understatement"
+      ],
+      "stance_markers": [
+        "I think",
+        "it should"
+      ],
+      "must_preserve": [
+        "the closing warning"
+      ]
+    },
+    "terminology_policy": {
+      "keep_english": [
+        "prompt"
+      ],
+      "localize": [
+        "machine operators"
+      ],
+      "context_sensitive": [
+        "agent"
+      ],
+      "do_not_translate": [
+        "Claude Code"
+      ],
+      "resolved_decisions": [
+        {
+          "source_term": "AI Platform",
+          "approved_rendering": "AI Platform",
+          "decision": "keep_english",
+          "scope": "artifact-wide",
+          "applies_to": [
+            "title",
+            "body"
+          ],
+          "notes": "a product name"
+        }
+      ],
+      "consistency_rules": [
+        "one rendering of agent across title, tags and body"
+      ],
+      "rationale_notes": [
+        "Brazilian engineers say prompt"
+      ]
+    },
+    "critique": {
+      "score": 81.5,
+      "feedback": "Two calques remain.",
+      "needs_refinement": true,
+      "dimension_scores": {
+        "accuracy_completeness": 90.5,
+        "terminology_entities": 88.5,
+        "markdown_code_link_fidelity": 99.5,
+        "locale_naturalness": 70.5,
+        "borrowing_consistency": 85.5,
+        "rhetorical_structure": 80.5
+      },
+      "critical_errors": 0,
+      "major_core_errors": 1,
+      "confidence": 0.8,
+      "findings": [
+        {
+          "id": "finding-1",
+          "severity": "major",
+          "dimension": "locale_naturalness",
+          "source_span": "If any of this sounds familiar, it should.",
+          "target_span": "Se algo disso soa familiar, deveria.",
+          "description": "Calque of the English ellipsis.",
+          "fix_hint": "Rebuild the sentence."
+        }
+      ]
+    },
+    "revise": {
+      "applied_feedback": [
+        "finding-1: rebuilt the closing sentence"
+      ],
+      "declined_feedback": [
+        {
+          "finding_id": "finding-2",
+          "status": "declined",
+          "rationale": "the source says it"
+        }
+      ],
+      "rewrite_summary": [
+        "closing sentence rebuilt"
+      ],
+      "unresolved_risks": []
+    },
+    "final_review": {
+      "accept": true,
+      "publish_ready": true,
+      "confidence": 0.9,
+      "residual_issues": [],
+      "voice_score": 90.5,
+      "terminology_score": 92.5,
+      "locale_naturalness_score": 88.5
+    }
+  },
+  "rendered_2d9a250": {
+    "source_analysis": [
+      {
+        "heading": "SOURCE ANALYSIS",
+        "text": "Analyze the source artifact as authored writing, not as plain information.\n\nYour job is to extract what must survive localization:\n- tone and register\n- sentence rhythm and pacing\n- connective tissue between ideas\n- rhetorical moves\n- humor or irony signals\n- stance markers\n- stylistic signals that are essential to preserve in pt-br\n- places where the source can stay itself in pt-br only by changing sentence movement, punctuation, or connective structure"
+      },
+      {
+        "heading": "LOCALE DIRECTION",
+        "text": "- Source locale: en-us\n- Target locale: pt-br\n- Translation direction: en-us->pt-br"
+      },
+      {
+        "heading": "LOCALIZATION BRIEF",
+        "sha256": "be426b2ec3016f4f80ec106d42ae9ceb64dc825dcd65041cbad79b6292a75bf6",
+        "old_engine_appended": "\n\nNone"
+      },
+      {
+        "heading": "STYLE CONSTRAINTS",
+        "items": [
+          "Localize for Brazilian Portuguese readership; do not mirror English sentence order just because the meaning is recoverable.",
+          "Preserve the author's voice, argumentative pressure, caveats, humor, and connective logic instead of flattening them into generic explanatory prose.",
+          "Rewrite idioms, metaphors, and discourse moves idiomatically in PT-BR; preserve effect and meaning, not English imagery.",
+          "If a sentence sounds imported from English, rewrite it fully in natural Brazilian Portuguese instead of patching individual words.",
+          "Match the source's personal register and force; technical precision does not require making the author more formal, sober, or restrained.",
+          "Apply borrowing decisions artifact-wide. Do not oscillate between English and Portuguese renderings for the same concept without an explicit contextual reason.",
+          "Localize clause order and connective phrasing; preserve parentheses around asides and deliberate rhetorical punctuation.",
+          "Keep technical precision and implementation detail; do not add claims not present in the source.",
+          "Preserve markdown structure exactly, including headings, lists, tables, blockquotes, and protected spans."
+        ]
+      },
+      {
+        "heading": "BORROWING CONVENTIONS",
+        "items": [
+          "Treat English borrowings as a policy problem, not a token-by-token whim.",
+          "Keep established technical borrowings in English when that is what Brazilian technical readers expect.",
+          "Localize terms that are naturally written in Portuguese in serious Brazilian technical prose.",
+          "Keep product names, branded platforms, and unmistakable identifiers exactly as named in the source.",
+          "When a term is context-sensitive, decide once per artifact and apply the decision consistently."
+        ]
+      },
+      {
+        "heading": "PUNCTUATION CONVENTIONS",
+        "items": [
+          "Prefer PT-BR clause rhythm and punctuation over copied English pauses.",
+          "Use the travessão correctly when you need an inciso; do not substitute a hyphen for it.",
+          "Do not place a comma before the opening travessão in parenthetical structures.",
+          "Avoid overusing travessões when commas, parênteses, or sentence recasting would read more naturally.",
+          "Use commas according to Portuguese syntax and explanatory structure, not English pacing habits."
+        ]
+      },
+      {
+        "heading": "DISCOURSE CONVENTIONS",
+        "items": [
+          "Rebuild connective tissue in PT-BR instead of preserving English clause sequencing mechanically.",
+          "Let concessive, contrastive, and causal movement sound like authored Brazilian prose.",
+          "Prefer paragraph and sentence movement that a Brazilian technical writer would naturally publish.",
+          "Preserve the author's layered argument structure, not only the facts carried by each sentence."
+        ]
+      },
+      {
+        "heading": "REGISTER CONVENTIONS",
+        "items": [
+          "Use contemporary Brazilian technical-editorial prose, not bureaucratic officialese.",
+          "Keep the source's conviction, irritation, enthusiasm, and humor without adding hedges or explanations of jokes.",
+          "Preserve the author's restraint, confidence, and dry humor where present.",
+          "Do not neutralize strong opinions into generic informational language."
+        ]
+      },
+      {
+        "heading": "LOCALE REVIEW CHECKS",
+        "items": [
+          "Flag literal calques, especially when the wording sounds understandable but socially wrong in PT-BR.",
+          "Flag inconsistent English borrowings across title, headings, body, tags, and summary fields.",
+          "Flag imported English punctuation or clause movement that makes the prose feel translated.",
+          "Flag flattened rhetoric, lost connective texture, or disappearance of understated humor or soft disagreement.",
+          "Flag PT-BR that is grammatical but not publishable as native Brazilian technical writing."
+        ]
+      },
+      {
+        "heading": "AUTHORING CONTEXT (PRESERVE THE AUTHORED SOURCE)",
+        "sha256": "93218a2b2f41f2ce1efb3fb852ed45502ac85aa6809df44a10b5910e58da7617"
+      },
+      {
+        "heading": "GLOSSARY",
+        "items": [
+          "throughput => vazão",
+          "latency => latência",
+          "fine-tuning => ajuste fino",
+          "prompt engineering => engenharia de prompts",
+          "feature flag => feature flag",
+          "rollout => rollout",
+          "rollback => rollback",
+          "observability => observabilidade",
+          "dataset => conjunto de dados",
+          "cache invalidation => invalidação de cache",
+          "benchmark => benchmark",
+          "runbook => runbook"
+        ]
+      },
+      {
+        "heading": "DO_NOT_TRANSLATE_ENTITIES",
+        "items": [
+          "OpenCode",
+          "CUDA",
+          "Kubernetes",
+          "Docker",
+          "PostgreSQL",
+          "Redis",
+          "OpenAPI",
+          "RFC 9110",
+          "GitHub Actions",
+          "package.json",
+          "pyproject.toml",
+          "requirements.txt",
+          "README.md",
+          "/etc/nginx/nginx.conf"
+        ]
+      },
+      {
+        "heading": "SOURCE MARKDOWN",
+        "text": "The tide comes in twice a day (more or less), as [the wave post](https://example.com/waves) explains.\n\nIf any of this sounds familiar, it should."
+      },
+      {
+        "heading": "OUTPUT CONTRACT",
+        "text": "- Return exactly one JSON object.\n- Do not wrap in markdown fences."
+      },
+      {
+        "heading": "BEGIN_OUTPUT_JSON",
+        "text": "{\n  \"author_voice_summary\": \"string\",\n  \"tone\": \"string\",\n  \"register\": \"string\",\n  \"sentence_rhythm\": [\"string\"],\n  \"connective_tissue\": [\"string\"],\n  \"rhetorical_moves\": [\"string\"],\n  \"humor_signals\": [\"string\"],\n  \"stance_markers\": [\"string\"],\n  \"must_preserve\": [\"string\"]\n}"
+      },
+      {
+        "heading": "END_OUTPUT_JSON",
+        "text": ""
+      }
+    ],
+    "terminology_policy": [
+      {
+        "heading": "TERMINOLOGY POLICY",
+        "text": "Propose consistent terminology under the human localization guidance before drafting. Your proposals do not create binding rules or protected terms.\n\nPolicy requirements:\n- Decide which terms should remain in English, which should be localized, and which are context-sensitive in pt-br.\n- Prefer the term a native technical reader in pt-br would expect in serious editorial prose.\n- Apply the same decision consistently across title, excerpt, tags, headings, and body text.\n- Resolve ambiguous terms into artifact-level decisions, not only category lists.\n- If a term such as AI Platform is ambiguous in the source, glossary, or analysis context, include an explicit resolved decision for it.\n- If the artifact contains education credential or degree terminology, include explicit resolved decisions for those terms rather than leaving them implied.\n- Respect DO_NOT_TRANSLATE_ENTITIES exactly.\n- Preserve social correctness for Brazilian technical writing, not dictionary literalism.\n- Do not treat English borrowings as isolated token choices. Set a coherent artifact-wide policy that reflects the target language community."
+      },
+      {
+        "heading": "LOCALE DIRECTION",
+        "text": "- Source locale: en-us\n- Target locale: pt-br\n- Translation direction: en-us->pt-br"
+      },
+      {
+        "heading": "LOCALIZATION BRIEF",
+        "sha256": "be426b2ec3016f4f80ec106d42ae9ceb64dc825dcd65041cbad79b6292a75bf6",
+        "old_engine_appended": "\n\nNone"
+      },
+      {
+        "heading": "STYLE CONSTRAINTS",
+        "items": [
+          "Localize for Brazilian Portuguese readership; do not mirror English sentence order just because the meaning is recoverable.",
+          "Preserve the author's voice, argumentative pressure, caveats, humor, and connective logic instead of flattening them into generic explanatory prose.",
+          "Rewrite idioms, metaphors, and discourse moves idiomatically in PT-BR; preserve effect and meaning, not English imagery.",
+          "If a sentence sounds imported from English, rewrite it fully in natural Brazilian Portuguese instead of patching individual words.",
+          "Match the source's personal register and force; technical precision does not require making the author more formal, sober, or restrained.",
+          "Apply borrowing decisions artifact-wide. Do not oscillate between English and Portuguese renderings for the same concept without an explicit contextual reason.",
+          "Localize clause order and connective phrasing; preserve parentheses around asides and deliberate rhetorical punctuation.",
+          "Keep technical precision and implementation detail; do not add claims not present in the source.",
+          "Preserve markdown structure exactly, including headings, lists, tables, blockquotes, and protected spans."
+        ]
+      },
+      {
+        "heading": "BORROWING CONVENTIONS",
+        "items": [
+          "Treat English borrowings as a policy problem, not a token-by-token whim.",
+          "Keep established technical borrowings in English when that is what Brazilian technical readers expect.",
+          "Localize terms that are naturally written in Portuguese in serious Brazilian technical prose.",
+          "Keep product names, branded platforms, and unmistakable identifiers exactly as named in the source.",
+          "When a term is context-sensitive, decide once per artifact and apply the decision consistently."
+        ]
+      },
+      {
+        "heading": "PUNCTUATION CONVENTIONS",
+        "items": [
+          "Prefer PT-BR clause rhythm and punctuation over copied English pauses.",
+          "Use the travessão correctly when you need an inciso; do not substitute a hyphen for it.",
+          "Do not place a comma before the opening travessão in parenthetical structures.",
+          "Avoid overusing travessões when commas, parênteses, or sentence recasting would read more naturally.",
+          "Use commas according to Portuguese syntax and explanatory structure, not English pacing habits."
+        ]
+      },
+      {
+        "heading": "DISCOURSE CONVENTIONS",
+        "items": [
+          "Rebuild connective tissue in PT-BR instead of preserving English clause sequencing mechanically.",
+          "Let concessive, contrastive, and causal movement sound like authored Brazilian prose.",
+          "Prefer paragraph and sentence movement that a Brazilian technical writer would naturally publish.",
+          "Preserve the author's layered argument structure, not only the facts carried by each sentence."
+        ]
+      },
+      {
+        "heading": "REGISTER CONVENTIONS",
+        "items": [
+          "Use contemporary Brazilian technical-editorial prose, not bureaucratic officialese.",
+          "Keep the source's conviction, irritation, enthusiasm, and humor without adding hedges or explanations of jokes.",
+          "Preserve the author's restraint, confidence, and dry humor where present.",
+          "Do not neutralize strong opinions into generic informational language."
+        ]
+      },
+      {
+        "heading": "LOCALE REVIEW CHECKS",
+        "items": [
+          "Flag literal calques, especially when the wording sounds understandable but socially wrong in PT-BR.",
+          "Flag inconsistent English borrowings across title, headings, body, tags, and summary fields.",
+          "Flag imported English punctuation or clause movement that makes the prose feel translated.",
+          "Flag flattened rhetoric, lost connective texture, or disappearance of understated humor or soft disagreement.",
+          "Flag PT-BR that is grammatical but not publishable as native Brazilian technical writing."
+        ]
+      },
+      {
+        "heading": "SOURCE ANALYSIS JSON (MODEL ADVICE)",
+        "text": "{\n  \"author_voice_summary\": \"First person, dry, impatient with hype; argues by historical analogy.\",\n  \"connective_tissue\": [\n    \"But\",\n    \"So\",\n    \"Which is to say\"\n  ],\n  \"humor_signals\": [\n    \"understatement\"\n  ],\n  \"must_preserve\": [\n    \"the closing warning\"\n  ],\n  \"register\": \"personal technical-editorial\",\n  \"rhetorical_moves\": [\n    \"the nail-maker analogy carried to the present\"\n  ],\n  \"sentence_rhythm\": [\n    \"short declaratives after long setups\"\n  ],\n  \"stance_markers\": [\n    \"I think\",\n    \"it should\"\n  ],\n  \"tone\": \"wry and urgent\"\n}"
+      },
+      {
+        "heading": "GLOSSARY",
+        "items": [
+          "throughput => vazão",
+          "latency => latência",
+          "fine-tuning => ajuste fino",
+          "prompt engineering => engenharia de prompts",
+          "feature flag => feature flag",
+          "rollout => rollout",
+          "rollback => rollback",
+          "observability => observabilidade",
+          "dataset => conjunto de dados",
+          "cache invalidation => invalidação de cache",
+          "benchmark => benchmark",
+          "runbook => runbook"
+        ]
+      },
+      {
+        "heading": "DO_NOT_TRANSLATE_ENTITIES",
+        "items": [
+          "OpenCode",
+          "CUDA",
+          "Kubernetes",
+          "Docker",
+          "PostgreSQL",
+          "Redis",
+          "OpenAPI",
+          "RFC 9110",
+          "GitHub Actions",
+          "package.json",
+          "pyproject.toml",
+          "requirements.txt",
+          "README.md",
+          "/etc/nginx/nginx.conf"
+        ]
+      },
+      {
+        "heading": "SOURCE MARKDOWN",
+        "text": "The tide comes in twice a day (more or less), as [the wave post](https://example.com/waves) explains.\n\nIf any of this sounds familiar, it should."
+      },
+      {
+        "heading": "OUTPUT CONTRACT",
+        "text": "- Return exactly one JSON object.\n- Do not wrap in markdown fences."
+      },
+      {
+        "heading": "BEGIN_OUTPUT_JSON",
+        "text": "{\n  \"keep_english\": [\"string\"],\n  \"localize\": [\"string\"],\n  \"context_sensitive\": [\"string\"],\n  \"do_not_translate\": [\"string\"],\n  \"resolved_decisions\": [\n    {\n      \"source_term\": \"AI Platform\",\n      \"approved_rendering\": \"AI Platform\",\n      \"decision\": \"keep_english\",\n      \"scope\": \"artifact-wide\",\n      \"applies_to\": [\"title\", \"excerpt\", \"tags\", \"body\"],\n      \"notes\": \"string\"\n    }\n  ],\n  \"consistency_rules\": [\"string\"],\n  \"rationale_notes\": [\"string\"]\n}"
+      },
+      {
+        "heading": "END_OUTPUT_JSON",
+        "text": ""
+      }
+    ],
+    "translate": [
+      {
+        "heading": "TRANSLATE",
+        "text": "Produce a localized draft that preserves the author's voice, argumentative structure, and rhetorical layering while reading as native pt-br prose.\n\nExecution rules:\n- Translate from en-us to pt-br.\n- Preserve markdown structure and semantics exactly.\n- Keep heading levels, list nesting, tables, blockquotes, and callout boundaries unchanged.\n- Keep markdown link destinations byte-for-byte unchanged and preserve the link text intent.\n- Keep inline code, fenced code, placeholders, XML-like tags, citation handles, bibliography keys, URLs, version strings, and file paths unchanged where they are protected.\n- Do not translate items in DO_NOT_TRANSLATE_ENTITIES.\n- Rewrite idioms, metaphors, sentence rhythm, connective phrasing, and clause order by meaning when a literal transfer would sound imported or translated.\n- Preserve authorial voice without preserving English sentence shape. Rebuild the sentence if that is what pt-br needs.\n- Use terms consistently according to the human locale guidance and glossary. Resolve terminology in context using the locale references, preserving native register and source meaning.\n- Normalize punctuation and paragraph flow to the target locale instead of reproducing source-language pacing.\n- Preserve specificity, nuance, and caveats. Do not flatten strong opinions into generic neutral prose.\n- Keep the JSON contract exact and return only the final artifact JSON."
+      },
+      {
+        "heading": "LOCALIZATION BRIEF",
+        "sha256": "be426b2ec3016f4f80ec106d42ae9ceb64dc825dcd65041cbad79b6292a75bf6",
+        "old_engine_appended": "\n\nNone"
+      },
+      {
+        "heading": "STYLE CONSTRAINTS",
+        "items": [
+          "Localize for Brazilian Portuguese readership; do not mirror English sentence order just because the meaning is recoverable.",
+          "Preserve the author's voice, argumentative pressure, caveats, humor, and connective logic instead of flattening them into generic explanatory prose.",
+          "Rewrite idioms, metaphors, and discourse moves idiomatically in PT-BR; preserve effect and meaning, not English imagery.",
+          "If a sentence sounds imported from English, rewrite it fully in natural Brazilian Portuguese instead of patching individual words.",
+          "Match the source's personal register and force; technical precision does not require making the author more formal, sober, or restrained.",
+          "Apply borrowing decisions artifact-wide. Do not oscillate between English and Portuguese renderings for the same concept without an explicit contextual reason.",
+          "Localize clause order and connective phrasing; preserve parentheses around asides and deliberate rhetorical punctuation.",
+          "Keep technical precision and implementation detail; do not add claims not present in the source.",
+          "Preserve markdown structure exactly, including headings, lists, tables, blockquotes, and protected spans."
+        ]
+      },
+      {
+        "heading": "BORROWING CONVENTIONS",
+        "items": [
+          "Treat English borrowings as a policy problem, not a token-by-token whim.",
+          "Keep established technical borrowings in English when that is what Brazilian technical readers expect.",
+          "Localize terms that are naturally written in Portuguese in serious Brazilian technical prose.",
+          "Keep product names, branded platforms, and unmistakable identifiers exactly as named in the source.",
+          "When a term is context-sensitive, decide once per artifact and apply the decision consistently."
+        ]
+      },
+      {
+        "heading": "PUNCTUATION CONVENTIONS",
+        "items": [
+          "Prefer PT-BR clause rhythm and punctuation over copied English pauses.",
+          "Use the travessão correctly when you need an inciso; do not substitute a hyphen for it.",
+          "Do not place a comma before the opening travessão in parenthetical structures.",
+          "Avoid overusing travessões when commas, parênteses, or sentence recasting would read more naturally.",
+          "Use commas according to Portuguese syntax and explanatory structure, not English pacing habits."
+        ]
+      },
+      {
+        "heading": "DISCOURSE CONVENTIONS",
+        "items": [
+          "Rebuild connective tissue in PT-BR instead of preserving English clause sequencing mechanically.",
+          "Let concessive, contrastive, and causal movement sound like authored Brazilian prose.",
+          "Prefer paragraph and sentence movement that a Brazilian technical writer would naturally publish.",
+          "Preserve the author's layered argument structure, not only the facts carried by each sentence."
+        ]
+      },
+      {
+        "heading": "REGISTER CONVENTIONS",
+        "items": [
+          "Use contemporary Brazilian technical-editorial prose, not bureaucratic officialese.",
+          "Keep the source's conviction, irritation, enthusiasm, and humor without adding hedges or explanations of jokes.",
+          "Preserve the author's restraint, confidence, and dry humor where present.",
+          "Do not neutralize strong opinions into generic informational language."
+        ]
+      },
+      {
+        "heading": "WRITING STYLE BRIEF",
+        "sha256": "93218a2b2f41f2ce1efb3fb852ed45502ac85aa6809df44a10b5910e58da7617"
+      },
+      {
+        "heading": "GLOSSARY",
+        "items": [
+          "throughput => vazão",
+          "latency => latência",
+          "fine-tuning => ajuste fino",
+          "prompt engineering => engenharia de prompts",
+          "feature flag => feature flag",
+          "rollout => rollout",
+          "rollback => rollback",
+          "observability => observabilidade",
+          "dataset => conjunto de dados",
+          "cache invalidation => invalidação de cache",
+          "benchmark => benchmark",
+          "runbook => runbook"
+        ]
+      },
+      {
+        "heading": "DO_NOT_TRANSLATE_ENTITIES",
+        "items": [
+          "OpenCode",
+          "CUDA",
+          "Kubernetes",
+          "Docker",
+          "PostgreSQL",
+          "Redis",
+          "OpenAPI",
+          "RFC 9110",
+          "GitHub Actions",
+          "package.json",
+          "pyproject.toml",
+          "requirements.txt",
+          "README.md",
+          "/etc/nginx/nginx.conf"
+        ]
+      },
+      {
+        "heading": "LOCALE REVIEW CHECKS",
+        "items": [
+          "Flag literal calques, especially when the wording sounds understandable but socially wrong in PT-BR.",
+          "Flag inconsistent English borrowings across title, headings, body, tags, and summary fields.",
+          "Flag imported English punctuation or clause movement that makes the prose feel translated.",
+          "Flag flattened rhetoric, lost connective texture, or disappearance of understated humor or soft disagreement.",
+          "Flag PT-BR that is grammatical but not publishable as native Brazilian technical writing."
+        ]
+      },
+      {
+        "heading": "SOURCE MARKDOWN",
+        "text": "The tide comes in twice a day (more or less), as [the wave post](https://example.com/waves) explains.\n\nIf any of this sounds familiar, it should."
+      },
+      {
+        "heading": "OUTPUT CONTRACT",
+        "text": "- Return exactly one JSON object.\n- Do not wrap in markdown fences.\n- Include all required keys with correct primitive types."
+      },
+      {
+        "heading": "BEGIN_OUTPUT_JSON",
+        "text": "{\n  \"title\": \"string\",\n  \"excerpt\": \"string\",\n  \"tags\": [\"string\"],\n  \"content\": \"string\"\n}"
+      },
+      {
+        "heading": "END_OUTPUT_JSON",
+        "text": ""
+      }
+    ],
+    "critique": [
+      {
+        "heading": "CRITIQUE",
+        "text": "Evaluate the translated candidate as an editor, not as a retranslator.\n\nWhat to inspect:\n- factual and technical accuracy against the source\n- preservation of voice, intent, pacing, and rhetorical layering\n- terminology consistency and borrowing/localization choices\n- punctuation, clause movement, and connective texture in pt-br\n- markdown, links, code, placeholders, citations, and entity protection\n- fluency in pt-br, especially places that still sound like carried-over source syntax\n\nFindings policy:\n- Ground each finding in the source or a specific human localization rule. Cite that rule and the candidate passage; a generated terminology preference is not a violation of human policy.\n- Judge the candidate's prose independently of generated analysis and terminology proposals. In particular, replacing a consistent, conventional borrowing with a more formal synonym is not a quality fix by itself.\n- Read the candidate as target-locale prose before comparing it with the source. Quote awkward phrasing that needs rewriting; grammatical correctness alone does not establish native voice.\n- Diagnose semantic differences at passage level. A change of grammatical subject, clause order, sentence boundaries, punctuation, or metaphor is not an error when meaning and rhetorical effect survive.\n- For accuracy findings, explain which claim, qualification, actor, or relationship changed. Do not demand English sentence construction or identical surface wording as evidence of fidelity.\n- Report only concrete issues that can drive revision.\n- Make findings span-based: quote the relevant source or translated span inside each finding so the editor can locate the defect without guessing.\n- Name the defect class plainly: mistranslation, omission, terminology drift, calque, tone flattening, broken protection rule, formatting drift, or similar.\n- If no material defect exists, say so briefly and set needs_refinement to false.\n- If any protected token or protected entity changed, set needs_refinement to true."
+      },
+      {
+        "heading": "LOCALE DIRECTION",
+        "text": "- Source locale: en-us\n- Target locale: pt-br\n- Translation direction: en-us->pt-br"
+      },
+      {
+        "heading": "LOCALIZATION BRIEF",
+        "sha256": "be426b2ec3016f4f80ec106d42ae9ceb64dc825dcd65041cbad79b6292a75bf6",
+        "old_engine_appended": "\n\nNone"
+      },
+      {
+        "heading": "SOURCE ANALYSIS JSON (MODEL ADVICE)",
+        "text": "{\n  \"author_voice_summary\": \"First person, dry, impatient with hype; argues by historical analogy.\",\n  \"connective_tissue\": [\n    \"But\",\n    \"So\",\n    \"Which is to say\"\n  ],\n  \"humor_signals\": [\n    \"understatement\"\n  ],\n  \"must_preserve\": [\n    \"the closing warning\"\n  ],\n  \"register\": \"personal technical-editorial\",\n  \"rhetorical_moves\": [\n    \"the nail-maker analogy carried to the present\"\n  ],\n  \"sentence_rhythm\": [\n    \"short declaratives after long setups\"\n  ],\n  \"stance_markers\": [\n    \"I think\",\n    \"it should\"\n  ],\n  \"tone\": \"wry and urgent\"\n}"
+      },
+      {
+        "heading": "TERMINOLOGY POLICY JSON (MODEL PROPOSAL)",
+        "text": "{\n  \"consistency_rules\": [\n    \"one rendering of agent across title, tags and body\"\n  ],\n  \"context_sensitive\": [\n    \"agent\"\n  ],\n  \"do_not_translate\": [\n    \"Claude Code\"\n  ],\n  \"education_degree_localization_policy\": null,\n  \"keep_english\": [\n    \"prompt\"\n  ],\n  \"localize\": [\n    \"machine operators\"\n  ],\n  \"rationale_notes\": [\n    \"Brazilian engineers say prompt\"\n  ],\n  \"resolved_decisions\": [\n    {\n      \"applies_to\": [\n        \"title\",\n        \"body\"\n      ],\n      \"decision_type\": \"keep_english\",\n      \"preferred_rendering\": \"AI Platform\",\n      \"rationale\": \"a product name\",\n      \"scope\": \"artifact-wide\",\n      \"source_term\": \"AI Platform\"\n    }\n  ]\n}"
+      },
+      {
+        "heading": "STYLE CONSTRAINTS",
+        "items": [
+          "Localize for Brazilian Portuguese readership; do not mirror English sentence order just because the meaning is recoverable.",
+          "Preserve the author's voice, argumentative pressure, caveats, humor, and connective logic instead of flattening them into generic explanatory prose.",
+          "Rewrite idioms, metaphors, and discourse moves idiomatically in PT-BR; preserve effect and meaning, not English imagery.",
+          "If a sentence sounds imported from English, rewrite it fully in natural Brazilian Portuguese instead of patching individual words.",
+          "Match the source's personal register and force; technical precision does not require making the author more formal, sober, or restrained.",
+          "Apply borrowing decisions artifact-wide. Do not oscillate between English and Portuguese renderings for the same concept without an explicit contextual reason.",
+          "Localize clause order and connective phrasing; preserve parentheses around asides and deliberate rhetorical punctuation.",
+          "Keep technical precision and implementation detail; do not add claims not present in the source.",
+          "Preserve markdown structure exactly, including headings, lists, tables, blockquotes, and protected spans."
+        ]
+      },
+      {
+        "heading": "BORROWING CONVENTIONS",
+        "items": [
+          "Treat English borrowings as a policy problem, not a token-by-token whim.",
+          "Keep established technical borrowings in English when that is what Brazilian technical readers expect.",
+          "Localize terms that are naturally written in Portuguese in serious Brazilian technical prose.",
+          "Keep product names, branded platforms, and unmistakable identifiers exactly as named in the source.",
+          "When a term is context-sensitive, decide once per artifact and apply the decision consistently."
+        ]
+      },
+      {
+        "heading": "PUNCTUATION CONVENTIONS",
+        "items": [
+          "Prefer PT-BR clause rhythm and punctuation over copied English pauses.",
+          "Use the travessão correctly when you need an inciso; do not substitute a hyphen for it.",
+          "Do not place a comma before the opening travessão in parenthetical structures.",
+          "Avoid overusing travessões when commas, parênteses, or sentence recasting would read more naturally.",
+          "Use commas according to Portuguese syntax and explanatory structure, not English pacing habits."
+        ]
+      },
+      {
+        "heading": "DISCOURSE CONVENTIONS",
+        "items": [
+          "Rebuild connective tissue in PT-BR instead of preserving English clause sequencing mechanically.",
+          "Let concessive, contrastive, and causal movement sound like authored Brazilian prose.",
+          "Prefer paragraph and sentence movement that a Brazilian technical writer would naturally publish.",
+          "Preserve the author's layered argument structure, not only the facts carried by each sentence."
+        ]
+      },
+      {
+        "heading": "REGISTER CONVENTIONS",
+        "items": [
+          "Use contemporary Brazilian technical-editorial prose, not bureaucratic officialese.",
+          "Keep the source's conviction, irritation, enthusiasm, and humor without adding hedges or explanations of jokes.",
+          "Preserve the author's restraint, confidence, and dry humor where present.",
+          "Do not neutralize strong opinions into generic informational language."
+        ]
+      },
+      {
+        "heading": "WRITING STYLE BRIEF",
+        "sha256": "93218a2b2f41f2ce1efb3fb852ed45502ac85aa6809df44a10b5910e58da7617"
+      },
+      {
+        "heading": "GLOSSARY",
+        "items": [
+          "throughput => vazão",
+          "latency => latência",
+          "fine-tuning => ajuste fino",
+          "prompt engineering => engenharia de prompts",
+          "feature flag => feature flag",
+          "rollout => rollout",
+          "rollback => rollback",
+          "observability => observabilidade",
+          "dataset => conjunto de dados",
+          "cache invalidation => invalidação de cache",
+          "benchmark => benchmark",
+          "runbook => runbook"
+        ]
+      },
+      {
+        "heading": "DO_NOT_TRANSLATE_ENTITIES",
+        "items": [
+          "OpenCode",
+          "CUDA",
+          "Kubernetes",
+          "Docker",
+          "PostgreSQL",
+          "Redis",
+          "OpenAPI",
+          "RFC 9110",
+          "GitHub Actions",
+          "package.json",
+          "pyproject.toml",
+          "requirements.txt",
+          "README.md",
+          "/etc/nginx/nginx.conf"
+        ]
+      },
+      {
+        "heading": "LOCALE REVIEW CHECKS",
+        "items": [
+          "Flag literal calques, especially when the wording sounds understandable but socially wrong in PT-BR.",
+          "Flag inconsistent English borrowings across title, headings, body, tags, and summary fields.",
+          "Flag imported English punctuation or clause movement that makes the prose feel translated.",
+          "Flag flattened rhetoric, lost connective texture, or disappearance of understated humor or soft disagreement.",
+          "Flag PT-BR that is grammatical but not publishable as native Brazilian technical writing."
+        ]
+      },
+      {
+        "heading": "SOURCE MARKDOWN",
+        "text": "The tide comes in twice a day (more or less), as [the wave post](https://example.com/waves) explains.\n\nIf any of this sounds familiar, it should."
+      },
+      {
+        "heading": "OUTPUT CONTRACT",
+        "text": "- Return exactly one JSON object.\n- Do not wrap in markdown fences.\n- score must be a number from 0 to 100.\n- dimension_scores must include at least: accuracy_completeness, terminology_entities, markdown_code_link_fidelity, locale_naturalness, borrowing_consistency, rhetorical_structure.\n- critical_errors and major_core_errors must be non-negative integers.\n- confidence must be a number from 0 to 1.\n- findings must be an array of objects with span-based diagnosis."
+      },
+      {
+        "heading": "BEGIN_OUTPUT_JSON",
+        "text": "{\n  \"score\": 0,\n  \"feedback\": \"string\",\n  \"needs_refinement\": true,\n  \"dimension_scores\": {\n    \"accuracy_completeness\": 0,\n    \"terminology_entities\": 0,\n    \"markdown_code_link_fidelity\": 0,\n    \"locale_naturalness\": 0,\n    \"borrowing_consistency\": 0,\n    \"rhetorical_structure\": 0\n  },\n  \"critical_errors\": 0,\n  \"major_core_errors\": 0,\n  \"confidence\": 1.0,\n  \"findings\": [\n    {\n      \"id\": \"finding-1\",\n      \"severity\": \"major\",\n      \"dimension\": \"accuracy_completeness\",\n      \"source_span\": \"string\",\n      \"target_span\": \"string\",\n      \"description\": \"string\",\n      \"fix_hint\": \"string\"\n    }\n  ]\n}"
+      },
+      {
+        "heading": "END_OUTPUT_JSON",
+        "text": ""
+      },
+      {
+        "heading": "TRANSLATED CANDIDATE JSON",
+        "text": "{\n  \"content\": \"A maré enche duas vezes por dia (mais ou menos), como [o post das ondas](https://example.com/waves) explica.\\n\\nSe algo disso soa familiar, deveria.\",\n  \"excerpt\": \"Por que a maré importa.\",\n  \"tags\": [\n    \"mar\",\n    \"lua\"\n  ],\n  \"title\": \"A maré (uma nota)\"\n}"
+      }
+    ],
+    "revise": [
+      {
+        "heading": "REVISE",
+        "text": "Rewrite the translated candidate using the source artifact and critique.\n\nRevision rules:\n- Localize the entire candidate against the source and the human locale brief. This pass is required even when critique says no refinement is needed.\n- Read each paragraph as target-language writing. Reconstruct any imported syntax, stiff abstraction, bureaucratic phrasing, or copied punctuation from the paragraph's meaning. A critic's silence or approval does not establish that a passage is correct.\n- Preserve passages that already satisfy the source and locale guidance. Fix justified critique findings, but do not limit your work to the critic's list.\n- Explain substantive locale-driven rewrites in the revision report, including improvements the critic missed. Do not make a glossary substitution stand in for a prose revision.\n- Treat critique as an editorial proposal. Decline a finding that misreads the source or demands source-language grammar at the expense of natural target-locale expression; explain the preserved meaning in declined_feedback.\n- Re-anchor disputed passages in the source rather than paraphrasing the draft loosely.\n- Preserve voice, rhetorical layering, and target-locale fluency while correcting accuracy or terminology defects.\n- When the draft sounds translated, rewrite the full sentence or paragraph instead of patching individual words.\n- Repair borrowing drift, punctuation drift, and connective drift so the result reads as authored pt-br prose.\n- Keep markdown structure unchanged.\n- Keep markdown links, URLs, inline code, fenced code, placeholders, citations, and DO_NOT_TRANSLATE_ENTITIES unchanged where protected.\n- If a critique request conflicts with a protection rule, keep the protected text unchanged and record the reason in declined_feedback.\n- applied_feedback should describe actual edits; declined_feedback records justified non-edits.\n- Keep source claims and protected material intact when declining a finding. Locale naturalness never permits changing a fact, an actor's responsibility, or the force of a qualification."
+      },
+      {
+        "heading": "LOCALE DIRECTION",
+        "text": "- Source locale: en-us\n- Target locale: pt-br\n- Translation direction: en-us->pt-br"
+      },
+      {
+        "heading": "LOCALIZATION BRIEF",
+        "sha256": "be426b2ec3016f4f80ec106d42ae9ceb64dc825dcd65041cbad79b6292a75bf6",
+        "old_engine_appended": "\n\nNone"
+      },
+      {
+        "heading": "SOURCE ANALYSIS JSON (MODEL ADVICE)",
+        "text": "{\n  \"author_voice_summary\": \"First person, dry, impatient with hype; argues by historical analogy.\",\n  \"connective_tissue\": [\n    \"But\",\n    \"So\",\n    \"Which is to say\"\n  ],\n  \"humor_signals\": [\n    \"understatement\"\n  ],\n  \"must_preserve\": [\n    \"the closing warning\"\n  ],\n  \"register\": \"personal technical-editorial\",\n  \"rhetorical_moves\": [\n    \"the nail-maker analogy carried to the present\"\n  ],\n  \"sentence_rhythm\": [\n    \"short declaratives after long setups\"\n  ],\n  \"stance_markers\": [\n    \"I think\",\n    \"it should\"\n  ],\n  \"tone\": \"wry and urgent\"\n}"
+      },
+      {
+        "heading": "TERMINOLOGY POLICY JSON (MODEL PROPOSAL)",
+        "text": "{\n  \"consistency_rules\": [\n    \"one rendering of agent across title, tags and body\"\n  ],\n  \"context_sensitive\": [\n    \"agent\"\n  ],\n  \"do_not_translate\": [\n    \"Claude Code\"\n  ],\n  \"education_degree_localization_policy\": null,\n  \"keep_english\": [\n    \"prompt\"\n  ],\n  \"localize\": [\n    \"machine operators\"\n  ],\n  \"rationale_notes\": [\n    \"Brazilian engineers say prompt\"\n  ],\n  \"resolved_decisions\": [\n    {\n      \"applies_to\": [\n        \"title\",\n        \"body\"\n      ],\n      \"decision_type\": \"keep_english\",\n      \"preferred_rendering\": \"AI Platform\",\n      \"rationale\": \"a product name\",\n      \"scope\": \"artifact-wide\",\n      \"source_term\": \"AI Platform\"\n    }\n  ]\n}"
+      },
+      {
+        "heading": "STYLE CONSTRAINTS",
+        "items": [
+          "Localize for Brazilian Portuguese readership; do not mirror English sentence order just because the meaning is recoverable.",
+          "Preserve the author's voice, argumentative pressure, caveats, humor, and connective logic instead of flattening them into generic explanatory prose.",
+          "Rewrite idioms, metaphors, and discourse moves idiomatically in PT-BR; preserve effect and meaning, not English imagery.",
+          "If a sentence sounds imported from English, rewrite it fully in natural Brazilian Portuguese instead of patching individual words.",
+          "Match the source's personal register and force; technical precision does not require making the author more formal, sober, or restrained.",
+          "Apply borrowing decisions artifact-wide. Do not oscillate between English and Portuguese renderings for the same concept without an explicit contextual reason.",
+          "Localize clause order and connective phrasing; preserve parentheses around asides and deliberate rhetorical punctuation.",
+          "Keep technical precision and implementation detail; do not add claims not present in the source.",
+          "Preserve markdown structure exactly, including headings, lists, tables, blockquotes, and protected spans."
+        ]
+      },
+      {
+        "heading": "BORROWING CONVENTIONS",
+        "items": [
+          "Treat English borrowings as a policy problem, not a token-by-token whim.",
+          "Keep established technical borrowings in English when that is what Brazilian technical readers expect.",
+          "Localize terms that are naturally written in Portuguese in serious Brazilian technical prose.",
+          "Keep product names, branded platforms, and unmistakable identifiers exactly as named in the source.",
+          "When a term is context-sensitive, decide once per artifact and apply the decision consistently."
+        ]
+      },
+      {
+        "heading": "PUNCTUATION CONVENTIONS",
+        "items": [
+          "Prefer PT-BR clause rhythm and punctuation over copied English pauses.",
+          "Use the travessão correctly when you need an inciso; do not substitute a hyphen for it.",
+          "Do not place a comma before the opening travessão in parenthetical structures.",
+          "Avoid overusing travessões when commas, parênteses, or sentence recasting would read more naturally.",
+          "Use commas according to Portuguese syntax and explanatory structure, not English pacing habits."
+        ]
+      },
+      {
+        "heading": "DISCOURSE CONVENTIONS",
+        "items": [
+          "Rebuild connective tissue in PT-BR instead of preserving English clause sequencing mechanically.",
+          "Let concessive, contrastive, and causal movement sound like authored Brazilian prose.",
+          "Prefer paragraph and sentence movement that a Brazilian technical writer would naturally publish.",
+          "Preserve the author's layered argument structure, not only the facts carried by each sentence."
+        ]
+      },
+      {
+        "heading": "REGISTER CONVENTIONS",
+        "items": [
+          "Use contemporary Brazilian technical-editorial prose, not bureaucratic officialese.",
+          "Keep the source's conviction, irritation, enthusiasm, and humor without adding hedges or explanations of jokes.",
+          "Preserve the author's restraint, confidence, and dry humor where present.",
+          "Do not neutralize strong opinions into generic informational language."
+        ]
+      },
+      {
+        "heading": "WRITING STYLE BRIEF",
+        "sha256": "93218a2b2f41f2ce1efb3fb852ed45502ac85aa6809df44a10b5910e58da7617"
+      },
+      {
+        "heading": "GLOSSARY",
+        "items": [
+          "throughput => vazão",
+          "latency => latência",
+          "fine-tuning => ajuste fino",
+          "prompt engineering => engenharia de prompts",
+          "feature flag => feature flag",
+          "rollout => rollout",
+          "rollback => rollback",
+          "observability => observabilidade",
+          "dataset => conjunto de dados",
+          "cache invalidation => invalidação de cache",
+          "benchmark => benchmark",
+          "runbook => runbook"
+        ]
+      },
+      {
+        "heading": "DO_NOT_TRANSLATE_ENTITIES",
+        "items": [
+          "OpenCode",
+          "CUDA",
+          "Kubernetes",
+          "Docker",
+          "PostgreSQL",
+          "Redis",
+          "OpenAPI",
+          "RFC 9110",
+          "GitHub Actions",
+          "package.json",
+          "pyproject.toml",
+          "requirements.txt",
+          "README.md",
+          "/etc/nginx/nginx.conf"
+        ]
+      },
+      {
+        "heading": "LOCALE REVIEW CHECKS",
+        "items": [
+          "Flag literal calques, especially when the wording sounds understandable but socially wrong in PT-BR.",
+          "Flag inconsistent English borrowings across title, headings, body, tags, and summary fields.",
+          "Flag imported English punctuation or clause movement that makes the prose feel translated.",
+          "Flag flattened rhetoric, lost connective texture, or disappearance of understated humor or soft disagreement.",
+          "Flag PT-BR that is grammatical but not publishable as native Brazilian technical writing."
+        ]
+      },
+      {
+        "heading": "SOURCE MARKDOWN",
+        "text": "The tide comes in twice a day (more or less), as [the wave post](https://example.com/waves) explains.\n\nIf any of this sounds familiar, it should."
+      },
+      {
+        "heading": "OUTPUT CONTRACT",
+        "text": "- Return exactly one JSON object.\n- Do not wrap in markdown fences."
+      },
+      {
+        "heading": "BEGIN_OUTPUT_JSON",
+        "text": "{\n  \"title\": \"string\",\n  \"excerpt\": \"string\",\n  \"tags\": [\"string\"],\n  \"content\": \"string\",\n  \"applied_feedback\": [\"string\"],\n  \"declined_feedback\": [{\"finding_id\": \"string\", \"status\": \"declined\", \"rationale\": \"string\"}],\n  \"rewrite_summary\": [\"string\"],\n  \"unresolved_risks\": [\"string\"]\n}"
+      },
+      {
+        "heading": "END_OUTPUT_JSON",
+        "text": ""
+      },
+      {
+        "heading": "TRANSLATED CANDIDATE JSON",
+        "text": "{\n  \"content\": \"A maré enche duas vezes por dia (mais ou menos), como [o post das ondas](https://example.com/waves) explica.\\n\\nSe algo disso soa familiar, deveria.\",\n  \"excerpt\": \"Por que a maré importa.\",\n  \"tags\": [\n    \"mar\",\n    \"lua\"\n  ],\n  \"title\": \"A maré (uma nota)\"\n}"
+      },
+      {
+        "heading": "CRITIQUE JSON",
+        "text": "{\n  \"confidence\": 0.8,\n  \"critical_errors\": 0,\n  \"dimension_scores\": {\n    \"accuracy_completeness\": 90.5,\n    \"borrowing_consistency\": 85.5,\n    \"locale_naturalness\": 70.5,\n    \"markdown_code_link_fidelity\": 99.5,\n    \"rhetorical_structure\": 80.5,\n    \"terminology_entities\": 88.5\n  },\n  \"feedback\": \"Two calques remain.\",\n  \"findings\": [\n    {\n      \"category\": \"locale_naturalness\",\n      \"description\": \"Calque of the English ellipsis.\",\n      \"finding_id\": \"finding-1\",\n      \"rewrite_instruction\": \"Rebuild the sentence.\",\n      \"severity\": \"major\",\n      \"source_span\": \"If any of this sounds familiar, it should.\",\n      \"target_span\": \"Se algo disso soa familiar, deveria.\"\n    }\n  ],\n  \"major_core_errors\": 1,\n  \"needs_refinement\": true,\n  \"score\": 81.5\n}"
+      }
+    ],
+    "final_review": [
+      {
+        "heading": "FINAL REVIEW",
+        "text": "Review the localized article directly against the source and human localization guidance.\n\nReview method:\n- Read the target prose continuously before comparing it with the source. Check every paragraph, including the opening, transitions, captions, and ending. Correct facts and grammar do not establish native writing.\n- Apply the localization brief to syntax, register, connective movement, punctuation, and conventional borrowings. Look for institutional language, nested passive constructions, source-language abstractions with target-language words, and phrases a native pt-br author would reconstruct.\n- Check every narrative semicolon and dash against target-locale rhythm. Do not approve a copied punctuation pattern merely because each sentence is grammatical. Code, URLs, and literal quotations have their own protection requirements.\n- Compare meaning at passage level: claims, agency, uncertainty, emphasis, and humor must survive. The source's grammatical subject, clause order, metaphor, and sentence boundaries are not protected.\n- Check terminology against human guidance and the actual source context. When localizing to PT-BR, conventional choices such as “app” do not become errors because another model prefers “aplicativo”.\n- Keep heading levels, lists, tables, Markdown links, inline code, fenced code, placeholders, citation identifiers, HTML structure, and protected entities intact. For presentations, preserve slide markers and technical content while allowing reader-facing dialogue to be localized.\n- For each remaining defect, put the exact target passage, the relevant human guidance, and the concrete failure in residual_issues. Do not manufacture findings to defend a personal preference or demand literal source grammar.\n- Accept only when no source or human-guidance violation remains. A prior model's opinion, numerical score, or claimed fix cannot establish compliance."
+      },
+      {
+        "heading": "LOCALE DIRECTION",
+        "text": "- Source locale: en-us\n- Target locale: pt-br\n- Translation direction: en-us->pt-br"
+      },
+      {
+        "heading": "LOCALIZATION BRIEF",
+        "sha256": "be426b2ec3016f4f80ec106d42ae9ceb64dc825dcd65041cbad79b6292a75bf6",
+        "old_engine_appended": "\n\nNone"
+      },
+      {
+        "heading": "STYLE CONSTRAINTS",
+        "items": [
+          "Localize for Brazilian Portuguese readership; do not mirror English sentence order just because the meaning is recoverable.",
+          "Preserve the author's voice, argumentative pressure, caveats, humor, and connective logic instead of flattening them into generic explanatory prose.",
+          "Rewrite idioms, metaphors, and discourse moves idiomatically in PT-BR; preserve effect and meaning, not English imagery.",
+          "If a sentence sounds imported from English, rewrite it fully in natural Brazilian Portuguese instead of patching individual words.",
+          "Match the source's personal register and force; technical precision does not require making the author more formal, sober, or restrained.",
+          "Apply borrowing decisions artifact-wide. Do not oscillate between English and Portuguese renderings for the same concept without an explicit contextual reason.",
+          "Localize clause order and connective phrasing; preserve parentheses around asides and deliberate rhetorical punctuation.",
+          "Keep technical precision and implementation detail; do not add claims not present in the source.",
+          "Preserve markdown structure exactly, including headings, lists, tables, blockquotes, and protected spans."
+        ]
+      },
+      {
+        "heading": "BORROWING CONVENTIONS",
+        "items": [
+          "Treat English borrowings as a policy problem, not a token-by-token whim.",
+          "Keep established technical borrowings in English when that is what Brazilian technical readers expect.",
+          "Localize terms that are naturally written in Portuguese in serious Brazilian technical prose.",
+          "Keep product names, branded platforms, and unmistakable identifiers exactly as named in the source.",
+          "When a term is context-sensitive, decide once per artifact and apply the decision consistently."
+        ]
+      },
+      {
+        "heading": "PUNCTUATION CONVENTIONS",
+        "items": [
+          "Prefer PT-BR clause rhythm and punctuation over copied English pauses.",
+          "Use the travessão correctly when you need an inciso; do not substitute a hyphen for it.",
+          "Do not place a comma before the opening travessão in parenthetical structures.",
+          "Avoid overusing travessões when commas, parênteses, or sentence recasting would read more naturally.",
+          "Use commas according to Portuguese syntax and explanatory structure, not English pacing habits."
+        ]
+      },
+      {
+        "heading": "DISCOURSE CONVENTIONS",
+        "items": [
+          "Rebuild connective tissue in PT-BR instead of preserving English clause sequencing mechanically.",
+          "Let concessive, contrastive, and causal movement sound like authored Brazilian prose.",
+          "Prefer paragraph and sentence movement that a Brazilian technical writer would naturally publish.",
+          "Preserve the author's layered argument structure, not only the facts carried by each sentence."
+        ]
+      },
+      {
+        "heading": "REGISTER CONVENTIONS",
+        "items": [
+          "Use contemporary Brazilian technical-editorial prose, not bureaucratic officialese.",
+          "Keep the source's conviction, irritation, enthusiasm, and humor without adding hedges or explanations of jokes.",
+          "Preserve the author's restraint, confidence, and dry humor where present.",
+          "Do not neutralize strong opinions into generic informational language."
+        ]
+      },
+      {
+        "heading": "LOCALE REVIEW CHECKS",
+        "items": [
+          "Flag literal calques, especially when the wording sounds understandable but socially wrong in PT-BR.",
+          "Flag inconsistent English borrowings across title, headings, body, tags, and summary fields.",
+          "Flag imported English punctuation or clause movement that makes the prose feel translated.",
+          "Flag flattened rhetoric, lost connective texture, or disappearance of understated humor or soft disagreement.",
+          "Flag PT-BR that is grammatical but not publishable as native Brazilian technical writing."
+        ]
+      },
+      {
+        "heading": "WRITING STYLE BRIEF",
+        "sha256": "93218a2b2f41f2ce1efb3fb852ed45502ac85aa6809df44a10b5910e58da7617"
+      },
+      {
+        "heading": "GLOSSARY",
+        "items": [
+          "throughput => vazão",
+          "latency => latência",
+          "fine-tuning => ajuste fino",
+          "prompt engineering => engenharia de prompts",
+          "feature flag => feature flag",
+          "rollout => rollout",
+          "rollback => rollback",
+          "observability => observabilidade",
+          "dataset => conjunto de dados",
+          "cache invalidation => invalidação de cache",
+          "benchmark => benchmark",
+          "runbook => runbook"
+        ]
+      },
+      {
+        "heading": "DO_NOT_TRANSLATE_ENTITIES",
+        "items": [
+          "OpenCode",
+          "CUDA",
+          "Kubernetes",
+          "Docker",
+          "PostgreSQL",
+          "Redis",
+          "OpenAPI",
+          "RFC 9110",
+          "GitHub Actions",
+          "package.json",
+          "pyproject.toml",
+          "requirements.txt",
+          "README.md",
+          "/etc/nginx/nginx.conf"
+        ]
+      },
+      {
+        "heading": "SOURCE MARKDOWN",
+        "text": "The tide comes in twice a day (more or less), as [the wave post](https://example.com/waves) explains.\n\nIf any of this sounds familiar, it should."
+      },
+      {
+        "heading": "LOCALIZED CANDIDATE JSON",
+        "text": "{\n  \"content\": \"A maré enche duas vezes por dia (mais ou menos), como [o post das ondas](https://example.com/waves) explica.\\n\\nSe algo disso soa familiar, deveria.\",\n  \"excerpt\": \"Por que a maré importa.\",\n  \"tags\": [\n    \"mar\",\n    \"lua\"\n  ],\n  \"title\": \"A maré (uma nota)\"\n}"
+      },
+      {
+        "heading": "OUTPUT CONTRACT",
+        "text": "- Return exactly one JSON object without markdown fences.\n- residual_issues must be empty for acceptance; otherwise accept and publish_ready must be false.\n- Numerical scores are diagnostic only and cannot excuse a guidance violation."
+      },
+      {
+        "heading": "BEGIN_OUTPUT_JSON",
+        "text": "{\n  \"accept\": true,\n  \"publish_ready\": true,\n  \"confidence\": 1.0,\n  \"residual_issues\": [],\n  \"voice_score\": 0,\n  \"terminology_score\": 0,\n  \"locale_naturalness_score\": 0\n}"
+      },
+      {
+        "heading": "END_OUTPUT_JSON",
+        "text": ""
+      }
+    ]
+  },
+  "headings_8c6735a": {
+    "source_analysis": [
+      "SOURCE ANALYSIS",
+      "LOCALE DIRECTION",
+      "LOCALIZATION BRIEF",
+      "STYLE CONSTRAINTS",
+      "BORROWING CONVENTIONS",
+      "PUNCTUATION CONVENTIONS",
+      "DISCOURSE CONVENTIONS",
+      "REGISTER CONVENTIONS",
+      "LOCALE REVIEW CHECKS",
+      "WRITING STYLE BRIEF",
+      "AUTHOR VOICE PROFILE",
+      "GLOSSARY",
+      "DO_NOT_TRANSLATE_ENTITIES",
+      "SOURCE MARKDOWN",
+      "OUTPUT CONTRACT",
+      "BEGIN_OUTPUT_JSON",
+      "END_OUTPUT_JSON"
+    ],
+    "terminology_policy": [
+      "TERMINOLOGY POLICY",
+      "LOCALE DIRECTION",
+      "LOCALIZATION BRIEF",
+      "STYLE CONSTRAINTS",
+      "BORROWING CONVENTIONS",
+      "PUNCTUATION CONVENTIONS",
+      "DISCOURSE CONVENTIONS",
+      "REGISTER CONVENTIONS",
+      "LOCALE REVIEW CHECKS",
+      "SOURCE ANALYSIS JSON",
+      "GLOSSARY",
+      "DO_NOT_TRANSLATE_ENTITIES",
+      "SOURCE MARKDOWN",
+      "OUTPUT CONTRACT",
+      "BEGIN_OUTPUT_JSON",
+      "END_OUTPUT_JSON"
+    ],
+    "translate": [
+      "TRANSLATE",
+      "LOCALIZATION BRIEF",
+      "SOURCE ANALYSIS JSON",
+      "TERMINOLOGY POLICY JSON",
+      "STYLE CONSTRAINTS",
+      "BORROWING CONVENTIONS",
+      "PUNCTUATION CONVENTIONS",
+      "DISCOURSE CONVENTIONS",
+      "REGISTER CONVENTIONS",
+      "WRITING STYLE BRIEF",
+      "GLOSSARY",
+      "DO_NOT_TRANSLATE_ENTITIES",
+      "LOCALE REVIEW CHECKS",
+      "SOURCE MARKDOWN",
+      "OUTPUT CONTRACT",
+      "BEGIN_OUTPUT_JSON",
+      "END_OUTPUT_JSON"
+    ],
+    "critique": [
+      "CRITIQUE",
+      "LOCALE DIRECTION",
+      "LOCALIZATION BRIEF",
+      "SOURCE ANALYSIS JSON",
+      "TERMINOLOGY POLICY JSON",
+      "STYLE CONSTRAINTS",
+      "BORROWING CONVENTIONS",
+      "PUNCTUATION CONVENTIONS",
+      "DISCOURSE CONVENTIONS",
+      "REGISTER CONVENTIONS",
+      "WRITING STYLE BRIEF",
+      "GLOSSARY",
+      "DO_NOT_TRANSLATE_ENTITIES",
+      "LOCALE REVIEW CHECKS",
+      "SOURCE MARKDOWN",
+      "OUTPUT CONTRACT",
+      "BEGIN_OUTPUT_JSON",
+      "END_OUTPUT_JSON",
+      "TRANSLATED CANDIDATE JSON"
+    ],
+    "revise": [
+      "REVISE",
+      "LOCALE DIRECTION",
+      "LOCALIZATION BRIEF",
+      "SOURCE ANALYSIS JSON",
+      "TERMINOLOGY POLICY JSON",
+      "STYLE CONSTRAINTS",
+      "BORROWING CONVENTIONS",
+      "PUNCTUATION CONVENTIONS",
+      "DISCOURSE CONVENTIONS",
+      "REGISTER CONVENTIONS",
+      "WRITING STYLE BRIEF",
+      "GLOSSARY",
+      "DO_NOT_TRANSLATE_ENTITIES",
+      "LOCALE REVIEW CHECKS",
+      "SOURCE MARKDOWN",
+      "OUTPUT CONTRACT",
+      "BEGIN_OUTPUT_JSON",
+      "END_OUTPUT_JSON",
+      "TRANSLATED CANDIDATE JSON",
+      "CRITIQUE JSON"
+    ],
+    "final_review": [
+      "FINAL REVIEW",
+      "LOCALE DIRECTION",
+      "LOCALIZATION BRIEF",
+      "SOURCE ANALYSIS JSON",
+      "TERMINOLOGY POLICY JSON",
+      "BORROWING CONVENTIONS",
+      "PUNCTUATION CONVENTIONS",
+      "DISCOURSE CONVENTIONS",
+      "REGISTER CONVENTIONS",
+      "LOCALE REVIEW CHECKS",
+      "CRITIQUE JSON",
+      "REVISION REPORT JSON",
+      "SOURCE MARKDOWN",
+      "REVISED CANDIDATE JSON",
+      "REVIEW INSTRUCTIONS",
+      "OUTPUT CONTRACT",
+      "BEGIN_OUTPUT_JSON",
+      "END_OUTPUT_JSON"
+    ]
+  }
+}

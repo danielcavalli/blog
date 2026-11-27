@@ -6,7 +6,8 @@ Execution rules:
 - Preserve the JSON structure exactly.
 - Keep invariant fields unchanged when they function as identity, reference, or lookup values.
 - Translate prose fields naturally and consistently across summary, experience, achievements, skills, and education-related prose.
-- Handle every education.degree value the same way. Do not mix localized and source-form degrees.
+- Use terminology_policy_json as the source of truth for ambiguous term handling, including any explicit AI Platform decision.
+- Apply terminology_policy_json.education_degree_localization_policy consistently to every education.degree value. Do not mix localized and source-form degrees unless the policy explicitly allows an exception.
 - Keep company names, school names, locations, periods, contact values, raw URLs, and DO_NOT_TRANSLATE_ENTITIES unchanged when they are identifiers.
 - Rewrite literal source-language phrasing into idiomatic professional wording in {{target_locale}}.
 - Normalize punctuation, hiring-register phrasing, and borrowing choices to the conventions of the target locale.

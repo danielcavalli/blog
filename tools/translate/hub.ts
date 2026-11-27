@@ -13,8 +13,15 @@ import http from "node:http";
 import https from "node:https";
 
 export const DEFAULT_HUB = "https://hub.tail73a546.ts.net";
+// TODO(owner): choose today's models. These four are placeholders until then, not a decision. The
+// old engine split the work the same way: the translation model analyses, drafts and revises at high
+// effort; a different critic model critiques and gives the final review at medium effort.
+/** The model that analyses, drafts and revises. */
 export const DEFAULT_MODEL = "gpt-5.6-sol";
 export const DEFAULT_EFFORT = "high";
+/** The model that critiques and gives the final review. */
+export const DEFAULT_CRITIC_MODEL = "claude-opus-5-5";
+export const DEFAULT_CRITIC_EFFORT = "medium";
 /** Room for a long post and the thinking before it. Without it, Claude models stop at 8192. */
 export const DEFAULT_MAX_TOKENS = 64_000;
 

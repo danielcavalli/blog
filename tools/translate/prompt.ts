@@ -1,5 +1,5 @@
-// What the model is told: the guidance as the system message, the document as the user message,
-// and the shape its answer must have.
+// What each stage is told: the guidance as the system message, the document and what the earlier
+// stages said about it as the user message.
 //
 // The guidance is the author's and lives in Markdown, which this file reads and never rewords:
 //
@@ -8,14 +8,20 @@
 //   guides/cv.md                            the names a CV keeps
 //   .agents/skills/…/references/*.md        how the author writes (read in place: one copy)
 //
-// `prompts/` holds what the old engine wrapped around that guidance (`prompts/v2/*.md` and the text
-// in `providers/opencode.py`), with `{{placeholders}}` where the guidance goes.
+// `prompts/` holds the old engine's stage prompts (`prompts/v2/*.md`), with `{{placeholders}}` where
+// the guidance goes. A stage's prompt is `<kind>_<stage>.md` where there is one (the CV has all six,
+// a presentation its own translate and revise) and `<stage>.md` otherwise, as the old registry chose.
+// Around it, every stage gets the same LOCALIZATION AUTHORITY before and LOCALIZATION BOUNDARY after.
+//
+// The old prompts carried the document and the earlier stages' answers inline. Here those sections
+// are the user message, in the order the old prompts had them, so the system message is guidance only.
 
 import fs from "node:fs";
 import path from "node:path";
 
 import type { Comment } from "./comments.ts";
-import type { ProseAnswer } from "./checks.ts";
+import type { Stage } from "./contracts.ts";
+import { sorted } from "./digest.ts";
 import type { SourceDocument } from "./documents.ts";
 import { destinations } from "./markdown.ts";
 
@@ -54,6 +60,12 @@ export function render(template: string, values: Record<string, string>): string
 
 const prompt = (name: string): string => read(path.join(HERE, "prompts", name));
 
+/** The file of a stage's prompt for a kind of document: its own where it has one, the shared one otherwise. */
+export function templateFor(kind: SourceDocument["kind"], stage: Stage): string {
+  const own = `${kind}_${stage}.md`;
+  return fs.existsSync(path.join(HERE, "prompts", own)) ? own : `${stage}.md`;
+}
+
 function section(guide: Map<string, string>, heading: string, file: string): string {
   const body = guide.get(heading);
   if (body === undefined) throw new Error(`${file} has no "## ${heading}" section`);
@@ -74,23 +86,17 @@ function writingStyleBrief(): string {
   return WRITING_REFERENCES.map(([name, file]) => `## ${name}\n\n${read(path.join(REPOSITORY, file))}`).join("\n\n");
 }
 
-const TEMPLATES = {
-  post: "translate.md",
-  about: "translate.md",
-  presentation: "presentation_translate.md",
-  cv: "cv_translate.md",
-} as const;
-
-/** The guidance for translating `source`: the system message. */
-export function systemPrompt(source: SourceDocument, { revise = false } = {}): string {
+// What fills the placeholders: the same for every stage of a document.
+function guidance(source: SourceDocument): Record<string, string> {
   const rules = path.join(HERE, "guides", `${source.lang}_to_${source.target}.md`);
   const guide = sections(read(rules));
   const brief = path.join(HERE, "guides", `${source.target.replace("-", "_")}_localization_brief.md`);
   const cv = path.join(HERE, "guides", "cv.md");
   const kept = section(guide, "Do not translate", rules);
-  const body = render(prompt(TEMPLATES[source.kind]), {
+  return {
     source_locale: source.lang,
     target_locale: source.target,
+    locale_direction: `${source.lang}->${source.target}`,
     localization_brief: read(brief),
     style_constraints: section(guide, "Style constraints", rules),
     borrowing_conventions: section(guide, "Borrowing conventions", rules),
@@ -99,18 +105,23 @@ export function systemPrompt(source: SourceDocument, { revise = false } = {}): s
     register_conventions: section(guide, "Register conventions", rules),
     review_checks: section(guide, "Review checks", rules),
     glossary_entries: section(guide, "Glossary", rules),
-    do_not_translate_entities:
-      source.kind === "cv" ? merged(kept, section(sections(read(cv)), "Do not translate", cv)) : merged(kept),
+    // The human list only: a policy's proposed names are not added to it (ADR 017).
+    do_not_translate_entities: source.kind === "cv" ? merged(kept, section(sections(read(cv)), "Do not translate", cv)) : merged(kept),
     writing_style_brief: writingStyleBrief(),
-  });
-  const parts = [prompt("agent.md"), body, prompt("boundary.md")];
-  if (revise) parts.push(prompt("revise.md"));
+  };
+}
+
+/** The guidance for one stage of `source`: the system message. `owner`: the stage is the owner's revision. */
+export function systemPrompt(source: SourceDocument, stage: Stage = "translate", { owner = false } = {}): string {
+  const parts = [prompt("authority.md"), render(prompt(templateFor(source.kind, stage)), guidance(source)), prompt("boundary.md")];
+  if (owner) parts.push(prompt("owner_revision.md"));
   const text = source.kind === "cv" ? JSON.stringify(source.data) : source.body;
   if (text.includes("mermaid")) parts.push(prompt("mermaid.md"));
   return `${parts.join("\n\n")}\n`;
 }
 
-const json = (value: unknown): string => JSON.stringify(value, null, 2);
+/** A value as the old engine showed it to a stage: JSON with its keys in order, two spaces deep. */
+export const json = (value: unknown): string => JSON.stringify(sorted(value), null, 2);
 
 const block = (name: string, content: string): string => `<${name}>\n${content}\n</${name}>`;
 
@@ -126,83 +137,45 @@ function commentText(comment: Comment): string {
   return lines.join("\n");
 }
 
-export interface Revision {
-  /** The translation as it stands. */
-  current: ProseAnswer;
-  /** The owner's open comments on it. */
-  comments: Comment[];
+/** What a stage is given besides the source: the earlier stages' answers, and the owner's comments. */
+export interface StageInputs {
+  analysis?: unknown;
+  policy?: unknown;
+  /** The translation under work: a draft, a revision, or the owner's translation as it stands. */
+  candidate?: unknown;
+  /** Its heading: the critique and the revision see a translated candidate, the final review a localized one. */
+  candidateLabel?: "TRANSLATED CANDIDATE JSON" | "LOCALIZED CANDIDATE JSON";
+  critique?: unknown;
+  /** The owner's open comments, when the run is his revision. */
+  comments?: Comment[];
 }
 
-/** The document to translate: the user message. */
-export function userPrompt(source: SourceDocument, map: (destination: string) => string, revision?: Revision): string {
+/** The document and what the stage is given about it: the user message. */
+export function userPrompt(source: SourceDocument, map: (destination: string) => string, inputs: StageInputs = {}): string {
   const parts = [`DOCUMENT\n${source.file} (${source.kind}), ${source.lang} to ${source.target}`];
-  if (source.kind === "cv") {
-    parts.push(`SOURCE CV JSON\n${block("source_cv", json(source.data))}`);
-    return `${parts.join("\n\n")}\n`;
+  if (source.kind !== "cv") {
+    parts.push(`SOURCE FRONT MATTER\n${JSON.stringify({ title: source.title, excerpt: source.excerpt, tags: source.tags }, null, 2)}`);
+    const moved = new Map<string, string>();
+    for (const { kind, destination } of destinations(source.body)) {
+      if (kind === "link" && map(destination) !== destination) moved.set(destination, map(destination));
+    }
+    const links = [...moved].map(([from, to]) => `- \`${from}\` is written \`${to}\``);
+    parts.push(`LINKS TO OTHER DOCUMENTS\n${links.length ? links.join("\n") : "- none"}`);
   }
-  parts.push(`SOURCE FRONT MATTER\n${json({ title: source.title, excerpt: source.excerpt, tags: source.tags })}`);
-  const moved = new Map<string, string>();
-  for (const { kind, destination } of destinations(source.body)) {
-    if (kind === "link" && map(destination) !== destination) moved.set(destination, map(destination));
-  }
-  const links = [...moved].map(([from, to]) => `- \`${from}\` is written \`${to}\``);
-  parts.push(`LINKS TO OTHER DOCUMENTS\n${links.length ? links.join("\n") : "- none"}`);
-  parts.push(`SOURCE MARKDOWN\n${block("source_markdown", source.body)}`);
-  if (revision) {
-    const { content, ...front } = revision.current;
-    parts.push(`CURRENT TRANSLATION\nFront matter:\n${json(front)}\n${block("current_translation", content)}`);
-    parts.push(`OWNER REVISION INSTRUCTIONS\n${revision.comments.map(commentText).join("\n\n")}`);
-  }
+  if (inputs.analysis !== undefined) parts.push(`SOURCE ANALYSIS JSON (MODEL ADVICE)\n${json(inputs.analysis)}`);
+  if (inputs.policy !== undefined) parts.push(`TERMINOLOGY POLICY JSON (MODEL PROPOSAL)\n${json(inputs.policy)}`);
+  parts.push(
+    source.kind === "cv"
+      ? `SOURCE CV JSON\n${block("source_cv", JSON.stringify(source.data, null, 2))}`
+      : `SOURCE MARKDOWN\n${block("source_markdown", source.body)}`,
+  );
+  if (inputs.candidate !== undefined) parts.push(`${inputs.candidateLabel ?? "TRANSLATED CANDIDATE JSON"}\n${json(inputs.candidate)}`);
+  if (inputs.critique !== undefined) parts.push(`CRITIQUE JSON\n${json(inputs.critique)}`);
+  if (inputs.comments?.length) parts.push(`OWNER REVISION INSTRUCTIONS\n${inputs.comments.map(commentText).join("\n\n")}`);
   return `${parts.join("\n\n")}\n`;
 }
 
 /** What follows an answer that failed its checks: the exact findings, and a request to resolve them. */
 export function repairPrompt(findings: string[]): string {
   return `${render(prompt("repair.md"), { findings: findings.map((finding) => `- ${finding}`).join("\n") })}\n`;
-}
-
-// ---------- the answer's shape ----------
-
-export interface Schema {
-  name: string;
-  schema: Record<string, unknown>;
-}
-
-const object = (properties: Record<string, unknown>): Record<string, unknown> => ({
-  type: "object",
-  properties,
-  required: Object.keys(properties),
-  additionalProperties: false,
-});
-
-const STRING = { type: "string" };
-const PROSE = { title: STRING, excerpt: STRING, tags: { type: "array", items: STRING }, content: STRING };
-
-// The shape of a value, as JSON Schema: the CV's translation has the shape of the CV.
-function shapeOf(value: unknown): Record<string, unknown> {
-  if (Array.isArray(value)) return { type: "array", items: value.length ? entryShape(value) : STRING };
-  if (typeof value === "object" && value !== null) {
-    return object(Object.fromEntries(Object.entries(value).map(([key, child]) => [key, shapeOf(child)])));
-  }
-  return { type: value === null ? "null" : typeof value };
-}
-
-// The entries of a list as one shape: every key any entry has, required where every entry has it.
-function entryShape(entries: unknown[]): Record<string, unknown> {
-  const records = entries.filter(
-    (entry): entry is Record<string, unknown> => typeof entry === "object" && entry !== null && !Array.isArray(entry),
-  );
-  if (records.length !== entries.length) return shapeOf(entries[0]);
-  const properties: Record<string, unknown> = {};
-  for (const record of records) for (const [key, child] of Object.entries(record)) properties[key] ??= shapeOf(child);
-  const required = Object.keys(properties).filter((key) => records.every((record) => key in record));
-  return { ...object(properties), required };
-}
-
-/** The structured output asked of the model. */
-export function schemaFor(source: SourceDocument, { revise = false } = {}): Schema {
-  if (source.kind === "cv") return { name: "cv_translation", schema: shapeOf(source.data) };
-  if (!revise) return { name: "translation", schema: object(PROSE) };
-  const comment = object({ id: { type: "integer" }, addressed: { type: "boolean" }, note: STRING });
-  return { name: "revision", schema: object({ ...PROSE, comments: { type: "array", items: comment } }) };
 }

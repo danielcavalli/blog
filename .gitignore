@@ -20,3 +20,6 @@ public/media/
 
 # What `cf deploy` builds before uploading
 .cloudflare/
+
+# What `npm run translate` leaves for the author to read: every stage of every run
+.translate-runs/
