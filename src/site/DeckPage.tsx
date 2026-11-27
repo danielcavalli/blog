@@ -249,9 +249,26 @@ function Controls({ words, marks }: { words: ControlWords; marks: MarkWords }) {
   );
 }
 
+/** a phone: where a slide cannot be shown whole and the deck shows it a sheet at a time (deck.css) */
+const SMALL = "screen and (max-width: 760px), screen and (max-height: 480px)";
+
 export function DeckPage({ deck }: { deck: DeckModel }) {
   const { lang } = deck;
   const words = WORDS[lang];
+  // on a phone the page opens on the sheet, as the deck's own script settled it: the sheet's top at the top of the
+  // screen, its controls under it on the same screen (left where it is when the sheet is in place already, as when
+  // the address named a slide, or the reader has moved)
+  useEffect(() => {
+    if (!matchMedia(SMALL).matches) return;
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => {
+        const sheet = document.querySelector<HTMLElement>(".deck-stage .mare-slide[data-current]");
+        if (!sheet || scrollY > 0 && sheet.getBoundingClientRect().top < innerHeight / 2) return;
+        if (sheet.getBoundingClientRect().top > 64) sheet.scrollIntoView({ block: "start" });
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
   return (
     <Page variant="reading">
       <Bar lang={lang} at="blog" alternates={deck.alternates} />

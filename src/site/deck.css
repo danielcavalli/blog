@@ -251,7 +251,8 @@
 }
 .deck-progress-words { color: var(--ink); font-variant-numeric: tabular-nums; }
 .deck-jump { display: grid; grid-template-columns: auto auto; align-items: center; gap: var(--mare-space-3); }
-.deck-jump > .mare-field { width: max-content; }
+/* (the field's line hangs under the row: the number and its button stand level with the marks) */
+.deck-jump > .mare-field { width: max-content; margin-bottom: -8px; }
 /* (the field's line is as long as the field: it asks for no width of its own) */
 .deck-jump .mare-field > .mare-line { width: 0; min-width: 100%; }
 .deck-jump .mare-field-write { gap: var(--mare-space-2); }
@@ -289,7 +290,11 @@
   }
   /* (a cover, a door, a slide that says one thing, a grid of cards, code and the densest slides stand in its middle) */
   .deck-slide:is([data-layout="lead"], [data-layout="divider"], [data-layout="emphasis"], [data-layout="card_grid"], [data-layout="code"], [data-density="very_dense"]) .deck-inner { align-content: center; }
-  .deck-body, .deck-slide:is([data-layout="lead"], [data-layout="divider"], [data-layout="emphasis"]) .deck-body { max-width: none; }
+  /* (the text keeps the measure it had there: 78 parts of the sheet's width in a hundred, 68 on a cover, a door and a
+     slide that says one thing; cards, columns, tables, code and who speaks take the whole of it) */
+  .deck-body { max-width: calc((100cqw - 2 * var(--space-page-x)) * 0.78); }
+  .deck-slide:is([data-layout="lead"], [data-layout="divider"], [data-layout="emphasis"]) .deck-body { max-width: calc((100cqw - 2 * var(--space-page-x)) * 0.68); }
+  .deck-slide:is([data-layout="card_grid"], [data-layout="split"], [data-layout="table"], [data-layout="code"], [data-layout="bio"]) .deck-body { max-width: none; }
   .deck-number { display: none; }
   .deck-site { right: calc(var(--space-page-x) + var(--deck-pad)); bottom: calc(var(--deck-pad) * 0.72); font-size: var(--mare-font-size-2xs); }
 
@@ -297,6 +302,7 @@
   .deck-body h2 { max-width: none; font-size: var(--mare-font-size-lg); }
   .deck-body h3 { font-size: var(--mare-font-size-md); }
   .deck-body :is(p, li) { font-size: var(--deck-text); }
+  .deck-body :not(pre) > code { font-size: 0.92em; }
   .deck-quote { padding: 16px 19.2px 16px 0; font-size: var(--deck-text); }
   .deck-quote .mare-quote { padding-left: 19.2px; }
   .deck-body .mare-code pre, .deck-slide[data-layout="code"] .deck-body .mare-code pre { padding: 13.6px; font-size: var(--mare-font-size-xs); line-height: var(--mare-font-leading-body); }
