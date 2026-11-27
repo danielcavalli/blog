@@ -12,7 +12,8 @@
     "test": "node --test tools/",
     "conversations:check": "node tools/git/conversations.mjs check",
     "conversations:refresh": "node tools/git/conversations.mjs refresh",
-    "check": "tsc --noEmit -p tsconfig.json"
+    "check": "tsc --noEmit -p tsconfig.json",
+    "translate": "node tools/translate/cli.ts"
   },
   "engines": {
     "node": ">=22.23.4"
