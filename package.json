@@ -1,0 +1,13 @@
+{
+  "name": "dan-rio",
+  "private": true,
+  "type": "module",
+  "description": "dan.rio: Daniel Cavalli's blog",
+  "license": "MIT",
+  "scripts": {
+    "prepare": "node tools/git/setup.mjs",
+    "test": "node --test tools/",
+    "conversations:check": "node tools/git/conversations.mjs check",
+    "conversations:refresh": "node tools/git/conversations.mjs refresh"
+  }
+}

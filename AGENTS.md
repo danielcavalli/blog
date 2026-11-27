@@ -27,3 +27,21 @@ Confirm decisions instead of inferring them when the inference would shape the s
 Treat the user as an active part of the reasoning loop, especially when broader context, taste, product intent, or cross-domain judgment matters.
 
 Autonomy is for carrying work forward efficiently, not for bypassing collaboration.
+
+## Working in this repository
+
+Every Markdown file here is reef-spec Markdown, read and commented on in Reef. Reef is only the
+reader: this repository owns everything that turns the Markdown into the site, and the git filter
+below.
+
+Reef conversations (the `<!-- reef comment … -->` and `<!-- reef reply … -->` blocks at the end of a
+file) are private and this repository is public. A git filter keeps them out of everything git
+stores and puts them back in the working files; `npm install` sets it up, and README.md explains it.
+What that means for an agent:
+
+- Keep a file's trailer byte for byte when you edit its body. Never commit around the filter
+  (`git -c filter.reef-conversations.clean= …`, `--no-filters`).
+- A Markdown file listed as modified by `git status` with an empty `git diff` has a changed
+  conversation and nothing to commit: `git add` it, or run `npm run conversations:refresh`.
+- `git restore`, `git checkout -- <file>` and `git reset --hard` throw away what was said in a
+  file's margin since it was last added. Do not run them on a document with open comments.

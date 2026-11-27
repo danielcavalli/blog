@@ -1,231 +1,67 @@
 # dan.rio
 
-| Field | Value |
+Daniel Cavalli's blog: posts in English and Portuguese, published as a static site.
+
+This branch (`revamp/mare-reef`) is the blog being rebuilt: on the Maré Design System, written and
+reviewed in Reef, translated through the Maré Hub, hosted on Cloudflare. The content has moved to its
+new shape; the new site engine is not here yet, and the old Python engine under `_source/` no longer
+builds on this branch. The published site still comes from `main`.
+
+## Where things are
+
+Every Markdown file here is plain [reef-spec](https://github.com/mare-rio/reef) Markdown: `reef .` from
+the repository's root shows all of it.
+
+| Path | What it holds |
 | --- | --- |
-| Author(s) | Daniel Cavalli |
-| Date | 2026-09-05 |
+| `posts/<slug>.md` | A post, in the language it was written in (`lang` in its front matter). |
+| `posts/<slug>.<locale>.md` | Its translation (`pt-br` or `en-us`). |
+| `pages/about.md`, `pages/about.pt-br.md` | The About page and its translation. |
+| `cv_data.yaml`, `cv_data.pt-br.yaml` | The CV and its translation. |
+| `tools/git/` | The filter that keeps Reef conversations out of git. |
+| `tools/migrate/` | The one-off script that moved translations out of the old engine's store. |
 
-Write a post once, localize it into the other language, and publish static HTML.
-The source owns the writing. An unattended localization agent follows the
-committed locale guides. Its validated translations are versioned and reused.
+A translation's front matter says what it translates (`translation_of`), which model wrote it
+(`translated_by`) and which text it was made from (`source_digest`). When the source's title, excerpt,
+tags or body change, the digest no longer matches and the translation is stale.
+`tools/migrate/export_translations.py` defines the digest.
 
-## Publish and preview
+A link from one post to another is a link to the file beside it, `[as I said](other-post.md)`, and in
+a translation to that post in the same language, `other-post.pt-br.md`.
 
-With DanCLI installed, the blog is discoverable from any working directory:
+## Reef conversations stay on your machine
 
-```bash
-dan blog                        # translation status
-dan blog build --strict         # localize uncached documents, then build
-dan blog build --no-strict      # build with available translations, no agent calls
-dan blog serve                  # localhost preview, Ctrl-C to stop
-dan blog --help                  # commands and options
-dan --clean meta describe blog  # machine-readable discovery
+Reef keeps the conversation about a document (margin comments and their replies) at the end of its
+file. This repository is public and those conversations are not, so a git filter takes them out of
+everything git stores and puts them back in the working files. The document's marker (its identity
+and revision number) is not conversation and is stored.
+
+```sh
+npm install                      # installs the filter (it runs tools/git/setup.mjs)
+npm run conversations:check      # fails if anything git stores holds a conversation
+npm run conversations:refresh    # settles files whose conversation alone changed
 ```
 
-DanCLI finds this checkout from the current directory or the configured Work
-root. Use `--path /path/to/blog` or `DAN_BLOG_ROOT` for another checkout. It runs
-the blog engine with locked dependencies through `uv`; Python command details
-stay in the adapter. The engine also works independently:
+Two things to know, both from how git works:
 
-```bash
-uv sync --all-extras --locked
-uv run python _source/build.py --strict
-uv run python -m http.server 8000 --bind 127.0.0.1
+- After you or an agent comment in the margin, `git status` lists the file as modified while
+  `git diff` shows nothing. `git add` it, or run the refresh: nothing is staged. Until then git
+  refuses a checkout, merge or pull that would rewrite that file.
+- `git restore`, `git checkout -- <file>` and `git reset --hard` put back the conversation as it was
+  last kept (at the last `git add` or `git diff` of that file).
+
+The conversations are kept in `.git/reef-conversations/`, on this machine only.
+`tools/git/conversations.mjs` has the details.
+
+## Checks
+
+```sh
+npm test                         # the filter's tests
+reef check posts/<file>.md       # a document's footnotes, links and figures
 ```
 
-DanCLI defaults to strict mode. It reuses translations for the current source
-and localizes missing or outdated documents before rendering. Non-strict mode
-renders the source and any current translations; unavailable language links
-lead to the available source or language index. Both modes validate HTML and
-internal links before replacing generated pages. A failed build preserves the
-previous site.
+## Licence
 
-## Write the source
-
-Posts live in `_source/posts/`, in either EN-US or PT-BR. The frontmatter owns
-the title, date, excerpt, tags, and source language:
-
-```markdown
----
-title: A thought worth following
-date: 2026-09-05
-lang: en-us
-excerpt: What the reader will understand.
-tags: [engineering]
----
-
-The opening develops the point promised by the title.
-
-## What follows from it
-
-The next part of the argument.
-```
-
-Use the three authoring references together: [composition](.agents/skills/editorial-line/references/blog-composition.md)
-for the argument and its shape, [prose](.agents/skills/prose-style/references/prose-contract.md)
-for connected sentences, and [voice](.agents/skills/writing-style/references/WRITING_STYLE.md)
-for Daniel's way of reasoning with the reader. They guide writing and editorial
-review; successful rendering alone cannot establish editorial quality.
-
-The translation pipeline reads those references as context for the already
-written source. V2's [locale rules and references](_source/translation_v2/references/)
-guide natural PT-BR and EN-US expression while preserving the argument, evidence,
-qualifications, emphasis, and humor. It does not edit source files or impose a
-new outline. A change to policy, model, or renderer leaves accepted text valid.
-
-Human locale guidance governs expression; the source governs meaning. One agent
-localizes each uncached document directly from the source, with the full locale
-and writing references. It completes the work without questions or approval
-requests. Separate analysis, critic, and scoring calls are not part of the build.
-
-Localization preserves the author's force, irritation, enthusiasm, and irony.
-Parenthetical asides stay in parentheses around the same thought. New translations
-and candidate acceptance check those delimiters independently of model approval;
-changing the guidance does not invalidate previously accepted content.
-
-After writing or editing a post:
-
-```bash
-dan blog status
-dan blog build --strict
-dan blog serve
-```
-
-`dan blog translate <post-slug>` also runs localization independently of a build
-and applies explicit revision requests. Unchanged accepted translations are
-reused. Progress shows document titles, elapsed time, and current/updated counts;
-`--verbose` adds model diagnostics. For a model trial or a policy
-revision, use a candidate, inspect its diff, and accept it deliberately; the
-[operations guide](docs/translation_v2_opencode_runbook.md#model-upgrades-and-revisions)
-owns that workflow and recovery instructions.
-
-## Article outline and sidenotes
-
-Articles show every heading and subheading in a sticky left outline, with notes
-beside their citations on the right. The active section follows the reader.
-On smaller screens, the outline folds into “On this page” and tapping a citation
-opens its note after the paragraph. Repeated citations share one note.
-
-Write notes using ordinary Markdown footnotes:
-
-```markdown
-The claim needs some context[^context].
-
-[^context]: Supporting detail, including **formatting** and [sources](https://example.com).
-
-    Indent subsequent paragraphs to keep them in the note.
-```
-
-Let the renderer number native footnotes by first use. Keep semantic note labels
-stable across edits and languages. Do not add a Sources heading or return links
-for these notes; they appear beside the passage they support. A bibliography with
-independent reading material remains part of the article.
-
-Existing numbered references and `footnote-*` anchors also become sidenotes.
-Original links remain valid across languages. Without JavaScript, the outline
-stays open and notes appear after the article; printing includes every note.
-The layout follows the margin approach in
-[Thinking Machines’ article](https://thinkingmachines.ai/blog/a-safe-path-to-open-weights/)
-while retaining this blog’s typography and themes.
-
-## Figures that follow the blog theme
-
-Use a `theme-media` figure with `light` and `dark` variants. The existing blog toggle
-selects the matching image, including when it overrides the operating system theme.
-With no saved choice, the images follow the system. Printing selects the light image.
-
-```html
-<figure class="post-figure theme-media">
-  <a data-theme-variant="light" href="/static/images/example-day.jpg">
-    <img src="/static/images/example-day.jpg" alt="Description of the view."
-         width="1440" height="1060" loading="lazy" decoding="async">
-  </a>
-  <a data-theme-variant="dark" href="/static/images/example-night.jpg">
-    <img src="/static/images/example-night.jpg" alt="Description of the view."
-         width="1440" height="1060" loading="lazy" decoding="async">
-  </a>
-  <figcaption>Context for the image.</figcaption>
-</figure>
-```
-
-Only the selected variant is visible and exposed to assistive technology. A variant
-can also be a native `picture` element with `source` entries for different viewport
-sizes. Supply the dimensions of each source so the browser reserves the correct space.
-
-The Hub screenshots come from `_source/tools/capture_mare_hub.mjs`, which requires
-Playwright and a local Hub frontend on port 4173. It supplies sample API responses
-inside the capture browser; it does not connect to a live account. Set
-`PLAYWRIGHT_MODULE` if Playwright is outside the Node module search path and
-`MARE_SOURCE_REVISION` to record the frontend revision in the capture metadata.
-
-## Mermaid diagrams
-
-Use a fenced `mermaid` block in a post. Keep diagrams small, prefer a vertical flow
-for mobile reading, and give each diagram an accessible title and description:
-
-````markdown
-```mermaid
-flowchart TB
-    accTitle: From definition to execution
-    accDescr: The app declares an agent, installs it, then invokes it through the SDK.
-    A[Declare agent] --> B[Install app] --> C[Invoke through SDK]
-```
-
-An installed definition is ready for the app to invoke.
-{: .diagram-caption}
-````
-
-The shared runtime loads pinned Mermaid 11.17.2 from jsDelivr only on pages that
-contain diagrams. It uses the blog's font and colors and renders again after theme
-changes or internal navigation. If JavaScript or the CDN is unavailable, the fenced
-source remains readable. See the [Mermaid theme documentation](https://mermaid.js.org/config/theming.html).
-
-With the blog served locally, run `node tests/browser/mare-article.mjs` to check
-theme changes, navigation, mobile diagrams, and image selection. Set `BLOG_URL`
-for a server other than `http://127.0.0.1:8000`, and `PLAYWRIGHT_MODULE` if needed.
-
-## Link to another post
-
-Use the source Markdown path as the link destination:
-
-```markdown
-[Don't outsource the thinking](_source/posts/dont-outsource-the-thinking.md)
-```
-
-From another post, `dont-outsource-the-thinking.md` and
-`./dont-outsource-the-thinking.md` work too. Absolute paths inside this checkout's
-`_source/posts/` also work; relative paths remain portable between machines.
-
-The renderer reads the target's frontmatter slug and links to its page in the
-reader's language. Add `#heading-id` to link to a section; source heading IDs remain
-stable in translations. Query strings and fragments are preserved. This works in
-articles, sidenotes, reference-style Markdown links, and presentations.
-
-Source paths remain unchanged in authored Markdown and accepted translations.
-Missing post files and broken heading links fail the build before publication.
-External URLs, existing published links, and code examples keep their meaning.
-
-## Check and publish
-
-```bash
-uv run --extra dev pytest tests/ -q
-uv run --extra dev ruff check .
-uv run --extra dev pyright _source
-dan blog check
-```
-
-`dan blog build --post <post-slug>` renders one bilingual article while preserving
-the indexes, sitemap, other posts, and About/CV pages. A complete build renders
-each article and collection once. Both paths validate the complete proposed site
-before replacing generated files; failures preserve the previous publication.
-
-The browser checks in `tests/browser/` cover outlines, sidenotes, mobile reading,
-printing, navigation, images, diagrams, and the source corpus. See the
-[operations guide](docs/translation_v2_opencode_runbook.md#verification) for commands.
-The [publishing review](docs/publishing-review.md) records compatibility results
-for the existing posts and the limits of local verification.
-
-Commit source changes, accepted revisions under `_source/translations/`, and the
-generated `en/`, `pt/`, `index.html`, and `sitemap.xml` together, then use the normal
-GitHub Pages workflow. `_cache/` contains disposable execution state; it is not
-where accepted writing lives. Architecture decisions are in [docs/adr/](docs/adr/).
+The code is under the [MIT licence](LICENSE). The writing (everything under `posts/` and `pages/`,
+and the CV) is under [Creative Commons Attribution 4.0 International](LICENSE-CONTENT): share it and
+adapt it, with credit to Daniel Cavalli and a link to the original.
