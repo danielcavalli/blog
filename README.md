@@ -105,34 +105,27 @@ node tools/shots.mjs /tmp/shots /en/ /en/blog/                  # pictures under
 
 ## Publishing
 
-The site is static files on Cloudflare (a Worker that serves `dist/` and runs nothing per request;
-`cloudflare.config.ts`). Publishing is one command from a machine that is signed in to Cloudflare:
+dan.rio is static files on Cloudflare: a Worker named `dan-rio` that serves `dist/` and runs nothing
+per request (`cloudflare.config.ts`), with `dan.rio` as its custom domain. Publishing is one command
+from a machine that is signed in to Cloudflare:
 
 ```sh
 cf auth login      # once per machine
 npm run deploy     # builds, then uploads dist/
 ```
 
-`node tools/serve.mjs` serves `dist/` locally the way Cloudflare does. Cloudflare's own simulator
-confirmed the rest: every old address answers 301 to its new one, a missing address answers 404
-with the site's page.
+`node tools/serve.mjs` serves `dist/` locally the way Cloudflare does.
 
-### Moving dan.rio from GitHub Pages (once)
+How the domain is set up, for whoever has to change it:
 
-Until this is done, dan.rio is still GitHub Pages serving `main`, and the pull request that holds
-this rebuild must not be merged: `main` would stop having pages to serve.
-
-1. `npm run deploy`. The site is then at `https://dan-rio.<account>.workers.dev`: look at it there.
-2. In Cloudflare's DNS for dan.rio, delete the four `A` records of the apex (185.199.108-111.153,
-   GitHub Pages) and the `www` CNAME (`danielcavalli.github.io`).
-3. Add `domains: ["dan.rio", "www.dan.rio"]` under `worker` in `cloudflare.config.ts` and run
-   `npm run deploy` again: Cloudflare gives the Worker both names and their certificates.
-4. Check `https://dan.rio/en/` and an old address such as
-   `https://dan.rio/en/blog/dont-outsource-the-thinking.html` (it must answer 301).
-5. Merge the pull request, then turn GitHub Pages off in the repository's settings.
-
-To go back before step 5: remove `domains`, deploy, and put the four `A` records and the `www`
-CNAME back (proxied). Nothing on `main` has changed until the merge.
+- `dan.rio` is the Worker's custom domain; Cloudflare keeps its DNS records and certificate.
+- `www.dan.rio` is sent to `dan.rio` with a permanent redirect by a redirect rule on the zone (its
+  `CNAME` record only keeps the name resolving through Cloudflare).
+- Every address of the site before this one answers 301 to where the thing is now (`_redirects`,
+  written by the build).
+- The site was on GitHub Pages until 2026-11-27. To go back, remove `domains` from
+  `cloudflare.config.ts` and deploy, restore the apex's four `A` records (185.199.108.153 to
+  185.199.111.153, proxied), and turn GitHub Pages on for a commit from before the rebuild.
 
 ## Reef conversations stay on your machine
 

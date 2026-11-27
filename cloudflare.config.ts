@@ -6,6 +6,8 @@ export default defineConfig({
   worker: {
     name: "dan-rio",
     compatibilityDate: "2026-11-23",
+    // The site's own name. (www.dan.rio is sent here by a redirect rule on the zone.)
+    domains: ["dan.rio"],
     assets: {
       // /en/blog/x is en/blog/x.html, /en/blog/ is en/blog/index.html.
       htmlHandling: "auto-trailing-slash",
