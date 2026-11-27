@@ -4,16 +4,15 @@
 
 import { useEffect, useState } from "react";
 
-import { Button, Choice, Empty, Entries, Entry, Field, Mark, Page, PageHead, Reading, ReadingHead, Tag, Tags, turn } from "@mare-rio/design-system/react";
+import { Button, Choice, Empty, Entries, Entry, Field, Mark, PageHead, Reading, ReadingHead, Tag, Tags, turn } from "@mare-rio/design-system/react";
 
-import { Bar, SiteFoot } from "./chrome";
 import type { IndexModel } from "./models";
 import { search, type Searchable } from "./search";
 import { WORDS } from "./words";
 
 const lower = (text: string) => text.toLowerCase();
 
-export function IndexPage({ index }: { index: IndexModel }) {
+export function IndexBody({ index }: { index: IndexModel }) {
   const { lang, posts } = index;
   const words = WORDS[lang];
   const orders = [words.index.published, words.index.updated];
@@ -52,8 +51,6 @@ export function IndexPage({ index }: { index: IndexModel }) {
   );
 
   return (
-    <Page variant="reading">
-      <Bar lang={lang} at="blog" alternates={index.alternates} />
       <Reading measure="index">
         <PageHead title={words.index.title} note={`${words.posts(posts.length)} · en / pt`}>
           <Choice label={words.index.sortBy} named="beside" of="view" options={orders} value={order} onChange={(next) => turn(() => setOrder(next))} />
@@ -104,7 +101,6 @@ export function IndexPage({ index }: { index: IndexModel }) {
           );
         })}
       </Reading>
-      <SiteFoot lang={lang} />
-    </Page>
+
   );
 }

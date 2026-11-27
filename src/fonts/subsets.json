@@ -1,0 +1,31 @@
+{
+  "design_system": "1.1.1",
+  "faces": {
+    "fraunces.woff2": {
+      "source_sha256": "940655b5186c4f971f34c74b047f0d6119320417dc0183fb2e82b432bbbaf004",
+      "source_bytes": 195272,
+      "subset_bytes": 75456
+    },
+    "fraunces-italic.woff2": {
+      "source_sha256": "ecc1f6621e7b50587535eb360a2f5596355bab84aadea2358f1e90b362c64ba4",
+      "source_bytes": 235652,
+      "subset_bytes": 91560
+    },
+    "inter.woff2": {
+      "source_sha256": "2ffaa4a4a1abed65edab321d41a2184283884e3920a17d16dc09fe79d77dad91",
+      "source_bytes": 350280,
+      "subset_bytes": 108016
+    },
+    "geist-mono.woff2": {
+      "source_sha256": "57ede2eb97af1d6fc39947f931afe77f3a64046b329ddfe88b35ca09aeb05a3c",
+      "source_bytes": 71096,
+      "subset_bytes": 37696
+    }
+  },
+  "weights": [
+    350,
+    700
+  ],
+  "unicode_range": "U+0020-007E, U+00A0-00FF, U+0131, U+0152-0153, U+02C6-02DC, U+2000-206F, U+20A0-20CF, U+2100-214F, U+2190-21FF, U+2212, U+2248, U+2260-2265, U+2304, U+2500-257F, U+25A0-25FF, U+2713, U+FB01-FB02",
+  "rest": "U+0000-001F, U+007F-009F, U+0100-0130, U+0132-0151, U+0154-02C5, U+02DD-1FFF, U+2070-209F, U+20D0-20FF, U+2150-218F, U+2200-2211, U+2213-2247, U+2249-225F, U+2266-2303, U+2305-24FF, U+2580-259F, U+2600-2712, U+2714-FB00, U+FB03-10FFFF"
+}

@@ -1,16 +1,28 @@
 ---
-// Every page's document: the design system's stylesheet, fonts and page-to-page canvas, the light
-// set before the first paint and turned as the earth turns, and what search engines read.
+// Every page's document: the design system's stylesheet and page-to-page canvas, its fonts as cut
+// for the site, the light set before the first paint and turned as the earth turns, and what search
+// engines read.
 //
 // The site's paint box is Folha, set once on the document (data-box on <html>). A <Page> is not
 // given a box of its own: that would also hold it in the day's light until its components run, and
 // a reader by dusk or by the moon would see the day's paper first.
-import "@mare-rio/design-system/fonts";
+//
+// The page is held back on the paper until its paint is up (App.tsx shows it, at most a second
+// after it was asked for; this script shows it anyway after two and a half seconds, should the
+// page's scripts not run).
+import "../fonts/fonts.css";
 import "@mare-rio/design-system/css";
 import "@mare-rio/design-system/canvas";
+import "../site/site.css";
 import { THEME_BOOT } from "@mare-rio/design-system/theme";
 
+import fraunces from "../fonts/fraunces-latin.woff2?url";
+import frauncesItalic from "../fonts/fraunces-italic-latin.woff2?url";
+import inter from "../fonts/inter-latin.woff2?url";
+import mono from "../fonts/geist-mono-latin.woff2?url";
 import type { Alternates, Lang } from "../site/words";
+
+const ARRIVING = `document.documentElement.classList.add("dan-arriving");setTimeout(function(){document.documentElement.classList.remove("dan-arriving")},2500)`;
 
 interface Props {
   title: string;
@@ -64,14 +76,21 @@ const other: Lang = lang === "pt" ? "en" : "pt";
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:creator" content="@dancavlli" />
     {data && <script is:inline type="application/ld+json" set:html={JSON.stringify(data).replaceAll("<", "\\u003c")} />}
+    <link rel="preload" href={inter} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={fraunces} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={mono} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={frauncesItalic} as="font" type="font/woff2" crossorigin />
     <script is:inline set:html={THEME_BOOT}></script>
+    <script is:inline set:html={ARRIVING}></script>
     <slot name="head" />
   </head>
   <body>
     <slot />
     <script>
-      // Every change of light is a turn of the earth.
-      import "@mare-rio/design-system/turn";
+      // Every change of light is a turn of the earth. (Fetched once the page is up and the browser is
+      // idle: it is needed only when the light changes, and nothing waits for it before then.)
+      const later = (run: () => void) => ("requestIdleCallback" in window ? requestIdleCallback(run, { timeout: 4000 }) : setTimeout(run, 2000));
+      window.addEventListener("load", () => later(() => void import("@mare-rio/design-system/turn")), { once: true });
     </script>
   </body>
 </html>

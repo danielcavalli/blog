@@ -1,0 +1,43 @@
+/* What the site arranges for itself, beyond the design system's own parts. Its tokens only. */
+
+/* The first page arrives with its paint: until the washes on screen are painted (or a second has
+   passed), the page is held back on the paper (App.tsx releases it). */
+html.dan-arriving .mare-page { opacity: 0; }
+/* (while it is held, a wash that is painted is simply there: its stroke dries out of sight, and the
+   page comes in with its paint whole instead of the paint coming in after it; so too while the site
+   changes to another page in place, App.tsx marks the change) */
+html.dan-arriving .mare-wash, html.dan-turning .mare-wash { transition: none; }
+.mare-page { transition: opacity 180ms var(--ease, ease-out); }
+@media (prefers-reduced-motion: reduce) { .mare-page { transition: none; } }
+
+/* On a narrow screen a post's contents fold into one line before its text, as the blog's outline
+   always has: the text is what a reader sees first. Wide, the contents stand beside the text and
+   the fold is not there. */
+.dan-contents-fold { display: none; }
+@container mare-reading (max-width: 639px) {
+  .mare-reading-body .mare-reading-columns > .mare-reading-contents,
+  .mare-reading-body .mare-reading-notes > .mare-reading-contents { display: none; }
+  .dan-contents-fold { display: block; margin: 0 0 var(--mare-space-6); border-bottom: var(--line-width) solid var(--line); }
+}
+.dan-contents-fold > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--mare-space-2);
+  padding: var(--mare-space-2) 0 var(--mare-space-3);
+  cursor: pointer;
+  list-style: none;
+}
+.dan-contents-fold > summary::-webkit-details-marker { display: none; }
+/* its caret: two fine lines of the ink, turned while it is open */
+.dan-contents-fold > summary::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: var(--line-width) solid currentColor;
+  border-bottom: var(--line-width) solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 160ms var(--ease, ease-out);
+}
+.dan-contents-fold[open] > summary::after { transform: translateY(1px) rotate(-135deg); }
+.dan-contents-fold .mare-contents > .mare-contents-label { display: none; }
+.dan-contents-fold .mare-contents { padding-bottom: var(--mare-space-4); }

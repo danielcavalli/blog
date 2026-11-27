@@ -85,10 +85,17 @@ interface PictureProps {
   height?: number;
   dusk?: string;
   night?: string;
+  /** the same picture at the widths a screen may want, for each light */
+  daySrcset?: string;
+  duskSrcset?: string;
+  nightSrcset?: string;
 }
 
+/** How wide a picture in the text is drawn: the screen less its margins on a phone, the measure on a desk. */
+const SIZES = "(max-width: 760px) calc(100vw - 40px), 720px";
+
 /** A picture, as itself, with its caption. Where it was made under more than one light, the one for the reader's. */
-function Picture({ src, alt, caption, width, height, dusk, night }: PictureProps) {
+function Picture({ src, alt, caption, width, height, dusk, night, daySrcset, duskSrcset, nightSrcset }: PictureProps) {
   const [light, setLight] = useState<"day" | "dusk" | "night">("day");
   useEffect(() => {
     if (!dusk && !night) return;
@@ -96,9 +103,10 @@ function Picture({ src, alt, caption, width, height, dusk, night }: PictureProps
     return onTheme((now) => setLight(now.light));
   }, [dusk, night]);
   const shown = (light === "night" && night) || (light === "dusk" && dusk) || src;
+  const offered = (light === "night" && night && nightSrcset) || (light === "dusk" && dusk && duskSrcset) || daySrcset;
   return (
     <figure>
-      <img src={shown} alt={alt} width={width} height={height} loading="lazy" decoding="async" />
+      <img src={shown} srcSet={offered} sizes={offered ? SIZES : undefined} alt={alt} width={width} height={height} loading="lazy" decoding="async" />
       {caption ? <figcaption>{caption}</figcaption> : null}
     </figure>
   );

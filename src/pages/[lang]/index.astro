@@ -1,15 +1,15 @@
 ---
 import Site from "../../layouts/Site.astro";
-import { LandingPage } from "../../site/LandingPage";
-import { landingModel } from "../../site/models";
+import { App } from "../../site/App";
+import { routeAt } from "../../site/routes";
 import { siteData } from "../../site/seo";
-import { WORDS, type Lang } from "../../site/words";
+import type { Lang } from "../../site/words";
 
 export const getStaticPaths = () => [{ params: { lang: "en" } }, { params: { lang: "pt" } }];
 
 const lang = Astro.params.lang as Lang;
-const model = landingModel(lang);
+const model = routeAt(`/${lang}/`);
 ---
-<Site title="dan.rio · Daniel Cavalli" description={WORDS[lang].description} lang={lang} path={`/${lang}/`} alternates={model.alternates} data={siteData(lang, WORDS[lang].description)}>
-  <LandingPage client:load landing={model} />
+<Site title={model.meta.title} description={model.meta.description} lang={lang} path={model.meta.path} alternates={model.meta.alternates} data={siteData(lang, model.meta.description)}>
+  <App client:load initial={model} />
 </Site>

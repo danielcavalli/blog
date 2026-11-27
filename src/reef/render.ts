@@ -22,6 +22,7 @@ import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import { unified } from "unified";
 
+import WIDTHS from "./picture-widths.json";
 import type { Heading, Note, Rendered, TreeNode } from "./tree";
 
 export interface RenderOptions {
@@ -89,6 +90,14 @@ function byLight(src: string, file: string | undefined): Partial<Record<(typeof 
     if (fs.existsSync(path.join(process.cwd(), path.dirname(file), other))) found[light] = mediaUrl(other);
   }
   return found;
+}
+
+/** The same picture at the widths a screen may want, as WebP (tools/sync-media.mjs writes them). */
+function widthsOf(url: string | undefined, width: number | undefined): string | undefined {
+  if (!url || !width || !/\.(jpe?g|png)$/i.test(url)) return undefined;
+  const stem = url.replace(/\.[a-z]+$/i, "");
+  const offered = (WIDTHS as number[]).filter((target, index) => index === 0 || width >= target * 0.9);
+  return offered.map((target) => `${stem}-${target}.webp ${Math.min(target, width)}w`).join(", ");
 }
 
 /** A picture's own width and height, so the page keeps its place while the picture comes. */
@@ -208,12 +217,17 @@ export function renderDocument(markdown: string, options: RenderOptions = {}): R
       const picture = shown.length === 1 && isElement(shown[0], "img") ? shown[0] : undefined;
       if (picture) {
         const src = String(picture.properties.src ?? "");
+        const size = sizeOf(src, options.file);
+        const lights = byLight(src, options.file);
         parent.children[index] = element("picture", {
           src: mediaUrl(src) ?? src,
           alt: String(picture.properties.alt ?? ""),
           caption: picture.properties.title ? String(picture.properties.title) : undefined,
-          ...sizeOf(src, options.file),
-          ...byLight(src, options.file),
+          ...size,
+          ...lights,
+          daySrcset: widthsOf(mediaUrl(src), size.width),
+          duskSrcset: widthsOf(lights.dusk, size.width),
+          nightSrcset: widthsOf(lights.night, size.width),
         });
       }
       return;

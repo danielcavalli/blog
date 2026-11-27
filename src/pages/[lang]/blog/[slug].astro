@@ -1,8 +1,8 @@
 ---
 import Site from "../../../layouts/Site.astro";
 import { posts, postUrl, type Lang, type Post } from "../../../content/documents";
-import { postModel } from "../../../site/models";
-import { PostPage } from "../../../site/PostPage";
+import { App } from "../../../site/App";
+import { routeAt } from "../../../site/routes";
 import { postData } from "../../../site/seo";
 
 export function getStaticPaths() {
@@ -14,18 +14,19 @@ interface Props {
   lang: Lang;
 }
 const { post, lang } = Astro.props;
-const model = postModel(post, lang);
 const path = postUrl(post, lang);
+const model = routeAt(path);
+const tags = post.in[lang]!.tags;
 ---
 <Site
-  title={`${model.title} · dan.rio`}
-  description={model.dek}
+  title={model.meta.title}
+  description={model.meta.description}
   lang={lang}
   path={path}
-  alternates={model.alternates}
-  article={{ published: post.date, updated: post.updated, tags: model.tags }}
+  alternates={model.meta.alternates}
+  article={{ published: post.date, updated: post.updated, tags }}
   data={postData(post, lang, path)}
   markdown={`${path}.md`}
 >
-  <PostPage client:load post={model} />
+  <App client:load initial={model} />
 </Site>
