@@ -23,5 +23,28 @@ jobs:
       - name: Tests
         run: node --test tools/
 
-      # The Maré Design System is a private package: the site's build and type check wait for a
-      # read token in this repository's secrets (NODE_AUTH_TOKEN, read:packages on mare-rio).
+      # From here on the Maré Design System is needed. It is a private package: these steps run when
+      # the repository has a token that can read it (NODE_AUTH_TOKEN: read:packages on mare-rio).
+      - name: Is the design system readable?
+        id: mds
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+        run: echo "readable=${{ secrets.NODE_AUTH_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Install
+        if: steps.mds.outputs.readable == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+        run: npm ci
+
+      - name: Types
+        if: steps.mds.outputs.readable == 'true'
+        run: npm run check
+
+      - name: The design system's conformance check
+        if: steps.mds.outputs.readable == 'true'
+        run: npx --no-install mare-conformance src
+
+      - name: Build
+        if: steps.mds.outputs.readable == 'true'
+        run: npm run build

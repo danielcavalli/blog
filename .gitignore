@@ -1,64 +1,4 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-.venv/
-env/
-
-# Python tooling caches
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-.coverage
-coverage.xml
-htmlcov/
-
-# Packaging artifacts
-*.egg-info/
-pip-wheel-metadata/
-
-# Build cache and artifacts
-_cache/
-_staging/
-
-# Environment & Secrets
-.env
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Local workflow state
-.pm/
-
-# Local scratch files
-{target}
-
-# Docs: keep ADRs tracked, ignore other docs content
-docs/*
-!docs/adr/
-!docs/adr/**
-!docs/translation-v2/
-!docs/translation-v2/**
-!docs/translation_v2_opencode_runbook.md
-!docs/publishing-review.md
-!docs/mapr-presentation-port-plan.md
-
-# Note: Generated HTML files (index.html, en/, pt/) are tracked for GitHub Pages
-
-# Process-owned translation locks; accepted content is tracked.
-_source/translations/.locks/
-
-# Site build
+# Dependencies and what the build makes
 node_modules/
 dist/
 .astro/
@@ -66,5 +6,14 @@ dist/
 # Copied from posts/*.assets before each build (tools/sync-media.mjs)
 public/media/
 
+# Secrets
+.env
+
 # Agent worktrees and local agent state
 .claude/
+
+# Editors and the system
+.vscode/
+.idea/
+*.swp
+.DS_Store
