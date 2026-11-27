@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^7.1.9",
-    "@mare-rio/design-system": "1.0.0",
+    "@mare-rio/design-system": "1.1.0",
     "astro": "^7.4.13",
     "hast-util-to-jsx-runtime": "^2.3.7",
     "image-size": "^2.2.0",

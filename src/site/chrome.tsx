@@ -1,24 +1,27 @@
 // What every page of the site but its landing stands between: the bar and the foot.
 
+import { useEffect } from "react";
+
 import { BarEnd, Foot, Languages, Link, Nav, NavItem, ThemeToggle, TopBar, Wordmark } from "@mare-rio/design-system/react";
 
 import { WORDS, type Alternates, type Lang } from "./words";
 
-/** The reader's other language: the same page there, or that language's front door. */
+/** The reader's other language: the same page there, or that language's front door. Each is a real link. */
 export function LanguageChoice({ lang, alternates }: { lang: Lang; alternates: Alternates }) {
+  const to = (code: Lang) => alternates[code] ?? `/${code}/`;
+  // The language being read is remembered, so the site's root opens in it next time.
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("dan.rio-lang", lang);
+    } catch {}
+  }, [lang]);
   return (
     <Languages
-      choices={["EN", "PT"]}
       current={lang.toUpperCase()}
-      onChoose={(choice) => {
-        const to = choice.toLowerCase() as Lang;
-        if (to === lang) return;
-        // Remembered, so the site's root opens in the language the reader chose.
-        try {
-          window.localStorage.setItem("dan.rio-lang", to);
-        } catch {}
-        window.location.assign(alternates[to] ?? `/${to}/`);
-      }}
+      choices={[
+        { label: "EN", href: to("en"), hreflang: "en" },
+        { label: "PT", href: to("pt"), hreflang: "pt-BR" },
+      ]}
     />
   );
 }
