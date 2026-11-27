@@ -19,7 +19,7 @@ html.dan-arriving .mare-wash, html.dan-turning .mare-wash { transition: none; }
   .mare-reading-body .mare-reading-notes > .mare-reading-contents { display: none; }
   .dan-contents-fold { display: block; margin: 0 0 var(--mare-space-6); border-bottom: var(--line-width) solid var(--line); }
 }
-.dan-contents-fold > summary {
+.mare-reading .dan-contents-fold > summary {
   display: flex;
   align-items: center;
   gap: var(--mare-space-2);
