@@ -6,6 +6,7 @@ import path from "node:path";
 import { parse as parseYaml } from "yaml";
 
 import { formatDate, postOfFile, posts, postUrl, readDocument, readingTime, type Post } from "../content/documents";
+import { readDeck, type DeckSlide } from "../reef/deck";
 import { renderDocument } from "../reef/render";
 import type { Heading, Note, TreeNode } from "../reef/tree";
 import { WORDS, type Alternates, type Lang } from "./words";
@@ -20,6 +21,17 @@ export interface PostModel {
   headings: Heading[];
   notes: Note[];
   body: TreeNode[];
+  alternates: Alternates;
+}
+
+export interface DeckModel {
+  lang: Lang;
+  slug: string;
+  title: string;
+  dek: string;
+  tags: string[];
+  facts: string[];
+  slides: DeckSlide[];
   alternates: Alternates;
 }
 
@@ -89,6 +101,20 @@ export function postModel(post: Post, lang: Lang): PostModel {
     headings,
     notes,
     body,
+    alternates: Object.fromEntries((Object.keys(post.in) as Lang[]).map((code) => [code, postUrl(post, code)])),
+  };
+}
+
+export function deckModel(post: Post, lang: Lang): DeckModel {
+  const document = post.in[lang]!;
+  return {
+    lang,
+    slug: post.slug,
+    title: document.title,
+    dek: document.excerpt,
+    tags: document.tags,
+    facts: [formatDate(post.date, lang), readingTime(document)],
+    slides: readDeck(document.body, { link: linkIn(lang), file: document.file }),
     alternates: Object.fromEntries((Object.keys(post.in) as Lang[]).map((code) => [code, postUrl(post, code)])),
   };
 }

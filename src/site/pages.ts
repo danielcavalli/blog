@@ -2,7 +2,7 @@
 // /data/<the page's address>.json, and the browser changes from one page to the next with it, in
 // place, without loading a document.
 
-import type { IndexModel, LandingModel, PlainModel, PostModel } from "./models";
+import type { DeckModel, IndexModel, LandingModel, PlainModel, PostModel } from "./models";
 import type { Alternates, Lang } from "./words";
 
 export interface Meta {
@@ -21,6 +21,7 @@ export type PageModel =
   | { kind: "landing"; meta: Meta; landing: LandingModel }
   | { kind: "index"; meta: Meta; index: IndexModel }
   | { kind: "post"; meta: Meta; post: PostModel }
+  | { kind: "deck"; meta: Meta; deck: DeckModel }
   | { kind: "plain"; meta: Meta; page: PlainModel }
   | { kind: "missing"; meta: Meta };
 

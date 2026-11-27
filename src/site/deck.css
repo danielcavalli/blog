@@ -1,0 +1,356 @@
+/* A deck's slides, laid out as the deck was first laid out (static/css/presentation.css on main, shown full): the
+   same regions in the same places and proportions, measured on the 1920 × 1080 sheet the design system scales to the
+   screen (the old stage's widths in cqw, × 19.2; its few fixed lengths as they stood on a 1750-wide stage, × 1.097).
+   Type, colour, lines, radii and paint are the design system's tokens and parts: the serif for titles and headings,
+   the sans for every line of text at the text's sizes, the mono for labels and code. */
+
+/* ── the page: the head, then the stage at the page's width ──────────────────────────────────────────────────── */
+/* (it runs to the screen's sides, so the paint under a slide runs off the screen as a wash does; its foot keeps the
+   page's margins) */
+.deck-stage { margin: var(--mare-space-6) calc(-1 * var(--space-page-x)) 0; }
+.deck-stage .mare-deck-foot { padding-inline: var(--space-page-x); }
+
+/* ── a slide ───────────────────────────────────────────────────────────────────────────────────────────────────── */
+.deck-slide {
+  /* the stage's room and the sizes of its type (normal) */
+  --deck-pad: 59.5px;
+  --deck-gap: 26px;
+  --deck-inner-pad: var(--deck-pad);
+  --deck-inner-gap: var(--deck-gap);
+  --deck-body-gap: var(--deck-gap);
+  --deck-text: var(--mare-font-size-lg);
+  --deck-small: var(--mare-font-size-base);
+  --deck-leading: var(--mare-font-leading-body);
+  position: absolute;
+  inset: 0;
+  font-family: var(--sans);
+  font-weight: calc(var(--mare-font-weight-regular) + var(--weight-lift, 0));
+  color: var(--ink);
+}
+/* (in a dense slide the old engine's lines out-ranked a quote's and a card's own sizes: there they are the text's) */
+.deck-slide[data-density="dense"] {
+  --deck-quote: var(--deck-text);
+  --deck-card-text: var(--deck-text);
+  --deck-inner-pad: 47px;
+  --deck-inner-gap: 18.2px;
+  --deck-body-gap: 15px;
+  --deck-text: var(--mare-font-size-md);
+}
+.deck-slide[data-density="very_dense"] {
+  --deck-quote: var(--deck-text);
+  --deck-card-text: var(--deck-text);
+  --deck-inner-pad: 35.5px;
+  --deck-inner-gap: 12.7px;
+  --deck-body-gap: 12.3px;
+  --deck-text: var(--mare-font-size-base);
+}
+.deck-inner {
+  box-sizing: border-box;
+  display: grid;
+  align-content: center;
+  gap: var(--deck-inner-gap);
+  height: 100%;
+  padding: var(--deck-inner-pad);
+  overflow: hidden;
+}
+.deck-body {
+  display: grid;
+  gap: var(--deck-body-gap);
+  justify-self: stretch;
+  width: 100%;
+  min-width: 0;
+  max-width: 1613px;
+}
+.deck-slide:is([data-layout="lead"], [data-layout="divider"], [data-layout="emphasis"]) .deck-body { max-width: 1421px; }
+.deck-slide:is([data-layout="card_grid"], [data-layout="split"], [data-layout="table"], [data-layout="code"], [data-layout="bio"]) .deck-body { max-width: none; }
+
+/* its place, in a fine ring at its upper right; the site, in the machine's voice, at its lower right */
+.deck-number {
+  position: absolute;
+  top: var(--deck-pad);
+  right: var(--deck-pad);
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 48px;
+  height: 48px;
+  border: var(--line-width) solid var(--line);
+  border-radius: var(--mare-radius-pill);
+  font-family: var(--mono);
+  font-size: var(--mare-font-size-base);
+  line-height: 1;
+  color: var(--ink-soft);
+}
+.deck-site {
+  position: absolute;
+  right: var(--deck-pad);
+  bottom: calc(var(--deck-pad) * 0.72);
+  font-family: var(--mono);
+  font-size: var(--mare-font-size-xs);
+  letter-spacing: var(--mare-font-tracking-wide);
+  color: var(--ink-faint);
+}
+
+/* ── its words: titles and headings in the serif, every line of text in the sans ──────────────────────────────── */
+.deck-body h1 {
+  margin: 0;
+  max-width: 1574px;
+  font-family: var(--serif);
+  font-size: var(--mare-font-size-6xl);
+  font-weight: calc(var(--mare-font-weight-semi) + var(--weight-lift, 0));
+  line-height: var(--mare-font-leading-snug);
+  letter-spacing: var(--mare-font-tracking-snug);
+  overflow-wrap: break-word;
+  color: var(--ink);
+}
+.deck-body h2 {
+  margin: 0;
+  max-width: 1382px;
+  font-family: var(--sans);
+  font-size: var(--mare-font-size-3xl);
+  font-weight: calc(var(--mare-font-weight-regular) + var(--weight-lift, 0));
+  line-height: var(--mare-font-leading-tight);
+  overflow-wrap: break-word;
+  color: var(--ink-soft);
+}
+.deck-body h3 {
+  margin: 0 0 6px;
+  font-family: var(--serif);
+  font-size: var(--mare-font-size-xl);
+  font-weight: calc(var(--mare-font-weight-semi) + var(--weight-lift, 0));
+  line-height: var(--mare-font-leading-tight);
+  color: var(--ink);
+}
+.deck-body :is(p, li) { margin: 0; font-size: var(--deck-text); line-height: var(--deck-leading); }
+.deck-body :is(ul, ol):not(.deck-agenda) { margin: 0; padding-left: 1.1em; }
+.deck-body li + li { margin-top: 0; }
+.deck-body li::marker { color: var(--ink-soft); }
+.deck-body :is(strong, b) { font-weight: calc(var(--mare-font-weight-bold) + var(--weight-lift, 0)); }
+.deck-body :not(pre) > code {
+  padding: 0.06em 0.3em;
+  border-radius: var(--mare-radius-sm);
+  background: var(--field);
+  font-family: var(--mono);
+  font-size: 0.88em;
+}
+
+/* a quote: on a ground of its own, its line at the ground's left edge */
+.deck-quote { padding: 21px 27.8px 21px 0; font-size: var(--deck-quote, var(--mare-font-size-xl)); }
+.deck-quote .mare-quote { padding-left: 27.8px; }
+.deck-quote .mare-quote > p { margin: 0; font-size: inherit; }
+
+/* code: the design system's plate, where the deck put it */
+.deck-body .mare-code { margin: 0; }
+.deck-body .mare-code pre { padding: 17px 18px 18px; font-size: var(--deck-small); line-height: var(--mare-font-leading-body); white-space: pre-wrap; overflow-wrap: anywhere; }
+.deck-slide[data-layout="code"] .deck-body { align-content: center; }
+.deck-slide[data-layout="code"] .deck-body .mare-code pre { font-size: var(--mare-font-size-sm); line-height: var(--mare-font-leading-tight); }
+
+/* a table: the design system's, at the deck's sizes, its columns as wide as what they hold */
+.deck-table .mare-table { grid-template-columns: var(--deck-table-columns); }
+.deck-body .mare-table :is(th, td) { padding: 13.8px 16.5px; font-size: var(--deck-small); line-height: var(--mare-font-leading-tight); }
+
+/* a picture, as itself */
+.deck-body figure { margin: 0; }
+.deck-body figure > img { display: block; max-width: 100%; height: auto; border-radius: var(--radius-card); }
+
+/* ── cards: side by side as many as the stage holds, each on its ground, its accent at its top ────────────────── */
+.deck-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(491px, 100%), 1fr)); gap: 22px; width: 100%; }
+.deck-slide[data-layout="dark_content"] .deck-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.deck-card { box-sizing: border-box; height: 100%; padding: 22.4px 18.2px 18.2px; }
+.deck-card h3 { margin-bottom: 8.8px; }
+.deck-card p { font-size: var(--deck-card-text, var(--deck-small)); line-height: var(--deck-leading); color: var(--ink-soft); }
+
+/* ── a split: two columns, each on its ground, its accent at its left ─────────────────────────────────────────── */
+.deck-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24.6px; }
+.deck-column { box-sizing: border-box; display: grid; align-content: start; gap: 15.8px; height: 100%; padding: 18.2px 18.2px 18.2px 22.4px; }
+
+/* ── the cover: its name, its line, who speaks, on its light ground over the sea ──────────────────────────────── */
+.deck-ground { position: absolute; inset: 0; }
+.deck-ground > .mare-horizon { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; isolation: isolate; --mare-horizon-height: 26cqh; }
+.deck-slide[data-layout="lead"] h1 { text-wrap: balance; }
+.deck-slide[data-layout="lead"] .deck-body > p {
+  font-family: var(--mono);
+  font-size: var(--mare-font-size-base);
+  letter-spacing: var(--mare-font-tracking-wide);
+  color: var(--sea);
+}
+/* (on the sea the site's word presses a step harder) */
+.deck-slide[data-layout="lead"] .deck-site { color: var(--ink-soft); }
+
+/* ── who speaks ────────────────────────────────────────────────────────────────────────────────────────────────── */
+.deck-slide[data-layout="bio"] .deck-body {
+  position: relative;
+  grid-template-columns: minmax(0, 518px) minmax(0, 1fr);
+  grid-template-areas: "title agenda" "role agenda" "summary agenda" "photo agenda";
+  align-content: center;
+  align-items: center;
+  column-gap: 44px;
+  row-gap: 11.9px;
+}
+.deck-slide[data-layout="bio"] .deck-body::before {
+  content: "";
+  grid-column: 1;
+  grid-row: 1 / 5;
+  align-self: stretch;
+  border-left: var(--mare-border-heavy) solid var(--sea);
+}
+.deck-slide[data-layout="bio"] h1 { grid-area: title; z-index: 1; padding-left: 24px; font-size: var(--mare-font-size-5xl); }
+.deck-slide[data-layout="bio"] .deck-body > p { z-index: 1; padding-left: 24px; line-height: 1.42; color: var(--ink-soft); }
+.deck-slide[data-layout="bio"] .deck-body > p:first-of-type { grid-area: role; font-size: var(--mare-font-size-lg); font-weight: calc(var(--mare-font-weight-bold) + var(--weight-lift, 0)); color: var(--ink); }
+.deck-slide[data-layout="bio"] .deck-body > p:nth-of-type(2) { grid-area: summary; font-size: var(--deck-small); }
+.deck-slide[data-layout="bio"] .deck-body > figure { grid-area: photo; z-index: 1; justify-self: start; align-self: start; margin-top: 7px; padding-left: 24px; }
+.deck-slide[data-layout="bio"] .deck-body > figure > img { width: 386px; aspect-ratio: 4 / 3; object-fit: cover; }
+.deck-agenda { grid-area: agenda; align-self: center; display: grid; gap: 13.8px; margin: 0; padding: 0; list-style: none; }
+.deck-agenda-part {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  grid-template-areas: "n section" "n claim";
+  column-gap: 16.3px;
+  row-gap: 2.8px;
+  align-items: center;
+  padding: 17.3px;
+  font-size: var(--mare-font-size-md);
+  line-height: var(--mare-font-leading-tight);
+}
+.deck-agenda-n {
+  grid-area: n;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 46px;
+  height: 46px;
+  border: var(--line-width) solid var(--sea);
+  border-radius: var(--mare-radius-pill);
+  font-family: var(--mono);
+  color: var(--sea);
+}
+.deck-agenda-section { grid-area: section; font-family: var(--serif); font-weight: calc(var(--mare-font-weight-semi) + var(--weight-lift, 0)); color: var(--ink); }
+.deck-agenda-claim { grid-area: claim; color: var(--ink-soft); }
+
+/* ── the deck's controls: back, where you are, go to a slide, on, the whole screen (in a row, as the deck had them) ─ */
+.deck-controls {
+  display: grid;
+  grid-template-columns: auto minmax(160px, 1fr) auto auto auto;
+  align-items: center;
+  gap: var(--mare-space-3);
+  margin: var(--mare-space-4) var(--space-page-x) 0;
+}
+.mare-deck:fullscreen .deck-controls { margin: var(--mare-space-3) var(--space-page-x) var(--mare-space-4); }
+/* (a mark alone: its button is square) */
+.deck-control > .btn { width: var(--mare-button-height); padding: 0; }
+.deck-control > .btn svg { width: var(--mare-size-icon-md); height: var(--mare-size-icon-md); }
+.deck-progress { display: grid; gap: var(--mare-space-2); min-width: 0; }
+.deck-progress-words, .deck-jump-words {
+  font-family: var(--mono);
+  font-size: var(--mare-font-size-xs);
+  line-height: 1;
+  letter-spacing: var(--mare-font-tracking-wide);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.deck-progress-words { color: var(--ink); font-variant-numeric: tabular-nums; }
+.deck-jump { display: grid; grid-template-columns: auto auto; align-items: center; gap: var(--mare-space-3); }
+/* (the field's line hangs under the row: the number and its button stand level with the marks) */
+.deck-jump > .mare-field { width: max-content; margin-bottom: -8px; }
+/* (the field's line is as long as the field: it asks for no width of its own) */
+.deck-jump .mare-field > .mare-line { width: 0; min-width: 100%; }
+.deck-jump .mare-field-write { gap: var(--mare-space-2); }
+.deck-jump .mare-field-write[data-action] > .mare-field-input { flex: none; width: 67px; font-variant-numeric: tabular-nums; }
+.deck-jump .mare-field-help { display: none; }
+
+/* ── a phone: one slide at a time, a portrait sheet that lays the slide out again for its width (the deck's own
+   small screen: what stacks, what is centred, its few sizes), the controls under it in two rows ────────────────────
+   The sheet stands at least two thirds of the screen high, as it did, and grows to hold what its slide says: nothing
+   is cut off and nothing scrolls inside it. Its type is the text's own sizes, none under what a phone reads. */
+@media screen and (max-width: 760px), screen and (max-height: 480px) {
+  .deck-slide {
+    position: relative;
+    inset: auto;
+    box-sizing: border-box;
+    min-height: 66vh;
+    min-height: 66svh;
+    --deck-pad: 16px;
+    --deck-inner-pad: 16px;
+    --deck-inner-gap: 12px;
+    --deck-body-gap: 12px;
+    --deck-text: var(--mare-font-size-md);
+  }
+  .deck-slide[data-density="dense"] { --deck-inner-pad: 14.4px; --deck-inner-gap: 9.6px; --deck-body-gap: 13.6px; --deck-text: var(--mare-font-size-base); }
+  .deck-slide[data-density="very_dense"] { --deck-inner-pad: 11.2px; --deck-inner-gap: 7.2px; --deck-body-gap: 11.2px; --deck-text: var(--mare-font-size-sm); }
+  /* (the sheet's bounds: a pencil line at its top and at its foot, in the page's own line) */
+  .deck-stage .mare-deck-slides { border-block: var(--line-width) solid var(--line); }
+  .deck-inner {
+    min-height: inherit;
+    height: auto;
+    /* (at its foot, room for the site's word: a slide that fills its sheet does not run under it) */
+    padding: var(--deck-inner-pad) calc(var(--space-page-x) + var(--deck-inner-pad)) calc(var(--deck-inner-pad) + 18px);
+    align-content: start;
+    overflow: visible;
+  }
+  /* (a cover, a door, a slide that says one thing, a grid of cards, code and the densest slides stand in its middle) */
+  .deck-slide:is([data-layout="lead"], [data-layout="divider"], [data-layout="emphasis"], [data-layout="card_grid"], [data-layout="code"], [data-density="very_dense"]) .deck-inner { align-content: center; }
+  /* (the text keeps the measure it had there: 78 parts of the sheet's width in a hundred, 68 on a cover, a door and a
+     slide that says one thing; cards, columns, tables, code and who speaks take the whole of it) */
+  .deck-body { max-width: calc((100cqw - 2 * var(--space-page-x)) * 0.78); }
+  .deck-slide:is([data-layout="lead"], [data-layout="divider"], [data-layout="emphasis"]) .deck-body { max-width: calc((100cqw - 2 * var(--space-page-x)) * 0.68); }
+  .deck-slide:is([data-layout="card_grid"], [data-layout="split"], [data-layout="table"], [data-layout="code"], [data-layout="bio"]) .deck-body { max-width: none; }
+  .deck-number { display: none; }
+  .deck-site { right: calc(var(--space-page-x) + var(--deck-pad)); bottom: calc(var(--deck-pad) * 0.72); font-size: var(--mare-font-size-2xs); }
+
+  .deck-body h1 { max-width: none; font-size: var(--mare-font-size-2xl); }
+  .deck-body h2 { max-width: none; font-size: var(--mare-font-size-lg); }
+  .deck-body h3 { font-size: var(--mare-font-size-md); }
+  .deck-body :is(p, li) { font-size: var(--deck-text); }
+  .deck-body :not(pre) > code { font-size: 0.92em; }
+  .deck-quote { padding: 16px 19.2px 16px 0; font-size: var(--deck-text); }
+  .deck-quote .mare-quote { padding-left: 19.2px; }
+  .deck-body .mare-code pre, .deck-slide[data-layout="code"] .deck-body .mare-code pre { padding: 13.6px; font-size: var(--mare-font-size-xs); line-height: var(--mare-font-leading-body); }
+  .deck-slide[data-layout="code"] .deck-body .mare-code pre { line-height: var(--mare-font-leading-tight); }
+  /* a table keeps its columns, each as narrow as its longest word; one wider than the sheet slides along */
+  .deck-table { overflow-x: auto; }
+  .deck-table .mare-table-frame { container-type: normal; }
+  .deck-table .mare-table { grid-template-columns: var(--deck-table-columns-narrow); }
+  .deck-body .mare-table :is(th, td) { padding: 6.7px 8.3px; font-size: var(--mare-font-size-sm); }
+
+  /* cards and columns, one under another */
+  .deck-cards, .deck-split, .deck-slide[data-layout="dark_content"] .deck-cards { grid-template-columns: minmax(0, 1fr); }
+  .deck-cards { gap: 12.8px; }
+  .deck-card { padding: 12px; }
+  .deck-card h3 { margin-bottom: 8px; }
+  .deck-card p { font-size: var(--deck-text); }
+  .deck-split { gap: 12px; }
+  .deck-column { gap: 8px; padding: 12px; }
+
+  /* the cover: its sea at the sheet's floor */
+  .deck-ground > .mare-horizon { --mare-horizon-height: 17svh; }
+  .deck-slide[data-layout="lead"] .deck-body > p { font-size: var(--mare-font-size-xs); }
+
+  /* who speaks: the name, the role, a few lines and the portrait by the sea's line, the talk's parts under them */
+  .deck-slide[data-layout="bio"] .deck-body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "role" "summary" "photo" "agenda"; row-gap: 4.5px; }
+  .deck-slide[data-layout="bio"] h1 { padding-left: 16px; font-size: var(--mare-font-size-xl); }
+  .deck-slide[data-layout="bio"] .deck-body > p { padding-left: 16px; }
+  .deck-slide[data-layout="bio"] .deck-body > p:first-of-type { font-size: var(--mare-font-size-base); line-height: var(--mare-font-leading-tight); }
+  .deck-slide[data-layout="bio"] .deck-body > p:nth-of-type(2) { font-size: var(--mare-font-size-sm); line-height: var(--mare-font-leading-tight); }
+  .deck-slide[data-layout="bio"] .deck-body > figure { margin-top: 4.8px; padding-left: 16px; }
+  .deck-slide[data-layout="bio"] .deck-body > figure > img { width: 48px; }
+  .deck-agenda { gap: 9.3px; margin-top: 7.7px; }
+  .deck-agenda-part { grid-template-columns: 33.6px minmax(0, 1fr); column-gap: 11.2px; row-gap: 2.6px; padding: 12px; font-size: var(--mare-font-size-sm); }
+  .deck-agenda-n { width: 33.6px; height: 33.6px; font-size: var(--mare-font-size-xs); }
+
+  /* the controls: back, where you are, on, the whole screen; then go to a slide, in a row of its own */
+  .deck-controls { grid-template-columns: auto minmax(0, 1fr) auto auto; row-gap: var(--mare-space-3); }
+  .deck-control > .btn { width: var(--mare-size-tap); height: var(--mare-size-tap); }
+  .deck-control[data-control="previous"] { grid-column: 1; grid-row: 1; }
+  .deck-progress { grid-column: 2; grid-row: 1; }
+  .deck-control[data-control="next"] { grid-column: 3; grid-row: 1; }
+  .deck-control[data-control="full"] { grid-column: 4; grid-row: 1; }
+  .deck-jump { grid-column: 1 / -1; grid-row: 2; grid-template-columns: minmax(0, 1fr) auto; }
+  .deck-jump-words { white-space: normal; }
+  .deck-jump .btn { height: var(--mare-size-tap); }
+}
+
+/* ── on paper: the deck alone, a slide a page (the system hides the page round it; the stage keeps no margins) ── */
+@media print {
+  .deck-stage { margin: 0; }
+}

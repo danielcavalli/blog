@@ -1,7 +1,7 @@
 // Every page of the site and its value (pages.ts), worked out once per build. Server only.
 
 import { posts, postUrl, type Lang } from "../content/documents";
-import { aboutModel, cvModel, indexModel, landingModel, postModel } from "./models";
+import { aboutModel, cvModel, deckModel, indexModel, landingModel, postModel } from "./models";
 import type { PageModel } from "./pages";
 import { WORDS } from "./words";
 
@@ -50,6 +50,10 @@ function list(): Route[] {
       out.push({
         path,
         model: () => {
+          if (post.kind === "presentation") {
+            const deck = deckModel(post, lang);
+            return { kind: "deck", deck, meta: { title: `${deck.title} · dan.rio`, description: deck.dek, lang, path, canonical: path, alternates: deck.alternates } };
+          }
           const model = postModel(post, lang);
           return { kind: "post", post: model, meta: { title: `${model.title} · dan.rio`, description: model.dek, lang, path, canonical: path, alternates: model.alternates } };
         },

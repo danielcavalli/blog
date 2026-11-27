@@ -14,6 +14,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Page, turn } from "@mare-rio/design-system/react";
 
 import { Bar, SiteFoot } from "./chrome";
+import { DeckBody } from "./DeckPage";
 import { IndexBody } from "./IndexPage";
 import { LandingPage } from "./LandingPage";
 import { MissingBody } from "./NotFoundPage";
@@ -235,6 +236,8 @@ function Body({ model }: { model: Exclude<PageModel, { kind: "landing" }> }) {
       return <IndexBody index={model.index} />;
     case "post":
       return <PostBody post={model.post} />;
+    case "deck":
+      return <DeckBody deck={model.deck} />;
     case "plain":
       return <PlainBody page={model.page} />;
     case "missing":
