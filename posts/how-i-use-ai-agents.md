@@ -11,7 +11,7 @@ lang: en-us
 content_type: presentation
 ---
 
-<!-- presentation:slide id="title" layout="lead" density="open" -->
+<!-- presentation:slide id="title" layout="lead" density="normal" -->
 
 # How I Use AI Agents
 
@@ -21,7 +21,7 @@ Daniel Cavalli | dan.rio
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="bio-and-agenda" layout="bio" density="open" -->
+<!-- presentation:slide id="bio-and-agenda" layout="bio" density="dense" -->
 
 # Daniel Cavalli
 
@@ -41,7 +41,7 @@ Graduated in Economics from UFRJ with a focus on Causal Modeling. Nine years of 
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="foundation" layout="divider" density="open" -->
+<!-- presentation:slide id="foundation" layout="divider" density="normal" -->
 
 # The Foundation
 
@@ -49,7 +49,7 @@ Graduated in Economics from UFRJ with a focus on Causal Modeling. Nine years of 
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="stateless-model" layout="dark_content" density="open" -->
+<!-- presentation:slide id="stateless-model" layout="dark_content" density="dense" -->
 
 # The model is stateless
 
@@ -74,7 +74,7 @@ Not expanding context. Knowing what to collapse, what to discard, and what to ca
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="four-rules" layout="card_grid" density="open" -->
+<!-- presentation:slide id="four-rules" layout="card_grid" density="very_dense" -->
 
 # Four Rules
 
@@ -101,7 +101,7 @@ Once you accept isolated sessions, the question becomes how to split work across
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="humans-job" layout="emphasis" density="open" -->
+<!-- presentation:slide id="humans-job" layout="emphasis" density="dense" -->
 
 # The Human's Job
 
@@ -113,7 +113,7 @@ The agent executes. Your job is deciding what it should execute.
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="agent-pm" layout="divider" density="open" -->
+<!-- presentation:slide id="agent-pm" layout="divider" density="normal" -->
 
 # Agent PM
 
@@ -121,7 +121,7 @@ The agent executes. Your job is deciding what it should execute.
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="agent-pm-problem" layout="split" density="open" -->
+<!-- presentation:slide id="agent-pm-problem" layout="split" density="dense" -->
 
 # The Problem
 
@@ -144,7 +144,7 @@ Agent PM started as a way to manage my own focus. It became an orchestrator beca
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="agent-pm-what-it-is" layout="split" density="open" -->
+<!-- presentation:slide id="agent-pm-what-it-is" layout="split" density="very_dense" -->
 
 # What It Is
 
@@ -187,7 +187,7 @@ stories:
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="agent-pm-flow" layout="card_grid" density="open" -->
+<!-- presentation:slide id="agent-pm-flow" layout="card_grid" density="very_dense" -->
 
 # The Flow
 
@@ -250,7 +250,7 @@ Symphony is elegant. Elixir OTP supervision, hot-reloadable WORKFLOW.md, Linear 
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="agent-pm-lessons" layout="split" density="open" -->
+<!-- presentation:slide id="agent-pm-lessons" layout="split" density="dense" -->
 
 # What I Learned
 
@@ -271,7 +271,7 @@ I built escalation and shared context via Agent PM's task infrastructure. Anthro
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="knowledge-base" layout="divider" density="open" -->
+<!-- presentation:slide id="knowledge-base" layout="divider" density="normal" -->
 
 # The Knowledge Base
 
@@ -279,7 +279,7 @@ I built escalation and shared context via Agent PM's task infrastructure. Anthro
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="knowledge-base-problem" layout="card_grid" density="open" -->
+<!-- presentation:slide id="knowledge-base-problem" layout="card_grid" density="dense" -->
 
 # The Problem
 
@@ -302,7 +302,7 @@ A shared knowledge base. Simple grep over markdown stopped scaling past 50 notes
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="note-structure" layout="split" density="dense" -->
+<!-- presentation:slide id="note-structure" layout="split" density="very_dense" -->
 
 # What a Note Looks Like
 
@@ -341,7 +341,7 @@ The MCP server runs as a shared HTTP process, so all Claude Code sessions share 
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="knowledge-base-search" layout="card_grid" density="open" -->
+<!-- presentation:slide id="knowledge-base-search" layout="card_grid" density="dense" -->
 
 # How Search Works
 
@@ -366,7 +366,7 @@ No embeddings means no model dependency, no drift, and every result explains why
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="consolidation-pipeline" layout="card_grid" density="open" -->
+<!-- presentation:slide id="consolidation-pipeline" layout="card_grid" density="dense" -->
 
 # The Consolidation Pipeline
 
@@ -391,7 +391,7 @@ The pipeline feeds from `kb_stale`: a tool that flags notes for dependency drift
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="distribution" layout="divider" density="open" -->
+<!-- presentation:slide id="distribution" layout="divider" density="normal" -->
 
 # Distribution
 
@@ -399,7 +399,7 @@ The pipeline feeds from `kb_stale`: a tool that flags notes for dependency drift
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="copying-caveat" layout="emphasis" density="open" -->
+<!-- presentation:slide id="copying-caveat" layout="emphasis" density="normal" -->
 
 # A Caveat
 
@@ -409,7 +409,7 @@ The point is not to copy them. It is to show what becomes possible when you buil
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="problem-with-copying" layout="content" density="open" -->
+<!-- presentation:slide id="problem-with-copying" layout="content" density="dense" -->
 
 # The Problem with Copying
 
@@ -421,7 +421,7 @@ But that raises a question: if copying is wrong, how *should* we distribute AI-n
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="dry-run-core-setup" layout="code" density="tight" -->
+<!-- presentation:slide id="dry-run-core-setup" layout="code" density="dense" -->
 
 # Dry Run: Phase A - Core Setup
 
@@ -454,7 +454,7 @@ For example: code changes (GitHub), messaging (Slack), calendar, documents.
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="dry-run-components" layout="code" density="tight" -->
+<!-- presentation:slide id="dry-run-components" layout="code" density="dense" -->
 
 # Dry Run: Phase B - Components
 
@@ -488,7 +488,7 @@ and staleness detection. Without it, agents use Glob/Grep with no ranking.
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="dry-run-research" layout="code" density="open" -->
+<!-- presentation:slide id="dry-run-research" layout="code" density="normal" -->
 
 # Dry Run: Phase C - Research
 
@@ -508,7 +508,7 @@ Each agent searches for MCP servers, CLI tools, and REST APIs. For each option f
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="dry-run-findings" layout="code" density="open" -->
+<!-- presentation:slide id="dry-run-findings" layout="code" density="dense" -->
 
 # Dry Run: Phase D - Findings
 
@@ -590,7 +590,7 @@ Is there anything you'd like to customize?
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="dry-run-finalize-generate" layout="split" density="tight" -->
+<!-- presentation:slide id="dry-run-finalize-generate" layout="split" density="very_dense" -->
 
 # Dry Run: Phase G-J - Finalize and Generate
 
@@ -648,7 +648,7 @@ Done. Vault initialized at ~/dev/kb
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="installer-reads-history" layout="card_grid" density="open" -->
+<!-- presentation:slide id="installer-reads-history" layout="card_grid" density="dense" -->
 
 # The Installer Reads Your History
 
@@ -671,7 +671,7 @@ Power users are offered deeper options (custom intents, note type extensions, co
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="two-users-same-installer" layout="split" density="dense" -->
+<!-- presentation:slide id="two-users-same-installer" layout="split" density="very_dense" -->
 
 # Two Users, Same Installer
 
@@ -725,7 +725,7 @@ from your existing project names?
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="three-agents-one-conversation" layout="card_grid" density="open" -->
+<!-- presentation:slide id="three-agents-one-conversation" layout="card_grid" density="dense" -->
 
 # Three Agents, One Conversation
 
@@ -750,7 +750,7 @@ The developer builds a legible codebase. The AI reads it, understands it, and re
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="translation-pipeline" layout="divider" density="open" -->
+<!-- presentation:slide id="translation-pipeline" layout="divider" density="normal" -->
 
 # The Translation Pipeline
 
@@ -758,7 +758,7 @@ The developer builds a legible codebase. The AI reads it, understands it, and re
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="translation-problem" layout="content" density="open" -->
+<!-- presentation:slide id="translation-problem" layout="content" density="normal" -->
 
 # The Problem
 
@@ -786,7 +786,7 @@ Stages 1-2 run once and produce binding policy documents that constrain everythi
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="terminology-policy" layout="code" density="tight" -->
+<!-- presentation:slide id="terminology-policy" layout="code" density="dense" -->
 
 # What a Terminology Policy Looks Like
 
@@ -840,7 +840,7 @@ The revision stage receives these findings and must address each one. The final 
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="quality-gate" layout="split" density="dense" -->
+<!-- presentation:slide id="quality-gate" layout="split" density="very_dense" -->
 
 # The Quality Gate
 
@@ -873,7 +873,7 @@ Accuracy >= 85, terminology >= 80, markdown fidelity >= 95. If any of these fail
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="where-this-goes-next" layout="card_grid" density="open" -->
+<!-- presentation:slide id="where-this-goes-next" layout="card_grid" density="dense" -->
 
 # Where This Goes Next
 
@@ -896,7 +896,7 @@ The critique categories are hand-defined. Moving to MQM (Multidimensional Qualit
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="thanks" layout="lead" density="open" -->
+<!-- presentation:slide id="thanks" layout="lead" density="normal" -->
 
 # Thanks
 

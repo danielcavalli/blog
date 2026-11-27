@@ -1,125 +1,70 @@
-// A deck: a document written as slides, read here into the sheets the design system's deck shows.
-// Server only.
+// A deck: a document written as slides, read here into the slides the deck page lays out. Server only.
 //
 // A deck is Markdown like any post, with each slide between two comments:
 //
-//     <!-- presentation:slide id="foundation" layout="divider" density="open" -->
+//     <!-- presentation:slide id="foundation" layout="divider" density="normal" -->
 //     # The Foundation
-//     ## Continuity is an illusion you engineer
+//     ## Continuity is an illusion you engineer, not something the model gives you
 //     <!-- /presentation:slide -->
 //
-// `layout` says what the slide is: `lead` (the talk's cover, and its goodbye), `divider` (a part
-// opens), `emphasis` (one statement), `bio` (who speaks: words beside a portrait), and anything else
-// a working sheet. `density` is the size of a working sheet's lines: `open`, `dense` or `tight`.
-// Inside a slide, `<!-- presentation:block type="card_grid" -->` holds points (each a
-// `<!-- presentation:card -->` with a `###` name) and `type="split"` two columns (each a
-// `<!-- presentation:column -->`).
+// The slide is read as it is written, in order: its Markdown drawn as the site draws any text (a fenced block is
+// the design system's Code, a quote its Quote, a table its Table, a picture standing alone a figure), and the two
+// blocks the deck format adds kept as blocks: `<!-- presentation:block type="card_grid" -->` holds cards (each a
+// `<!-- presentation:card -->`), `type="split"` two columns (each a `<!-- presentation:column -->`). Nothing is
+// re-arranged: `layout` and `density` are the slide's own words, and how each layout is laid out is the deck page's
+// (DeckPage.tsx), as the deck was first laid out.
 
 import { renderDocument, type RenderOptions } from "./render";
 import type { TreeNode } from "./tree";
 
-export type Density = "open" | "dense" | "tight";
+/** what a slide is, in the deck format's own words */
+export type Layout = "lead" | "divider" | "bio" | "content" | "dark_content" | "emphasis" | "split" | "card_grid" | "table" | "code" | "image" | "paragraph" | "quote" | "list";
+/** how much a slide says */
+export type Density = "normal" | "dense" | "very_dense";
 
-export type SheetPart =
+export type SlidePart =
   | { type: "text"; nodes: TreeNode[] }
-  | { type: "points"; across?: 2 | 3 | 4 | 5; points: { name: string; body: TreeNode[] }[] }
-  | { type: "split"; wide?: "start" | "end"; sides: [TreeNode[], TreeNode[]] };
+  | { type: "cards"; cards: TreeNode[][] }
+  | { type: "columns"; columns: TreeNode[][] };
 
-export type Sheet =
-  | { kind: "cover"; id: string; words: string[]; voice?: string; by?: string }
-  | { kind: "chapter"; id: string; name: string; claim?: string }
-  | { kind: "statement"; id: string; title?: string; density: Density; statement: TreeNode[]; note: TreeNode[] }
-  | { kind: "slide"; id: string; title: string; density: Density; parts: SheetPart[] };
+export interface DeckSlide {
+  id: string;
+  layout: Layout;
+  density: Density;
+  /** its first heading, for those who listen */
+  title: string;
+  parts: SlidePart[];
+}
 
 const SLIDE = /<!-- presentation:slide ([^>]*?)-->([\s\S]*?)<!-- \/presentation:slide -->/g;
 const BLOCK = /<!-- presentation:block(?: type="([a-z_]+)")? -->([\s\S]*?)<!-- \/presentation:block -->/g;
 const inside = (name: string) => new RegExp(`<!-- presentation:${name} -->([\\s\\S]*?)<!-- \\/presentation:${name} -->`, "g");
+const LAYOUTS = new Set<Layout>(["lead", "divider", "bio", "content", "dark_content", "emphasis", "split", "card_grid", "table", "code", "image", "paragraph", "quote", "list"]);
+const DENSITIES = new Set<Density>(["normal", "dense", "very_dense"]);
 
-// The old engine's words for a density are read as the nearest of the three.
-const DENSITIES: Record<string, Density> = { open: "open", dense: "dense", tight: "tight", normal: "open", very_dense: "tight" };
-
-/** The first heading of a level, taken out of the Markdown. */
-function take(markdown: string, level: 1 | 2 | 3): { heading?: string; rest: string } {
-  const line = new RegExp(`^${"#".repeat(level)} +(.+)$`, "m").exec(markdown);
-  if (!line) return { rest: markdown };
-  return { heading: line[1].trim(), rest: (markdown.slice(0, line.index) + markdown.slice(line.index + line[0].length)).trim() };
-}
-
-/** A cover's strokes: a name of several words is laid as two, as near in length as its words allow. */
-function strokes(name: string): string[] {
-  const words = name.split(/\s+/);
-  if (words.length < 3 || name.length < 14) return [name];
-  let best = 1;
-  for (let at = 1; at < words.length; at++) {
-    const lead = words.slice(0, at).join(" ").length;
-    const bestLead = words.slice(0, best).join(" ").length;
-    if (Math.abs(name.length - 2 * lead) < Math.abs(name.length - 2 * bestLead)) best = at;
-  }
-  return [words.slice(0, best).join(" "), words.slice(best).join(" ")];
-}
-
-const plain = (markdown: string) => markdown.replace(/\s*\|\s*/g, " · ").replace(/\s+/g, " ").trim();
-
-export function readDeck(markdown: string, options: RenderOptions = {}): Sheet[] {
+export function readDeck(markdown: string, options: RenderOptions = {}): DeckSlide[] {
   const draw = (text: string) => (text.trim() ? renderDocument(text, options).body : []);
-  const sheets: Sheet[] = [];
+  const slides: DeckSlide[] = [];
   for (const [, given, content] of markdown.matchAll(SLIDE)) {
     const said = Object.fromEntries([...given.matchAll(/([a-z_]+)="([^"]*)"/g)].map(([, key, value]) => [key, value]));
-    const id = said.id ?? `sheet-${sheets.length + 1}`;
-    const density = DENSITIES[said.density ?? "open"] ?? "open";
-    const { heading: title = "", rest } = take(content.trim(), 1);
-
-    if (said.layout === "lead") {
-      const { heading: voice, rest: by } = take(rest, 2);
-      sheets.push({ kind: "cover", id, words: strokes(title), voice, by: plain(by) || undefined });
-      continue;
-    }
-    if (said.layout === "divider") {
-      const { heading: claim } = take(rest, 2);
-      sheets.push({ kind: "chapter", id, name: title, claim });
-      continue;
-    }
-    if (said.layout === "emphasis") {
-      // The statement is the slide's quote, or its first paragraph; what follows is its note.
-      const quote = /^(?:> ?.*(?:\n|$))+/m.exec(rest);
-      const statement = quote ? quote[0].replace(/^> ?/gm, "").trim() : rest.split(/\n\s*\n/)[0];
-      const note = quote ? rest.slice(0, quote.index) + rest.slice(quote.index + quote[0].length) : rest.split(/\n\s*\n/).slice(1).join("\n\n");
-      const drawn = draw(statement);
-      const first = drawn[0];
-      sheets.push({ kind: "statement", id, title: title || undefined, density, statement: Array.isArray(first) && first[0] === "p" ? (first.slice(2) as TreeNode[]) : drawn, note: draw(note) });
-      continue;
-    }
-
-    const parts: SheetPart[] = [];
+    const layout = LAYOUTS.has(said.layout as Layout) ? (said.layout as Layout) : "content";
+    const density = DENSITIES.has(said.density as Density) ? (said.density as Density) : "normal";
+    const title = /^# +(.+)$/m.exec(content)?.[1].trim() ?? said.id ?? "";
+    const parts: SlidePart[] = [];
     let from = 0;
     const text = (markdownText: string) => {
       const nodes = draw(markdownText);
       if (nodes.length) parts.push({ type: "text", nodes });
     };
-    for (const block of rest.matchAll(BLOCK)) {
-      text(rest.slice(from, block.index));
+    for (const block of content.matchAll(BLOCK)) {
+      text(content.slice(from, block.index));
       from = block.index + block[0].length;
-      if (block[1] === "card_grid") {
-        const points = [...block[2].matchAll(inside("card"))].map(([, card]) => {
-          const { heading: name = "", rest: says } = take(card.trim(), 3);
-          return { name, body: draw(says) };
-        });
-        const across = points.length === 2 || points.length === 4 ? 2 : points.length === 5 ? 5 : undefined;
-        parts.push({ type: "points", across, points });
-      } else {
-        const [first = [], second = []] = [...block[2].matchAll(inside("column"))].map(([, column]) => draw(column));
-        parts.push({ type: "split", sides: [first, second] });
-      }
+      if (block[1] === "card_grid") parts.push({ type: "cards", cards: [...block[2].matchAll(inside("card"))].map(([, card]) => draw(card)) });
+      else if (block[1] === "split") parts.push({ type: "columns", columns: [...block[2].matchAll(inside("column"))].map(([, column]) => draw(column)) });
+      else text(block[2]);
     }
-    text(rest.slice(from));
-
-    // Who speaks: the words at the wider side, the portrait at the other.
-    if (said.layout === "bio" && parts.length === 1 && parts[0].type === "text") {
-      const nodes = parts[0].nodes;
-      const portrait = nodes.findIndex((node) => Array.isArray(node) && node[0] === "picture");
-      if (portrait >= 0) parts.splice(0, 1, { type: "split", wide: "start", sides: [nodes.filter((_, index) => index !== portrait), [nodes[portrait]]] });
-    }
-    sheets.push({ kind: "slide", id, title, density, parts });
+    text(content.slice(from));
+    slides.push({ id: said.id ?? `slide-${slides.length + 1}`, layout, density, title, parts });
   }
-  return sheets;
+  return slides;
 }
