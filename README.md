@@ -113,6 +113,27 @@ cf auth login      # once per machine
 npm run deploy     # builds, then uploads dist/
 ```
 
+`node tools/serve.mjs` serves `dist/` locally the way Cloudflare does. Cloudflare's own simulator
+confirmed the rest: every old address answers 301 to its new one, a missing address answers 404
+with the site's page.
+
+### Moving dan.rio from GitHub Pages (once)
+
+Until this is done, dan.rio is still GitHub Pages serving `main`, and the pull request that holds
+this rebuild must not be merged: `main` would stop having pages to serve.
+
+1. `npm run deploy`. The site is then at `https://dan-rio.<account>.workers.dev`: look at it there.
+2. In Cloudflare's DNS for dan.rio, delete the four `A` records of the apex (185.199.108-111.153,
+   GitHub Pages) and the `www` CNAME (`danielcavalli.github.io`).
+3. Add `domains: ["dan.rio", "www.dan.rio"]` under `worker` in `cloudflare.config.ts` and run
+   `npm run deploy` again: Cloudflare gives the Worker both names and their certificates.
+4. Check `https://dan.rio/en/` and an old address such as
+   `https://dan.rio/en/blog/dont-outsource-the-thinking.html` (it must answer 301).
+5. Merge the pull request, then turn GitHub Pages off in the repository's settings.
+
+To go back before step 5: remove `domains`, deploy, and put the four `A` records and the `www`
+CNAME back (proxied). Nothing on `main` has changed until the merge.
+
 ## Reef conversations stay on your machine
 
 Reef keeps the conversation about a document (margin comments and their replies) at the end of its
