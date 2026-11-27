@@ -130,7 +130,8 @@ function ordered(source: unknown, translated: unknown): unknown {
 export function renderCv(source: CvDocument, answer: unknown, settings: Settings): string {
   const head = { translation_of: source.file, source_digest: source.digest, ...stamp(settings) };
   const lines = Object.entries(head).map(([key, value]) => `# ${key}: ${value}`);
-  return `# The CV in ${source.target}, translated from ${source.file} by \`npm run translate\`. Edit the source.\n${lines.join("\n")}\n\n${toYaml(ordered(source.data, answer))}`;
+  const note = `# The CV in ${source.target}: a translation of ${source.file}. \`npm run translate\` writes this file; edit the source.`;
+  return `${note}\n${lines.join("\n")}\n\n${toYaml(ordered(source.data, answer))}`;
 }
 
 // ---------- the two jobs ----------

@@ -176,14 +176,19 @@ export function asides(source: string, translated: string, where = ""): string[]
   const after = parentheticals(translated);
   const [was, is] = [before.map(shapeOf), after.map(shapeOf)];
   if (was.length === is.length && was.every((shape, index) => shape === is[index])) return [];
-  let at = 0;
-  while (at < was.length && at < is.length && was[at] === is[at]) at++;
-  const show = (groups: string[]) => (groups[at] ? `"${clip(groups[at]!)}"` : "nothing");
-  return [
+  const rule =
     `Translation changed parenthetical asides${where}: preserve parentheses around the same thoughts, ` +
-      "including nested asides; localize their contents without replacing the delimiters with commas or dashes. " +
-      `The source has ${was.length} and the translation ${is.length}; the first difference is aside ${at + 1}: ` +
-      `${show(before)} in the source, ${show(after)} in the translation`,
+    "including nested asides; localize their contents without replacing the delimiters with commas or dashes. ";
+  if (was.length === is.length) {
+    // The same number of asides, so the one that differs is nested differently.
+    const at = was.findIndex((shape, index) => shape !== is[index]);
+    return [`${rule}Aside ${at + 1} is "${clip(before[at]!)}" in the source and "${clip(after[at]!)}" in the translation`];
+  }
+  // One was dropped or added somewhere: which one, only reading both can say.
+  const listed = before.slice(0, 80).map((group, index) => `${index + 1}. "${clip(group, 60)}"`);
+  return [
+    `${rule}The source has ${was.length} and the translation ${is.length}. ` +
+      `The source's${before.length > listed.length ? ` first ${listed.length}` : ""}, in order: ${listed.join(" ") || "none"}`,
   ];
 }
 
