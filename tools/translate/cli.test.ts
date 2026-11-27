@@ -446,3 +446,24 @@ test("the cost of a document is its calls added up", () => {
   assert.equal(costLine([unpriced]), "1 call, 13,498 tokens in, 5,580 out, no cost reported by the Hub");
   assert.equal(costLine([{ prompt_tokens: 1, completion_tokens: 2 }, { prompt_tokens: 3, completion_tokens: 4, cost_usd: 1 }]), "2 calls, 4 tokens in, 6 out, no cost reported by the Hub");
 });
+
+test("stamp records the source's digest on its translation without asking a model", async () => {
+  const translated = "---\ntitle: T\nlang: pt-br\nexcerpt: E\ntags:\n- x\ntranslation_of: wave.md\nsource_digest: 0000\ntranslated_by: someone\n---\n\nUma onda.\n";
+  const root = repository({ "posts/wave.md": post("en-us", "A wave."), "posts/wave.pt-br.md": translated });
+  const said: string[] = [];
+  const io = { root, cwd: root, out: (line: string) => said.push(line), err: (line: string) => said.push(line) };
+  const wave = discover(root).find((source) => source.file === "posts/wave.md")!;
+  assert.equal(stateOf(root, wave).status, "stale");
+  const asked = hub.asked.length;
+
+  assert.equal(await main(["stamp", "posts/wave.md"], io), 0, said.join("\n"));
+  assert.equal(hub.asked.length, asked, "no model is asked");
+  assert.match(said.join("\n"), /^stamped /m);
+  assert.equal(stateOf(root, wave).status, "current");
+  const written = fs.readFileSync(path.join(root, "posts/wave.pt-br.md"), "utf8");
+  assert.equal(written, translated.replace("source_digest: 0000", `source_digest: ${wave.digest}`), "nothing else in the file changes");
+
+  assert.equal(await main(["stamp", "posts/wave.md"], io), 0);
+  assert.match(said.at(-1)!, /^current /);
+  assert.equal(await main(["stamp"], io), 2, "it needs a file");
+});

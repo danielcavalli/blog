@@ -48,6 +48,7 @@ export interface Io {
 const USAGE = `usage: npm run translate -- status [--json]
        npm run translate -- <file>… | --all [--force] [options]
        npm run translate -- revise <translation file> [options]
+       npm run translate -- stamp <file>…
 
 options: --model <id>  --effort <level>  --max-tokens <n>  --dry-run  --out <dir>`;
 
@@ -194,6 +195,33 @@ async function reviseOne(io: Io, sources: SourceDocument[], argument: string, fl
   }
 }
 
+/**
+ * Record on a translation the digest its source has now, without asking a model: for when the same
+ * change was made by hand to both (a file moved, a marker renamed), so the two still say the same.
+ */
+function stamp(io: Io, chosen: SourceDocument[]): number {
+  let failed = 0;
+  for (const source of chosen) {
+    const file = path.join(io.root, source.translation);
+    if (!fs.existsSync(file)) {
+      io.err(`${source.translation} is not there: translate ${source.file} first`);
+      failed++;
+      continue;
+    }
+    const before = readText(file);
+    const line = source.kind === "cv" ? /^(# source_digest: ).*$/m : /^(source_digest: ).*$/m;
+    if (!line.test(before)) {
+      io.err(`${source.translation} records no source_digest to replace`);
+      failed++;
+      continue;
+    }
+    const after = before.replace(line, `$1${source.digest}`);
+    if (after !== before) writeText(file, after);
+    io.out(`${after === before ? "current " : "stamped "} ${source.file} -> ${source.translation}`);
+  }
+  return failed ? 1 : 0;
+}
+
 /** Run the tool. Returns its exit code: 0 done, 1 something is not current or failed, 2 it was called wrongly. */
 export async function main(argv: string[], given: Partial<Io> = {}): Promise<number> {
   const io: Io = {
@@ -248,6 +276,10 @@ export async function main(argv: string[], given: Partial<Io> = {}): Promise<num
     if (command === "revise") {
       if (rest.length !== 1) throw new UsageError("revise takes one translation file");
       return await reviseOne(io, sources, rest[0]!, flags);
+    }
+    if (command === "stamp") {
+      if (!rest.length) throw new UsageError("name the files whose translations to stamp");
+      return stamp(io, [...new Set(rest.map((argument) => find(io, sources, argument)))]);
     }
     if (values.all ? positionals.length > 0 : positionals.length === 0) {
       throw new UsageError(values.all ? "--all takes no file" : "name the files to translate, or pass --all");

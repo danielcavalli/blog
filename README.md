@@ -174,6 +174,7 @@ npm run translate -- status                        # where every translation sta
 npm run translate -- posts/<slug>.md               # translate it if its translation is missing or stale
 npm run translate -- --all                         # the same, for every post, page and the CV
 npm run translate -- revise posts/<slug>.pt-br.md  # revise a translation by the open comments in its margin
+npm run translate -- stamp posts/<slug>.md         # you changed both by hand the same way: record that they agree
 ```
 
 `--force` translates a current document again, `--model` and `--effort` choose the model (default
