@@ -5,7 +5,10 @@
    the sans for every line of text at the text's sizes, the mono for labels and code. */
 
 /* ── the page: the head, then the stage at the page's width ──────────────────────────────────────────────────── */
-.deck-stage { margin-top: var(--mare-space-6); }
+/* (it runs to the screen's sides, so the paint under a slide runs off the screen as a wash does; its foot keeps the
+   page's margins) */
+.deck-stage { margin: var(--mare-space-6) calc(-1 * var(--space-page-x)) 0; }
+.deck-stage .mare-deck-foot { padding-inline: var(--space-page-x); }
 
 /* ── a slide ───────────────────────────────────────────────────────────────────────────────────────────────────── */
 .deck-slide {

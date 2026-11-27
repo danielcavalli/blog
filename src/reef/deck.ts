@@ -42,8 +42,23 @@ const inside = (name: string) => new RegExp(`<!-- presentation:${name} -->([\\s\
 const LAYOUTS = new Set<Layout>(["lead", "divider", "bio", "content", "dark_content", "emphasis", "split", "card_grid", "table", "code", "image", "paragraph", "quote", "list"]);
 const DENSITIES = new Set<Density>(["normal", "dense", "very_dense"]);
 
+/** The deck format breaks a line where its Markdown does (the old engine read it with `nl2br`): a line followed by
+ *  another in the same block keeps its break. Fenced code is left as it is. */
+function breaks(markdown: string): string {
+  const lines = markdown.split("\n");
+  let fenced = false;
+  return lines
+    .map((line, index) => {
+      if (/^\s{0,3}(`{3,}|~{3,})/.test(line)) fenced = !fenced;
+      const next = lines[index + 1];
+      const joins = !fenced && line.trim() !== "" && next !== undefined && next.trim() !== "" && !/^\s*(`{3,}|~{3,}|\||<!--)/.test(line) && !/^\s*(`{3,}|~{3,})/.test(next);
+      return joins ? `${line.replace(/\s+$/, "")}  ` : line;
+    })
+    .join("\n");
+}
+
 export function readDeck(markdown: string, options: RenderOptions = {}): DeckSlide[] {
-  const draw = (text: string) => (text.trim() ? renderDocument(text, options).body : []);
+  const draw = (text: string) => (text.trim() ? renderDocument(breaks(text), options).body : []);
   const slides: DeckSlide[] = [];
   for (const [, given, content] of markdown.matchAll(SLIDE)) {
     const said = Object.fromEntries([...given.matchAll(/([a-z_]+)="([^"]*)"/g)].map(([, key, value]) => [key, value]));
