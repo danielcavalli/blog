@@ -7,7 +7,7 @@ tags:
 - Arquitetura de Software
 lang: pt-br
 translation_of: adding-an-agent-to-a-mare-app.md
-source_digest: 2e5f6898516a59e7b6ddf1276c3d03bd05d0bdb3b5b04d60aa55f838684757fa
+source_digest: 296f9e13877ae8393eebe951f711c6ef25a9a93a0c1e7b034ba8741f64c3ef2d
 translated_by: openai/gpt-5.6-sol (high), via opencode
 translated_at: '2026-09-08'
 ---
@@ -167,7 +167,6 @@ flowchart TB
 ```
 
 O pedido do Moon e seu resultado ficam no mesmo AgentRun. As setas mostram o caminho das consultas pela ponte e o trabalho do controlador dentro do Kubernetes.
-{: .diagram-caption}
 
 ### Admitindo a execução
 

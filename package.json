@@ -23,6 +23,8 @@
     "@mare-rio/design-system": "1.0.0",
     "astro": "^7.4.13",
     "hast-util-to-jsx-runtime": "^2.3.7",
+    "image-size": "^2.2.0",
+    "pele": "^1.13.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "rehype-raw": "^7.0.0",

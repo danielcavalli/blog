@@ -12,6 +12,8 @@ import path from "node:path";
 
 import type { Element, ElementContent, Root, RootContent } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
+import { imageSize } from "image-size";
+import { render as drawDiagram } from "pele";
 import type { ReactElement, ReactNode } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import rehypeRaw from "rehype-raw";
@@ -89,6 +91,17 @@ function byLight(src: string, file: string | undefined): Partial<Record<(typeof 
   return found;
 }
 
+/** A picture's own width and height, so the page keeps its place while the picture comes. */
+function sizeOf(src: string, file: string | undefined): { width?: number; height?: number } {
+  if (!file || !MEDIA.test(src)) return {};
+  try {
+    const { width, height } = imageSize(fs.readFileSync(path.join(process.cwd(), path.dirname(file), src)));
+    return { width, height };
+  } catch {
+    return {};
+  }
+}
+
 // ---------- hast to the tree ----------
 
 function toTree(nodes: ElementContent[]): TreeNode[] {
@@ -159,7 +172,17 @@ export function renderDocument(markdown: string, options: RenderOptions = {}): R
       if (code) {
         const classes = (code.properties.className as string[] | undefined) ?? [];
         const lang = classes.find((name) => name.startsWith("language-"))?.slice("language-".length);
-        parent.children[index] = element("code-block", { lang, text: textOf(code).replace(/\n$/, "") });
+        const text = textOf(code).replace(/\n$/, "");
+        // A `mermaid` block is a diagram, drawn here, once, as lines and words that take the page's ink.
+        if (lang === "mermaid") {
+          try {
+            parent.children[index] = element("diagram", { svg: drawDiagram(text).svg });
+            return;
+          } catch (problem) {
+            throw new Error(`${options.file ?? "a document"}: its diagram cannot be drawn: ${(problem as Error).message}`);
+          }
+        }
+        parent.children[index] = element("code-block", { lang, text });
       }
       return;
     }
@@ -189,6 +212,7 @@ export function renderDocument(markdown: string, options: RenderOptions = {}): R
           src: mediaUrl(src) ?? src,
           alt: String(picture.properties.alt ?? ""),
           caption: picture.properties.title ? String(picture.properties.title) : undefined,
+          ...sizeOf(src, options.file),
           ...byLight(src, options.file),
         });
       }

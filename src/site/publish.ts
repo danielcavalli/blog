@@ -21,6 +21,7 @@ export function wordsOf(nodes: readonly TreeNode[]): string {
     const [tag, properties, ...children] = node;
     if (tag === "code-block") out.push(String(properties?.text ?? ""));
     if (tag === "picture") out.push(String(properties?.alt ?? ""), String(properties?.caption ?? ""));
+    if (tag === "diagram") return;
     if (tag === "data-table") for (const row of JSON.parse(String(properties?.rows ?? "[]")) as Record<string, TreeNode[]>[]) Object.values(row).forEach((cell) => cell.forEach(walk));
     children.forEach(walk);
     if (/^(p|h[1-6]|li|blockquote|callout|figure|tr)$/.test(tag)) out.push("\n");

@@ -166,7 +166,6 @@ flowchart TB
 ```
 
 Moon's request and its result live on the same AgentRun. The arrows show the polling path through the bridge and the controller's work inside Kubernetes.
-{: .diagram-caption}
 
 ### Admitting the run
 

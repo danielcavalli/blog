@@ -1,6 +1,7 @@
 // A document's tree (tree.ts), drawn with the Maré Design System's parts. The server draws it into
 // the page that is sent; the browser draws it again from the same data, and the parts come alive.
 
+import type React from "react";
 import { createElement, useEffect, useState, type ReactNode } from "react";
 
 import { Code, Note, NoteCall, Quote, Table } from "@mare-rio/design-system/react";
@@ -48,21 +49,46 @@ function draw(node: TreeNode, key: number): ReactNode {
     }
     case "picture":
       return <Picture key={key} {...(properties as unknown as PictureProps)} />;
+    case "diagram":
+      return (
+        <figure key={key}>
+          <div style={DIAGRAM} dangerouslySetInnerHTML={{ __html: String(properties.svg) }} />
+        </figure>
+      );
     default:
       return createElement(tag, { ...properties, key }, ...(inside ? [inside] : []));
   }
 }
 
+// A diagram is drawn at build time by the renderer Reef draws with (pele). It takes its colours and
+// faces from these names: each is given the design system's token, so a diagram is lines of the
+// page's ink on the page's paper under every light. No colour is written here.
+const DIAGRAM = {
+  "--pele-bg": "var(--paper)",
+  "--pele-fg": "var(--ink)",
+  "--pele-muted": "var(--ink-soft)",
+  "--pele-line": "var(--ink-soft)",
+  "--pele-surface": "var(--paper)",
+  "--pele-surface-alt": "var(--surface)",
+  "--pele-border": "var(--line)",
+  "--pele-accent": "var(--sea)",
+  "--pele-font": "var(--sans)",
+  "--pele-font-mono": "var(--mono)",
+  "--pele-radius": "0px",
+} as React.CSSProperties;
+
 interface PictureProps {
   src: string;
   alt: string;
   caption?: string;
+  width?: number;
+  height?: number;
   dusk?: string;
   night?: string;
 }
 
 /** A picture, as itself, with its caption. Where it was made under more than one light, the one for the reader's. */
-function Picture({ src, alt, caption, dusk, night }: PictureProps) {
+function Picture({ src, alt, caption, width, height, dusk, night }: PictureProps) {
   const [light, setLight] = useState<"day" | "dusk" | "night">("day");
   useEffect(() => {
     if (!dusk && !night) return;
@@ -72,7 +98,7 @@ function Picture({ src, alt, caption, dusk, night }: PictureProps) {
   const shown = (light === "night" && night) || (light === "dusk" && dusk) || src;
   return (
     <figure>
-      <img src={shown} alt={alt} loading="lazy" decoding="async" />
+      <img src={shown} alt={alt} width={width} height={height} loading="lazy" decoding="async" />
       {caption ? <figcaption>{caption}</figcaption> : null}
     </figure>
   );
