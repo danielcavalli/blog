@@ -55,9 +55,10 @@ export function IndexBody({ index }: { index: IndexModel }) {
         <PageHead title={words.index.title} note={`${words.posts(posts.length)} · en / pt`}>
           <Choice label={words.index.sortBy} named="beside" of="view" options={orders} value={order} onChange={(next) => turn(() => setOrder(next))} />
           <Button size="small" onPress={() => setFilters(!filters)}>{words.index.filter}</Button>
-          <Mark glyph="search" label={words.index.search} expanded={searching} onPress={() => turn(() => { setSearching(!searching); setQuery(""); })} />
+          <Mark glyph="search" label={words.index.search} expanded={searching} onPress={() => { setSearching(!searching); setQuery(""); }} />
         </PageHead>
-        {searching ? <Field label={words.index.search} bare autoFocus example={words.index.searchFor} value={query} onChange={setQuery} /> : null}
+        {/* the search unfolds under the head as the filters do; the list morphs as what it holds changes */}
+        <Unfold open={searching}>{searching ? <Field label={words.index.search} bare autoFocus example={words.index.searchFor} value={query} onChange={setQuery} /> : null}</Unfold>
         {asked ? (
           found.length ? (
             <Entries name={words.index.found} note={words.posts(found.length)}>
