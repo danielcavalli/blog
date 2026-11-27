@@ -305,9 +305,7 @@ Every note is a markdown file with structured frontmatter. Agents write through 
 ---
 title: AI Native Software Distribution
 type: concept
-project: kb-system
 tags: [kb-system, architecture, open-source]
-status: active
 confidence:
   source_type: specification
   verified: false
