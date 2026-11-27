@@ -4,12 +4,16 @@
 // reader's light, its three voices (the serif for titles and headings, the sans for every line of text, the mono for
 // labels and code), a card or a column standing on its own ground of paint (<Panel>), code, quotes and tables in the
 // system's own parts, and a slide the deck sets on a dark ground held by the moon. The layout is in deck.css.
+//
+// On a phone the deck is still a talk, one slide at a time: a portrait sheet that lays the slide out again for its
+// width, as the deck's own small screen did, and the deck's controls under it (back, where you are and how far, on,
+// full screen, go to a slide by its number), built from the system's parts.
 
 import "./deck.css";
 
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 
-import { Deck, HorizonMark, Page, Panel, Quote, Reading, ReadingHead, Slide, Wash } from "@mare-rio/design-system/react";
+import { Button, Deck, DeckMark, Field, HorizonMark, Loading, Page, Panel, Quote, Reading, ReadingHead, Slide, useDeck, Wash } from "@mare-rio/design-system/react";
 
 import type { DeckSlide, Layout, SlidePart } from "../reef/deck";
 import type { TreeNode } from "../reef/tree";
@@ -27,12 +31,12 @@ const childrenOf = (node: TreeNode) => (Array.isArray(node) ? (node.slice(2) as 
 const textOf = (node: TreeNode): string => (typeof node === "string" ? node : Array.isArray(node) ? (node.slice(2) as TreeNode[]).map(textOf).join("") : "");
 
 /** a table's columns share the slide's width as a table laid out by its words does: each as wide as what it holds,
- *  the room left shared in proportion to it */
-function tracksOf(node: TreeNode): string {
+ *  the room left shared in proportion to it (on a phone, each as narrow as its longest word lets it be) */
+function tracksOf(node: TreeNode, least: "max-content" | "min-content"): string {
   const properties = (Array.isArray(node) ? node[1] : undefined) ?? {};
   const columns = JSON.parse(String(properties.columns ?? "[]")) as { key: string; label: string }[];
   const rows = JSON.parse(String(properties.rows ?? "[]")) as Record<string, TreeNode[]>[];
-  return columns.map((column) => `minmax(max-content, ${Math.max(column.label.length, ...rows.map((row) => (row[column.key] ?? []).map(textOf).join("").length))}fr)`).join(" ");
+  return columns.map((column) => `minmax(${least}, ${Math.max(column.label.length, ...rows.map((row) => (row[column.key] ?? []).map(textOf).join("").length))}fr)`).join(" ");
 }
 
 /** a slide's text, in order: a quote stands on a ground of its own, as it did */
@@ -41,7 +45,7 @@ function Text({ nodes }: { nodes: TreeNode[] }) {
     <>
       {nodes.map((node, index) =>
         tagOf(node) === "data-table" ? (
-          <div key={index} className="deck-table" style={{ "--deck-table-columns": tracksOf(node) } as CSSProperties}>
+          <div key={index} className="deck-table" style={{ "--deck-table-columns": tracksOf(node, "max-content"), "--deck-table-columns-narrow": tracksOf(node, "min-content") } as CSSProperties}>
             <Tree nodes={[node]} />
           </div>
         ) : tagOf(node) === "blockquote" ? (
@@ -172,6 +176,79 @@ function SlideOf({ slide, n }: { id: string; slide: DeckSlide; n: number }) {
   );
 }
 
+interface ControlWords { label: string; progress: string; where: string; jump: string; go: string }
+interface MarkWords { previous: string; next: string; full: string; leave: string }
+const say = (words: string, n: number, total: number) => words.replace("{n}", String(n)).replace("{total}", String(total));
+
+/** the deck's controls, as the deck first had them under its slides: back, where you are (in words, and a stroke as
+ *  long as the talk so far), go to a slide by its number, on, and the whole screen; in a row at a desk, in two on a
+ *  phone (deck.css). The system's parts: <Button>s holding the deck's marks, <Loading> at its known length, a <Field>
+ *  to write the number on, its <Button> at the line's end */
+function Controls({ words, marks }: { words: ControlWords; marks: MarkWords }) {
+  const deck = useDeck();
+  // what is written in the field (until it is sent, or the deck moves: then it is the slide shown)
+  const [asked, setAsked] = useState<string | null>(null);
+  const n = deck?.n ?? 1;
+  useEffect(() => setAsked(null), [n]);
+  if (!deck) return null;
+  const { total } = deck;
+  const send = (event: FormEvent) => {
+    event.preventDefault();
+    const to = Number.parseInt(asked ?? "", 10);
+    setAsked(null);
+    if (Number.isFinite(to)) deck.go(to);
+    // (the phone's keyboard goes: the slide is what is looked at now)
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  };
+  return (
+    <nav className="deck-controls" aria-label={words.label}>
+      <span className="deck-control" data-control="previous">
+        <Button disabled={n <= 1} onPress={deck.previous}>
+          <DeckMark mark="previous" />
+          <span className="mare-sr-only">{marks.previous}</span>
+        </Button>
+      </span>
+      <div className="deck-progress">
+        <span className="deck-progress-words" aria-live="polite">
+          {say(words.where, n, total)}
+        </span>
+        <Loading p={total <= 1 ? 100 : (n / total) * 100} label={words.progress} />
+      </div>
+      <form className="deck-jump" onSubmit={send}>
+        <span className="deck-jump-words" aria-hidden="true">
+          {words.jump}
+        </span>
+        <Field
+          bare
+          label={words.jump}
+          type="number"
+          value={asked ?? String(n)}
+          onChange={setAsked}
+          action={
+            <Button kind="primary" type="submit">
+              {words.go}
+            </Button>
+          }
+        />
+      </form>
+      <span className="deck-control" data-control="next">
+        <Button disabled={n >= total} onPress={deck.next}>
+          <DeckMark mark="next" />
+          <span className="mare-sr-only">{marks.next}</span>
+        </Button>
+      </span>
+      {deck.canFull ? (
+        <span className="deck-control" data-control="full">
+          <Button pressed={deck.full} onPress={deck.toggleFull}>
+            <DeckMark mark={deck.full ? "leave" : "full"} />
+            <span className="mare-sr-only">{deck.full ? marks.leave : marks.full}</span>
+          </Button>
+        </span>
+      ) : null}
+    </nav>
+  );
+}
+
 export function DeckPage({ deck }: { deck: DeckModel }) {
   const { lang } = deck;
   const words = WORDS[lang];
@@ -189,7 +266,7 @@ export function DeckPage({ deck }: { deck: DeckModel }) {
         />
       </Reading>
       <div className="deck-stage">
-        <Deck label={deck.title} words={words.deck}>
+        <Deck label={deck.title} words={words.deck} narrow="sheet" controls={<Controls words={words.controls} marks={words.deck} />}>
           {deck.slides.map((slide, index) => (
             <SlideOf key={slide.id} id={slide.id} slide={slide} n={index + 1} />
           ))}
