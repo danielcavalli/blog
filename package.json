@@ -9,7 +9,7 @@
     "build": "node tools/sync-media.mjs && astro build",
     "preview": "astro preview",
     "prepare": "node tools/git/setup.mjs",
-    "test": "node --test tools/",
+    "test": "node --test \"tools/**/*.test.*\"",
     "conversations:check": "node tools/git/conversations.mjs check",
     "conversations:refresh": "node tools/git/conversations.mjs refresh",
     "check": "tsc --noEmit -p tsconfig.json",

@@ -21,7 +21,7 @@ jobs:
         run: node tools/git/conversations.mjs check
 
       - name: Tests
-        run: node --test tools/
+        run: node --test "tools/**/*.test.*"
 
       # From here on the Maré Design System is needed. It is a private package: these steps run when
       # the repository has a token that can read it (NODE_AUTH_TOKEN: read:packages on mare-rio).
