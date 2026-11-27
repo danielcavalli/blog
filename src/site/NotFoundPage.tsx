@@ -15,7 +15,7 @@ export function NotFoundPage() {
   }, []);
   const words = WORDS[lang];
   return (
-    <Page variant="reading" box="folha">
+    <Page variant="reading">
       <Bar lang={lang} alternates={{ en: "/en/", pt: "/pt/" }} />
       <Reading>
         <Empty title={words.missing.title}>

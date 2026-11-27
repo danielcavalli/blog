@@ -9,7 +9,7 @@ import type { PlainModel } from "./models";
 
 export function PlainPage({ page }: { page: PlainModel }) {
   return (
-    <Page variant="reading" box="folha">
+    <Page variant="reading">
       <Bar lang={page.lang} at={page.which} alternates={page.alternates} />
       <Reading>
         <ReadingHead facts={[page.fact]} title={page.title} dek={page.dek} />

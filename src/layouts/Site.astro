@@ -1,6 +1,10 @@
 ---
 // Every page's document: the design system's stylesheet, fonts and page-to-page canvas, the light
 // set before the first paint and turned as the earth turns, and what search engines read.
+//
+// The site's paint box is Folha, set once on the document (data-box on <html>). A <Page> is not
+// given a box of its own: that would also hold it in the day's light until its components run, and
+// a reader by dusk or by the moon would see the day's paper first.
 import "@mare-rio/design-system/fonts";
 import "@mare-rio/design-system/css";
 import "@mare-rio/design-system/canvas";

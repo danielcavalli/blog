@@ -13,7 +13,7 @@ export function PostPage({ post }: { post: PostModel }) {
   const { lang } = post;
   const words = WORDS[lang].post;
   return (
-    <Page variant="reading" box="folha">
+    <Page variant="reading">
       <Bar lang={lang} at="blog" alternates={post.alternates} />
       <Reading>
         <ReadingHead

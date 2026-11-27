@@ -52,7 +52,7 @@ export function IndexPage({ index }: { index: IndexModel }) {
   );
 
   return (
-    <Page variant="reading" box="folha">
+    <Page variant="reading">
       <Bar lang={lang} at="blog" alternates={index.alternates} />
       <Reading measure="index">
         <PageHead title={words.index.title} note={`${words.posts(posts.length)} · en / pt`}>

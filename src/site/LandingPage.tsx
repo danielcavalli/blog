@@ -11,7 +11,7 @@ export function LandingPage({ landing }: { landing: LandingModel }) {
   const { lang } = landing;
   const words = WORDS[lang];
   return (
-    <Page variant="shore" box="folha">
+    <Page variant="shore">
       <TopBar>
         <BarEnd>
           <LanguageChoice lang={lang} alternates={landing.alternates} />
