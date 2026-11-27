@@ -240,3 +240,8 @@
   .deck-slide[data-layout="bio"] .deck-body > figure > img { width: min(100%, 288px); }
   .deck-number { display: none; }
 }
+
+/* ── on paper: the deck alone, a slide a page (the system hides the page round it; the stage keeps no margins) ── */
+@media print {
+  .deck-stage { margin: 0; }
+}
