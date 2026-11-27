@@ -6,8 +6,15 @@
 //      (the owner's revision: revise, given both, the translation and his comments, instead)
 //   4. up to MAX_REVISION_PASSES passes of
 //        critique           the critic's findings                                critic model
-//        revise             only when the critique says it needs refinement      translation model
+//        revise             a full localization pass, after every critique       translation model
 //        final review       accept and publish_ready, or the residual issues     critic model
+//
+// This is the process as ADR 017 left it (the owner's choice). The critic cannot skip the revision:
+// `needs_refinement` is recorded and decides nothing. The writer accounts for every finding, applied
+// or declined with why. The final review sees only the source, the candidate and the human guidance;
+// it accepts only with no residual issue, and every issue quotes a passage and names what it
+// violates. Its scores are recorded and decide nothing. A rejected review's issues go to the next
+// pass's critique and revision, not to its final review.
 //
 // The document is done at the first final review that accepts it. If the last pass still rejects it,
 // it fails: nothing is written, and the reviewer's residual issues are what the run reports.
@@ -33,7 +40,8 @@ import {
   validateTranslation,
   validateVoiceIntent,
 } from "./contracts.ts";
-import type { CVRevisionOutput, FinalReviewOutput, RevisionOutput, Schema, Stage, Validated } from "./contracts.ts";
+import { unquoted } from "./contracts.ts";
+import type { CritiqueOutput, CVRevisionOutput, FinalReviewOutput, ResidualIssue, RevisionDisposition, RevisionOutput, Schema, Stage, Validated } from "./contracts.ts";
 import { linkMapper, readMarkdown, readText, stateOf, toYaml } from "./documents.ts";
 import type { CvDocument, MarkdownFile, ProseDocument, SourceDocument } from "./documents.ts";
 import { ask } from "./hub.ts";
@@ -82,12 +90,15 @@ export class CheckError extends Error {
   }
 }
 
+/** A residual issue in one line: the passage, the failure, what it violates. */
+export const issueLine = ({ passage, violates, failure }: ResidualIssue): string => `"${passage}": ${failure} (violates: ${violates})`;
+
 /** A document the final review still rejected after the last pass. */
 export class RejectedError extends Error {
   review: FinalReviewOutput;
   passes: number;
   constructor(review: FinalReviewOutput, passes: number) {
-    const issues = review.residual_issues.length ? review.residual_issues : ["(the reviewer listed none, and did not accept)"];
+    const issues = review.residual_issues.length ? review.residual_issues.map(issueLine) : ["(the reviewer listed none, and did not accept)"];
     super(
       `The final review rejected the translation after ${passes} of ${MAX_REVISION_PASSES} passes; its residual issues:\n` +
         issues.map((issue) => `  - ${issue}`).join("\n"),
@@ -259,7 +270,21 @@ async function step<T>(
   }
 }
 
-/** Whether a final review lets the document be written: it accepts, says publish-ready, and leaves no residual issue. */
+// Every finding of the critique answered once in the report, and nothing answered that it did not find.
+function reported(critique: CritiqueOutput, applied: Pick<RevisionDisposition, "finding_id">[], declined: Pick<RevisionDisposition, "finding_id">[], [ok, no]: [string, string]): string[] {
+  const counts = new Map<string, number>();
+  for (const { finding_id } of [...applied, ...declined]) counts.set(finding_id, (counts.get(finding_id) ?? 0) + 1);
+  const findings: string[] = [];
+  for (const id of new Set(critique.findings.map((finding) => finding.finding_id))) {
+    const count = counts.get(id) ?? 0;
+    if (count !== 1) findings.push(`Critique finding ${id} must have exactly one entry, in ${ok} (applied, with the edit) or in ${no} (declined, with why), and has ${count}`);
+    counts.delete(id);
+  }
+  for (const id of counts.keys()) findings.push(`${ok} or ${no} has an entry for ${id}, which is not one of the critique's findings`);
+  return findings;
+}
+
+/** Whether a final review lets the document be written: it accepts, says publish-ready, and leaves no residual issue. Scores decide nothing. */
 export const accepted = (review: FinalReviewOutput): boolean => review.accept && review.publish_ready && review.residual_issues.length === 0;
 
 export interface Localized {
@@ -364,23 +389,35 @@ export async function localize(
   }
 
   let review: FinalReviewOutput | undefined;
+  let issues: ResidualIssue[] = [];
   for (let pass = 1; pass <= MAX_REVISION_PASSES; pass++) {
-    const critique = (await step(ctx, "critique", pass, { analysis, policy, candidate: current }, contract(validateCritique), { critic: true })).value;
-    let revised = current;
-    if (critique.needs_refinement) {
-      const inputs = { analysis, policy, candidate: current, critique };
-      if (source.kind === "cv") {
-        const result = await step(ctx, "revise", pass, inputs, contract(validateCvRevision, (value: CVRevisionOutput) => checkProduced(value.revised_cv)));
-        [revised, warnings] = [result.value.revised_cv, result.warnings];
-      } else {
-        const result = await step(ctx, "revise", pass, inputs, contract(validateRevision, checkProduced));
-        [revised, warnings] = [prose(result.value), result.warnings];
-      }
+    const given = { analysis, policy, candidate: current, issues };
+    const critique = (await step(ctx, "critique", pass, given, contract(validateCritique), { critic: true })).value;
+    // The revision runs whatever the critique says: a full localization pass, every time.
+    const inputs = { ...given, critique };
+    let revised: Candidate;
+    if (source.kind === "cv") {
+      const check = contract(validateCvRevision, (value: CVRevisionOutput) => {
+        const verdict = checkProduced(value.revised_cv);
+        const { applied_findings, declined_findings } = value.revision_report;
+        return { ...verdict, findings: [...verdict.findings, ...reported(critique, applied_findings, declined_findings, ["revision_report.applied_findings", "revision_report.declined_findings"])] };
+      });
+      const result = await step(ctx, "revise", pass, inputs, check);
+      [revised, warnings] = [result.value.revised_cv, result.warnings];
+    } else {
+      const check = contract(validateRevision, (value: RevisionOutput) => {
+        const verdict = checkProduced(value);
+        return { ...verdict, findings: [...verdict.findings, ...reported(critique, value.applied_feedback, value.declined_feedback, ["applied_feedback", "declined_feedback"])] };
+      });
+      const result = await step(ctx, "revise", pass, inputs, check);
+      [revised, warnings] = [prose(result.value), result.warnings];
     }
-    const inputs: StageInputs = { candidate: revised, candidateLabel: "LOCALIZED CANDIDATE JSON" };
-    review = (await step(ctx, "final_review", pass, inputs, contract(validateFinalReview), { critic: true })).value;
+    // The final review sees the source and the candidate only: not the earlier issues, not the critique.
+    const shown: StageInputs = { candidate: revised, candidateLabel: "LOCALIZED CANDIDATE JSON" };
+    const quoted = (value: FinalReviewOutput): Verdict => ({ findings: unquoted(value.residual_issues, revised, source.kind === "cv" ? source.data : [source.title, source.excerpt, source.tags, source.body]), warnings: [] });
+    review = (await step(ctx, "final_review", pass, shown, contract(validateFinalReview, quoted), { critic: true })).value;
     if (accepted(review)) return { candidate: revised, warnings, passes: pass, review, handled, usages: run.usages };
-    current = revised;
+    [current, issues] = [revised, review.residual_issues];
   }
   throw new RejectedError(review!, MAX_REVISION_PASSES);
 }

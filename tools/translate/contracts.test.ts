@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import {
   schemaFor,
+  unquoted,
   validateCritique,
   validateCvRevision,
   validateFinalReview,
@@ -150,21 +151,24 @@ test("the terminology policy reads its decisions under the old names, and its de
   );
 });
 
-test("a revision is a translation with its report, whose lists may be left out", () => {
+test("a revision is a translation with its report: each finding applied or declined, with why", () => {
   const revision = value(
     validateRevision({
       title: "Title",
       excerpt: "Summary",
       tags: ["ia"],
       content: "Revised content",
-      applied_feedback: ["fixed terminology"],
+      applied_feedback: [{ finding_id: "finding-1", rationale: "fixed terminology" }],
       declined_feedback: [{ finding_id: "finding-2", reason: "the source says it" }],
       rewrite_summary: ["re-anchored the second paragraph in the source"],
     }),
   );
+  assert.deepEqual(revision.applied_feedback, [{ finding_id: "finding-1", status: "applied", rationale: "fixed terminology" }]);
   assert.deepEqual(revision.declined_feedback, [{ finding_id: "finding-2", status: "declined", rationale: "the source says it" }]);
+  assert.equal(finding(validateRevision({ title: "T", excerpt: "E", tags: [], content: "C", applied_feedback: ["fixed terminology"] })), 'Field "applied_feedback[0]" must be an object, and is a string');
   assert.deepEqual(revision.unresolved_risks, []);
   assert.equal(finding(validateRevision({ title: "T", excerpt: "E", tags: ["ok", 1], content: "C", applied_feedback: [] })), 'Field "tags" must be a list of strings, and is a list');
+  assert.equal(finding(validateRevision({ title: "T", excerpt: "E", tags: [], content: "C", declined_feedback: [{ finding_id: "f" }] })), 'Field "declined_feedback.rationale" must be a string, and is missing', "a decline says why");
 });
 
 test("the CV's revision is the revised CV and its report", () => {
@@ -180,6 +184,20 @@ test("the final review needs every field of its gate", () => {
   const review = { accept: true, publish_ready: true, confidence: 0.91, residual_issues: [], voice_score: 94, terminology_score: 96, locale_naturalness_score: 93 };
   assert.deepEqual(value(validateFinalReview(review)), review);
   assert.equal(finding(validateFinalReview({ ...review, publish_ready: "yes" })), 'Field "publish_ready" must be a boolean, and is a string');
+});
+
+test("a residual issue quotes a passage and names what it violates, and the passage must be in the text", () => {
+  const issue = { passage: "Deveria soar familiar.", violates: "Review checks: literal calques", failure: "a calque" };
+  const review = { accept: false, publish_ready: false, confidence: 0.9, residual_issues: [issue], voice_score: 80, terminology_score: 80, locale_naturalness_score: 60 };
+  assert.deepEqual(value(validateFinalReview(review)).residual_issues, [issue]);
+  assert.match(finding(validateFinalReview({ ...review, residual_issues: [{ ...issue, passage: " " }] })), /residual_issues\[0\] quotes no passage/);
+  assert.match(finding(validateFinalReview({ ...review, residual_issues: [{ ...issue, violates: "" }] })), /residual_issues\[0\] names nothing it violates/);
+  assert.match(finding(validateFinalReview({ ...review, residual_issues: ["stiff prose"] })), /must be an object with `passage`, `violates` and `failure`/);
+  const texts = [{ content: "A maré sobe.\n\nDeveria  soar\nfamiliar." }, ["The tide comes in."]];
+  assert.deepEqual(unquoted([issue, { ...issue, passage: "«A maré … familiar.»" }, { ...issue, passage: "The tide comes in." }], ...texts), []);
+  assert.deepEqual(unquoted([{ ...issue, passage: "A maré desce." }], ...texts), [
+    'residual_issues[0] quotes "A maré desce.", which is in neither the candidate nor the source: quote the passage exactly as it is written',
+  ]);
 });
 
 test("each stage asks the Hub for the shape its prompt shows", () => {

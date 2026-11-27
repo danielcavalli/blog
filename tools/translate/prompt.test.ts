@@ -155,8 +155,9 @@ test("the earlier stages' answers follow the document in the old prompts' order,
       "<!-- reef comment 7 · open · Daniel Cavalli · 2026-11-27T02:50Z\nUm comentário sem citação.\n-->",
   );
   const candidate = { title: "A maré", excerpt: "Por que importa.", tags: ["mar"], content: "A maré, como diz o post." };
-  const user = userPrompt(post(), toPortuguese, { analysis: { tone: "dry" }, policy: { keep_english: [] }, candidate, critique: { score: 80 }, comments });
-  const order = ["LINKS TO OTHER DOCUMENTS", "SOURCE ANALYSIS JSON (MODEL ADVICE)", "TERMINOLOGY POLICY JSON (MODEL PROPOSAL)", "SOURCE MARKDOWN", "TRANSLATED CANDIDATE JSON", "CRITIQUE JSON", "OWNER REVISION INSTRUCTIONS"];
+  const issues = [{ passage: "A maré", violates: "Glossary", failure: "f" }];
+  const user = userPrompt(post(), toPortuguese, { analysis: { tone: "dry" }, policy: { keep_english: [] }, candidate, issues, critique: { score: 80 }, comments });
+  const order = ["LINKS TO OTHER DOCUMENTS", "SOURCE ANALYSIS JSON (MODEL ADVICE)", "TERMINOLOGY POLICY JSON (MODEL PROPOSAL)", "SOURCE MARKDOWN", "TRANSLATED CANDIDATE JSON", "PREVIOUS FINAL REVIEW RESIDUAL ISSUES", "CRITIQUE JSON", "OWNER REVISION INSTRUCTIONS"];
   const at = order.map((heading) => user.indexOf(`\n${heading}\n`));
   assert.ok(at.every((index, i) => index > 0 && (i === 0 || index > at[i - 1]!)), `in order: ${at.join(", ")}`);
   assert.ok(user.includes('TRANSLATED CANDIDATE JSON\n{\n  "content": "A maré, como diz o post.",\n  "excerpt": "Por que importa.",\n  "tags": [\n    "mar"\n  ],\n  "title": "A maré"\n}'), "as the old engine dumped it: keys sorted, two spaces");
@@ -223,7 +224,7 @@ const MOVED = new Set([
   "LOCALIZED CANDIDATE JSON",
   "CRITIQUE JSON",
 ]);
-const OURS = ["LOCALIZATION AUTHORITY", "LOCALIZATION BOUNDARY", "ARTIFACT CONTEXT AND OWNER REVISION INSTRUCTIONS", "DOCUMENT", "SOURCE FRONT MATTER", "LINKS TO OTHER DOCUMENTS"];
+const OURS = ["LOCALIZATION AUTHORITY", "LOCALIZATION BOUNDARY", "ARTIFACT CONTEXT AND OWNER REVISION INSTRUCTIONS", "DOCUMENT", "SOURCE FRONT MATTER", "LINKS TO OTHER DOCUMENTS", "PREVIOUS FINAL REVIEW RESIDUAL ISSUES"];
 const HEADINGS = new Set([...Object.values(OLD.rendered_2d9a250).flatMap((list) => list.map((section) => section.heading)), ...OURS]);
 
 // A message's section under a heading: the lines after it, up to the next heading.
@@ -252,7 +253,28 @@ const EDITS: Partial<Record<Stage, Record<string, [string, string][]>>> = {
     ],
     "OUTPUT CONTRACT": [["- Include all required keys with correct primitive types.", `- Include all required keys with correct primitive types.\n${PROSE_CONTRACT}`]],
   },
-  revise: { "OUTPUT CONTRACT": [["- Do not wrap in markdown fences.", `- Do not wrap in markdown fences.\n${PROSE_CONTRACT}`]] },
+  // The owner's rule from ADR 017: every finding accounted for, applied or declined with why.
+  revise: {
+    REVISE: [
+      [
+        "- applied_feedback should describe actual edits; declined_feedback records justified non-edits.",
+        "- applied_feedback should describe actual edits; declined_feedback records justified non-edits.\n" +
+          "- Give every critique finding id exactly one entry: in applied_feedback, saying what you changed, or in declined_feedback, saying why the wording stands. Record rewrites the critique did not ask for in rewrite_summary.",
+      ],
+    ],
+    "OUTPUT CONTRACT": [["- Do not wrap in markdown fences.", `- Do not wrap in markdown fences.\n${PROSE_CONTRACT}`]],
+    BEGIN_OUTPUT_JSON: [['"applied_feedback": ["string"],', '"applied_feedback": [{"finding_id": "string", "status": "applied", "rationale": "string"}],']],
+  },
+  // And every residual issue quotes its passage and names what it violates.
+  final_review: {
+    "OUTPUT CONTRACT": [
+      [
+        "- Numerical scores are diagnostic only and cannot excuse a guidance violation.",
+        "- Numerical scores are diagnostic only and cannot excuse a guidance violation.\n" +
+          "- Each residual issue quotes the exact passage at fault in `passage` (from the candidate, or from the source for something left out), names the source claim or human guidance rule it violates in `violates`, and states the concrete failure in `failure`. An issue without a passage and what it violates is refused.",
+      ],
+    ],
+  },
 };
 
 const sha256 = (text: string): string => createHash("sha256").update(text, "utf8").digest("hex");

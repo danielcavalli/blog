@@ -15,6 +15,7 @@ Revision rules:
 - Keep markdown links, URLs, inline code, fenced code, placeholders, citations, and DO_NOT_TRANSLATE_ENTITIES unchanged where protected.
 - If a critique request conflicts with a protection rule, keep the protected text unchanged and record the reason in declined_feedback.
 - applied_feedback should describe actual edits; declined_feedback records justified non-edits.
+- Give every critique finding id exactly one entry: in applied_feedback, saying what you changed, or in declined_feedback, saying why the wording stands. Record rewrites the critique did not ask for in rewrite_summary.
 - Keep source claims and protected material intact when declining a finding. Locale naturalness never permits changing a fact, an actor's responsibility, or the force of a qualification.
 
 LOCALE DIRECTION
@@ -64,7 +65,7 @@ BEGIN_OUTPUT_JSON
   "excerpt": "string",
   "tags": ["string"],
   "content": "string",
-  "applied_feedback": ["string"],
+  "applied_feedback": [{"finding_id": "string", "status": "applied", "rationale": "string"}],
   "declined_feedback": [{"finding_id": "string", "status": "declined", "rationale": "string"}],
   "rewrite_summary": ["string"],
   "unresolved_risks": ["string"]

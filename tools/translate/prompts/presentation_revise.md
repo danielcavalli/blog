@@ -18,6 +18,7 @@ Revision rules:
 - For PT-BR presentation prose, resolve recurring editorial drift before finalizing: prefer "resultado" or "resposta" over "saida" for model output unless a technical artifact is meant; prefer "deriva" over "drift" unless terminology policy explicitly preserves the borrowing; use "esquema" or "esquemas" for schema/schemas in prose unless it is a literal code token; use "base de conhecimento" for the concept and reserve "KB" for a named/system shorthand; prefer "Tudo o que" when formal published prose calls for it.
 - If a critique request conflicts with a protection rule, keep the protected text unchanged and record the reason in declined_feedback.
 - applied_feedback should describe actual edits; declined_feedback records justified non-edits.
+- Give every critique finding id exactly one entry: in applied_feedback, saying what you changed, or in declined_feedback, saying why the wording stands. Record rewrites the critique did not ask for in rewrite_summary.
 
 LOCALE DIRECTION
 - Source locale: {{source_locale}}
@@ -66,7 +67,7 @@ BEGIN_OUTPUT_JSON
   "excerpt": "string",
   "tags": ["string"],
   "content": "string",
-  "applied_feedback": ["string"],
+  "applied_feedback": [{"finding_id": "string", "status": "applied", "rationale": "string"}],
   "declined_feedback": [{"finding_id": "string", "status": "declined", "rationale": "string"}],
   "rewrite_summary": ["string"],
   "unresolved_risks": ["string"]

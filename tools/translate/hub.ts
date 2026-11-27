@@ -13,9 +13,8 @@ import http from "node:http";
 import https from "node:https";
 
 export const DEFAULT_HUB = "https://hub.tail73a546.ts.net";
-// TODO(owner): choose today's models. These four are placeholders until then, not a decision. The
-// old engine split the work the same way: the translation model analyses, drafts and revises at high
-// effort; a different critic model critiques and gives the final review at medium effort.
+// The owner's models. As in the old engine, the translation model analyses, drafts and revises at
+// high effort; a different critic model critiques and gives the final review at medium effort.
 /** The model that analyses, drafts and revises. */
 export const DEFAULT_MODEL = "gpt-5.6-sol";
 export const DEFAULT_EFFORT = "high";

@@ -50,6 +50,7 @@ OUTPUT CONTRACT
 - Return exactly one JSON object without markdown fences.
 - residual_issues must be empty for acceptance; otherwise accept and publish_ready must be false.
 - Numerical scores are diagnostic only and cannot excuse a guidance violation.
+- Each residual issue quotes the exact passage at fault in `passage` (from the candidate, or from the source for something left out), names the source claim or human guidance rule it violates in `violates`, and states the concrete failure in `failure`. An issue without a passage and what it violates is refused.
 
 BEGIN_OUTPUT_JSON
 {

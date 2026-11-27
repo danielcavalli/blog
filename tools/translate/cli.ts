@@ -195,10 +195,10 @@ function documentRun(io: Io, flags: Flags, source: SourceDocument): DocumentRun 
 const models = (settings: Settings): string =>
   `${settings.model} (${settings.effort}), critic ${settings.criticModel} (${settings.criticEffort})`;
 
-// The calls a document takes: analysis, policy and draft, then 2 or 3 a pass.
+// The calls a document takes: analysis, policy and draft, then 3 a pass.
 const PLAN =
-  `${3 + 2} to ${3 + 3 * MAX_REVISION_PASSES} calls: source analysis, terminology policy, draft, then up to ${MAX_REVISION_PASSES} passes ` +
-  "of critique, revision (when the critique asks) and final review";
+  `${3 + 3} to ${3 + 3 * MAX_REVISION_PASSES} calls: source analysis, terminology policy, draft, then up to ${MAX_REVISION_PASSES} passes ` +
+  "of critique, revision and final review";
 
 // How a document's run ended, in its summary and on the terminal.
 function finished(io: Io, run: DocumentRun, result: Localized | null, error: unknown, what: string): void {

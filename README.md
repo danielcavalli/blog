@@ -159,23 +159,33 @@ A translation is the file beside its source. Its front matter says what it trans
 matches and the translation is stale. You read a translation in Reef like any other document, and a
 comment in its margin is how you ask for it to be revised.
 
-Translating a document is the localization process the old engine ran, now through the Maré Hub,
-which this machine reaches over the tailnet with no credential. Each step is one model call with
-its own prompt:
+Translating a document is the localization process the old engine ran, as decision 017 left it,
+now through the Maré Hub, which this machine reaches over the tailnet with no credential. Each step
+is one model call with its own prompt:
 
 1. **Source analysis**: the author's voice, tone, rhythm, rhetorical moves and what must survive.
 2. **Terminology policy**: which terms stay in English, which are localized, and how ambiguous ones
-   are settled for the whole document. It is a proposal: it adds nothing to the protected names.
+   are settled for the whole document.
 3. **Translate**: the draft, written with the analysis and the policy.
-4. Up to **two passes** of **critique** (a second model's findings), **revise** (only when the
-   critique says the draft needs it) and **final review** (the second model reads the source and the
-   text against the guidance). The document is done at the first final review that accepts it,
-   calls it publish-ready and lists no residual issue. If the second pass still rejects it, nothing
-   is written and the reviewer's residual issues are printed.
+4. Up to **two passes** of:
+   - **Critique**: a second model's findings, each grounded in the source or a human guidance rule.
+   - **Revise**: a full localization pass over the whole text, after every critique; the critic
+     cannot skip it by saying nothing needs refinement. The writer keeps wording that already meets
+     the source and the guidance, and may decline a finding it judges mistaken: its report says, for
+     every finding, applied (with the edit) or declined (with why).
+   - **Final review**: the second model reads only the source, the text and the human guidance. It
+     accepts only when it says accept and publish-ready and lists no residual issue. Each issue must
+     quote the passage at fault and name the source claim or guidance rule it violates, or the review
+     is sent back. Its scores are recorded and decide nothing.
 
-The translation model analyses, drafts and revises; the critic model critiques and reviews. A post
-takes 5 to 9 calls. The CV has its own prompt for every step, and a presentation its own translate
-and revise.
+   The document is done at the first final review that accepts it. A rejected review's issues go to
+   the next pass's critique and revision (not to its final review). If the second pass still rejects
+   it, nothing is written and the reviewer's residual issues are printed.
+
+The analysis and the policy are proposals: they never override the human guidance, and the names
+the policy would protect are not added to the guidance's list. The translation model analyses,
+drafts and revises; the critic model critiques and reviews. A post takes 6 to 9 calls. The CV has
+its own prompt for every step, and a presentation its own translate and revise.
 
 ```sh
 npm run translate -- status                        # where every translation stands; fails unless all are current
@@ -186,16 +196,17 @@ npm run translate -- stamp posts/<slug>.md         # you changed both by hand th
 ```
 
 `--force` translates a current document again. `--model` and `--effort` choose the translation
-model (default `gpt-5.6-sol` at `high`), `--critic-model` and `--critic-effort` the critic (default
-`claude-opus-5-5` at `medium`); the defaults are placeholders until today's models are chosen.
+model (default `gpt-5.6-sol` at `high`), `--critic-model` and `--critic-effort` the critic and final
+reviewer (default `claude-opus-5-5` at `medium`).
 `--dry-run` calls nothing and writes nothing, and `--out <dir>` writes under another folder instead
 of the repository, for trials. Each document prints a line per step with its tokens and cost (the
 Hub reports no cost for a model it serves from a subscription), the critique's and the final
 review's verdicts and scores, and how many passes it took.
 
 - **What every step said** is kept for you to read in `.translate-runs/<run>/<document>/`, which
-  git ignores: each step's answer as JSON (the analysis, the policy, every critique, revision report
-  and final review with its scores and residual issues), the messages it was sent, and a
+  git ignores: each step's answer as JSON (the analysis, the policy, every critique, every revision
+  with its report, and every final review with its scores and residual issues), the messages it was
+  sent, and a
   `summary.json`. None of it goes into a published file.
 - **The checks** compare every draft and revision with the source: footnotes, fenced code, link
   destinations (a link to another post must point to that post in the translation's language),

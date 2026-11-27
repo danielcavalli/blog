@@ -7,6 +7,10 @@
 // same normalized form, which is what the later stages are shown. A validator stops at the first
 // violation, as the old one raised on it, and says it as a finding the model can act on.
 //
+// Two rules are the owner's, from ADR 017, on top of contracts.py: a revision accounts for every
+// critique finding (applied, with the edit, or declined, with why), and a final review's residual
+// issue quotes a passage and names what it violates.
+//
 // What a translation or a revision says (a post's title, excerpt, tags and body; the CV) is checked
 // further by checks.ts. The CV's content has the CV's own shape, which for today's cv_data.yaml is
 // the old `CVTranslationOutput` exactly.
@@ -95,7 +99,9 @@ export interface RevisionDisposition {
 }
 
 export interface RevisionOutput extends TranslationOutput {
-  applied_feedback: string[];
+  /** One entry per critique finding acted on: its id, `applied`, and the edit. */
+  applied_feedback: RevisionDisposition[];
+  /** One entry per critique finding declined: its id, `declined`, and why the wording stands. */
   declined_feedback: RevisionDisposition[];
   rewrite_summary: string[];
   unresolved_risks: string[];
@@ -125,11 +131,20 @@ export interface CVRevisionOutput {
   revision_report: CVRevisionReport;
 }
 
+/** A defect the final review found: the passage, what it violates, and how. */
+export interface ResidualIssue {
+  /** The exact passage, from the candidate (or from the source, for something left out). */
+  passage: string;
+  /** The source claim or human guidance rule it violates. */
+  violates: string;
+  failure: string;
+}
+
 export interface FinalReviewOutput {
   accept: boolean;
   publish_ready: boolean;
   confidence: number;
-  residual_issues: string[];
+  residual_issues: ResidualIssue[];
   voice_score: number;
   terminology_score: number;
   locale_naturalness_score: number;
@@ -397,14 +412,14 @@ const readCritique = (payload: Payload): CritiqueOutput => {
 /** `validate_critique_output`: the critic's report. */
 export const validateCritique = contract(readCritique);
 
-// `_normalize_revision_dispositions`.
-const readDispositions = (payload: Payload, field: string, at = field): RevisionDisposition[] =>
+// `_normalize_revision_dispositions`: a finding's id, what was decided, and why.
+const readDispositions = (payload: Payload, field: string, at = field, decision = "declined"): RevisionDisposition[] =>
   records(
     payload,
     field,
     (item, where) => ({
       finding_id: nested(item, "finding_id", where),
-      status: text(item.status, "declined"),
+      status: text(item.status, decision),
       rationale: alias(item, ["rationale", "reason"], where),
     }),
     at,
@@ -412,7 +427,7 @@ const readDispositions = (payload: Payload, field: string, at = field): Revision
 
 const readRevision = (payload: Payload): RevisionOutput => ({
   ...readTranslation(payload),
-  applied_feedback: optionalStrings(payload, "applied_feedback"),
+  applied_feedback: readDispositions(payload, "applied_feedback", "applied_feedback", "applied"),
   declined_feedback: readDispositions(payload, "declined_feedback"),
   rewrite_summary: optionalStrings(payload, "rewrite_summary"),
   unresolved_risks: optionalStrings(payload, "unresolved_risks"),
@@ -458,6 +473,18 @@ const readCvRevision = (payload: Payload): CVRevisionOutput => {
 /** `validate_cv_revision_output`: the CV's revision and its report. */
 export const validateCvRevision = contract(readCvRevision);
 
+// Every residual issue quotes its passage and names what it violates; an issue without both is refused.
+function readIssues(payload: Payload): ResidualIssue[] {
+  return required(payload, "residual_issues", "list").map((item, index) => {
+    const at = `residual_issues[${index}]`;
+    if (!isRecord(item)) return mismatch(at, "an object with `passage`, `violates` and `failure`", item);
+    const [passage, violates, failure] = [nested(item, "passage", at), nested(item, "violates", at), nested(item, "failure", at)];
+    if (!passage.trim()) throw new Violation(`${at} quotes no passage: \`passage\` must be the exact passage at fault`);
+    if (!violates.trim()) throw new Violation(`${at} names nothing it violates: \`violates\` must name the source claim or the guidance rule`);
+    return { passage, violates, failure };
+  });
+}
+
 const readFinalReview = (payload: Payload): FinalReviewOutput => {
   const accept = required(payload, "accept", "bool");
   const publish_ready = required(payload, "publish_ready", "bool");
@@ -469,7 +496,7 @@ const readFinalReview = (payload: Payload): FinalReviewOutput => {
     accept,
     publish_ready,
     confidence,
-    residual_issues: strings(payload, "residual_issues"),
+    residual_issues: readIssues(payload),
     voice_score,
     terminology_score,
     locale_naturalness_score,
@@ -478,6 +505,30 @@ const readFinalReview = (payload: Payload): FinalReviewOutput => {
 
 /** `validate_final_review_output`: the final review's verdict. */
 export const validateFinalReview = contract(readFinalReview);
+
+// Every string in a value, for finding a quoted passage in a post or in the CV.
+const textsOf = (value: unknown): string[] =>
+  typeof value === "string" ? [value] : Array.isArray(value) ? value.flatMap(textsOf) : isRecord(value) ? Object.values(value).flatMap(textsOf) : [];
+
+const flat = (text: string): string => text.replace(/\s+/g, " ").trim();
+
+/**
+ * The residual issues whose passage is not in the candidate or the source. A passage may be quoted
+ * with quotation marks around it and `…` where it skips; every piece must be there as written.
+ */
+export function unquoted(issues: ResidualIssue[], ...texts: unknown[]): string[] {
+  const haystack = flat(texts.flatMap(textsOf).join("\n"));
+  return issues.flatMap((issue, index) => {
+    const pieces = flat(issue.passage)
+      .replace(/^["“”'‘’«»]+|["“”'‘’«»]+$/g, "")
+      .split(/…|\.\.\./)
+      .map((piece) => piece.trim())
+      .filter(Boolean);
+    return pieces.length && pieces.every((piece) => haystack.includes(piece))
+      ? []
+      : [`residual_issues[${index}] quotes "${issue.passage}", which is in neither the candidate nor the source: quote the passage exactly as it is written`];
+  });
+}
 
 // ---------- the shapes asked of the Hub ----------
 
@@ -564,7 +615,7 @@ const CRITIQUE = object({
 });
 
 const REVISION_REPORT = {
-  applied_feedback: STRINGS,
+  applied_feedback: listOf({ finding_id: STRING, status: STRING, rationale: STRING }),
   declined_feedback: listOf({ finding_id: STRING, status: STRING, rationale: STRING }),
   rewrite_summary: STRINGS,
   unresolved_risks: STRINGS,
@@ -580,7 +631,7 @@ const FINAL_REVIEW = object({
   accept: BOOLEAN,
   publish_ready: BOOLEAN,
   confidence: NUMBER,
-  residual_issues: STRINGS,
+  residual_issues: listOf({ passage: STRING, violates: STRING, failure: STRING }),
   voice_score: NUMBER,
   terminology_score: NUMBER,
   locale_naturalness_score: NUMBER,

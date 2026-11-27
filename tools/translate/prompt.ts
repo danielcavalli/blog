@@ -146,6 +146,8 @@ export interface StageInputs {
   /** Its heading: the critique and the revision see a translated candidate, the final review a localized one. */
   candidateLabel?: "TRANSLATED CANDIDATE JSON" | "LOCALIZED CANDIDATE JSON";
   critique?: unknown;
+  /** The residual issues of the previous pass's final review, for the next critique and revision. */
+  issues?: unknown[];
   /** The owner's open comments, when the run is his revision. */
   comments?: Comment[];
 }
@@ -170,6 +172,9 @@ export function userPrompt(source: SourceDocument, map: (destination: string) =>
       : `SOURCE MARKDOWN\n${block("source_markdown", source.body)}`,
   );
   if (inputs.candidate !== undefined) parts.push(`${inputs.candidateLabel ?? "TRANSLATED CANDIDATE JSON"}\n${json(inputs.candidate)}`);
+  if (inputs.issues?.length) {
+    parts.push(`PREVIOUS FINAL REVIEW RESIDUAL ISSUES\nThe previous pass's final review did not accept this candidate, for these issues:\n${json(inputs.issues)}`);
+  }
   if (inputs.critique !== undefined) parts.push(`CRITIQUE JSON\n${json(inputs.critique)}`);
   if (inputs.comments?.length) parts.push(`OWNER REVISION INSTRUCTIONS\n${inputs.comments.map(commentText).join("\n\n")}`);
   return `${parts.join("\n\n")}\n`;
