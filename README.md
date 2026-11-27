@@ -159,8 +159,23 @@ A translation is the file beside its source. Its front matter says what it trans
 matches and the translation is stale. You read a translation in Reef like any other document, and a
 comment in its margin is how you ask for it to be revised.
 
-A model translates a document through the Maré Hub, which this machine reaches over the tailnet
-with no credential. Its answer is written only if it passes the checks.
+Translating a document is the localization process the old engine ran, now through the Maré Hub,
+which this machine reaches over the tailnet with no credential. Each step is one model call with
+its own prompt:
+
+1. **Source analysis**: the author's voice, tone, rhythm, rhetorical moves and what must survive.
+2. **Terminology policy**: which terms stay in English, which are localized, and how ambiguous ones
+   are settled for the whole document. It is a proposal: it adds nothing to the protected names.
+3. **Translate**: the draft, written with the analysis and the policy.
+4. Up to **two passes** of **critique** (a second model's findings), **revise** (only when the
+   critique says the draft needs it) and **final review** (the second model reads the source and the
+   text against the guidance). The document is done at the first final review that accepts it,
+   calls it publish-ready and lists no residual issue. If the second pass still rejects it, nothing
+   is written and the reviewer's residual issues are printed.
+
+The translation model analyses, drafts and revises; the critic model critiques and reviews. A post
+takes 5 to 9 calls. The CV has its own prompt for every step, and a presentation its own translate
+and revise.
 
 ```sh
 npm run translate -- status                        # where every translation stands; fails unless all are current
@@ -170,25 +185,35 @@ npm run translate -- revise posts/<slug>.pt-br.md  # revise a translation by the
 npm run translate -- stamp posts/<slug>.md         # you changed both by hand the same way: record that they agree
 ```
 
-`--force` translates a current document again, `--model` and `--effort` choose the model (default
-`gpt-5.6-sol` at `high`), `--dry-run` calls nothing and writes nothing, and `--out <dir>` writes
-under another folder instead of the repository, for trials. Each document prints its tokens, and its
-cost when the Hub reports one (it reports none for a model it serves from a subscription).
+`--force` translates a current document again. `--model` and `--effort` choose the translation
+model (default `gpt-5.6-sol` at `high`), `--critic-model` and `--critic-effort` the critic (default
+`claude-opus-5-5` at `medium`); the defaults are placeholders until today's models are chosen.
+`--dry-run` calls nothing and writes nothing, and `--out <dir>` writes under another folder instead
+of the repository, for trials. Each document prints a line per step with its tokens and cost (the
+Hub reports no cost for a model it serves from a subscription), the critique's and the final
+review's verdicts and scores, and how many passes it took.
 
-- **The checks** compare the answer with the source: footnotes, fenced code, link destinations
-  (a link to another post must point to that post in the translation's language), picture paths,
-  parenthetical asides, a presentation's slide markers, About's paragraphs, the CV's entries and
-  contact details, and that the text was translated at all. After a failed check the model is asked
-  once more with the exact findings; if that fails too, nothing is written.
+- **What every step said** is kept for you to read in `.translate-runs/<run>/<document>/`, which
+  git ignores: each step's answer as JSON (the analysis, the policy, every critique, revision report
+  and final review with its scores and residual issues), the messages it was sent, and a
+  `summary.json`. None of it goes into a published file.
+- **The checks** compare every draft and revision with the source: footnotes, fenced code, link
+  destinations (a link to another post must point to that post in the translation's language),
+  picture paths, parenthetical asides, a presentation's slide markers, About's paragraphs, the CV's
+  entries and contact details, and that the text was translated at all. Every answer must also have
+  its step's shape. After a failed check the model is asked once more with the exact findings; if
+  that fails too, nothing is written.
 - **A translation's reef trailer is never rewritten.** Translating a document again replaces its
   body and keeps the conversation at its end byte for byte.
-- **`revise`** is for a translation you reviewed in Reef. It sends the source, the translation and
-  your open comments to the model, writes the revised text, and sets each comment the model acted on
-  from `open` to `addressed`. A comment it did not act on (a question, say) stays open, with the
-  model's reason printed.
-- **The guidance** the model is given is Markdown: the locale briefs, rules and glossaries in
-  `tools/translate/guides/`, the prompt around them in `tools/translate/prompts/`, and the writing
-  references under `.agents/skills/`. Edit those to change how translations read.
+- **`revise`** is for a translation you reviewed in Reef. It runs the same process with your open
+  comments as the owner's instructions: the analysis and the policy, then a revise step that applies
+  your comments to the translation as it stands, then the critique, revise and final review passes.
+  Every step sees your comments. If the text is accepted, it is written and each comment the
+  revision acted on goes from `open` to `addressed`; a comment it did not act on (a question, say)
+  stays open, with the reason printed.
+- **The guidance** the models are given is Markdown: the locale briefs, rules and glossaries in
+  `tools/translate/guides/`, each step's prompt around them in `tools/translate/prompts/`, and the
+  writing references under `.agents/skills/`. Edit those to change how translations read.
 
 ## Licence
 

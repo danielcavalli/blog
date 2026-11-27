@@ -327,6 +327,7 @@ export async function localize(
   settings: Settings,
   { owner, run = new DocumentRun() }: { owner?: OwnerRevision; run?: DocumentRun } = {},
 ): Promise<Localized> {
+  if (owner && source.kind === "cv") throw new Error("the owner's revision works on a Markdown translation");
   const map = linkMapper(source, sources);
   const ctx: Context = { source, map, settings, run, comments: owner?.comments };
   const checkProduced = (value: unknown): Verdict =>
@@ -339,7 +340,6 @@ export async function localize(
   let warnings: string[];
   let handled: Handled[] = [];
   if (owner) {
-    if (source.kind === "cv") throw new Error("the owner's revision works on a Markdown translation");
     const validateOwner = (answer: unknown): Validated<OwnerAnswer> => {
       const validated = validateRevision(answer);
       return "finding" in validated ? validated : { value: { ...validated.value, comments: (answer as OwnerAnswer).comments } };
