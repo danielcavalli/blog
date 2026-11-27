@@ -1,6 +1,6 @@
 // The index: the newest post as the page's head on its ground wash, then every other post by year.
 // The reader orders it by when a post was published or last changed, narrows it to a year or a tag,
-// or searches every post's text; each change is a turn of the one canvas, not a new page.
+// or searches every post's text; each change is a turn of the one canvas, not a new page, but the filters open and close at once.
 
 import { useEffect, useState } from "react";
 
@@ -54,7 +54,8 @@ export function IndexBody({ index }: { index: IndexModel }) {
       <Reading measure="index">
         <PageHead title={words.index.title} note={`${words.posts(posts.length)} · en / pt`}>
           <Choice label={words.index.sortBy} named="beside" of="view" options={orders} value={order} onChange={(next) => turn(() => setOrder(next))} />
-          <Button size="small" onPress={() => turn(() => setFilters(!filters))}>{words.index.filter}</Button>
+          {/* (the filters open and close at once: the list simply moves down and up, with no cross-fade) */}
+          <Button size="small" onPress={() => setFilters(!filters)}>{words.index.filter}</Button>
           <Mark glyph="search" label={words.index.search} expanded={searching} onPress={() => turn(() => { setSearching(!searching); setQuery(""); })} />
         </PageHead>
         {searching ? <Field label={words.index.search} bare autoFocus example={words.index.searchFor} value={query} onChange={setQuery} /> : null}
