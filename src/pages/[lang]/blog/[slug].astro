@@ -1,12 +1,11 @@
 ---
 import Site from "../../../layouts/Site.astro";
 import { posts, postUrl, type Lang, type Post } from "../../../content/documents";
+import { postModel } from "../../../site/models";
 import { PostPage } from "../../../site/PostPage";
 
 export function getStaticPaths() {
-  return posts()
-    .filter((post) => post.kind === "post")
-    .flatMap((post) => (Object.keys(post.in) as Lang[]).map((lang) => ({ params: { lang, slug: post.slug }, props: { post, lang } })));
+  return posts().flatMap((post) => (Object.keys(post.in) as Lang[]).map((lang) => ({ params: { lang, slug: post.slug }, props: { post, lang } })));
 }
 
 interface Props {
@@ -14,9 +13,8 @@ interface Props {
   lang: Lang;
 }
 const { post, lang } = Astro.props;
-const document = post.in[lang]!;
-const alternates = Object.fromEntries((Object.keys(post.in) as Lang[]).map((code) => [code, postUrl(post, code)]));
+const model = postModel(post, lang);
 ---
-<Site title={`${document.title} · dan.rio`} description={document.excerpt} lang={lang} path={postUrl(post, lang)} alternates={alternates}>
-  <PostPage post={post} lang={lang} />
+<Site title={`${model.title} · dan.rio`} description={model.dek} lang={lang} path={postUrl(post, lang)} alternates={model.alternates}>
+  <PostPage client:load post={model} />
 </Site>

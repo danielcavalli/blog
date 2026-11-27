@@ -7,7 +7,7 @@ tags:
 - Arquitetura de Software
 lang: pt-br
 translation_of: mare-rio-and-mare-hub.md
-source_digest: 0698256bf3b864a3be00b77bf5ddb8d2022825fd9b9c2c6f406b6ae0bffb7335
+source_digest: 427890df395aada8333184070d273020f73fb6aa86da8d301a3e186c6f10bdf8
 translated_by: openai/gpt-5.6-sol (high), via opencode
 translated_at: '2026-09-08'
 ---
@@ -20,11 +20,7 @@ Então decidi o que queria fazer em seguida: construir o encanamento uma vez só
 
 Maré Rio é uma plataforma que hospedo no Kubernetes, e todo app que peço para criarem roda nela. A plataforma cuida de todas as decisões de engenharia e design, para que cada app declare o que precisa como recursos personalizados do Kubernetes e possa simplesmente ser um app. O agente de programação que o constrói nunca me pergunta como nada disso funciona, porque os contratos da plataforma podem ser lidos por uma CLI, e eu uso tudo o que sai dali pelo Maré Hub: um único login, um único catálogo, todos os meus apps.
 
-<figure class="post-figure theme-media">
-  <a data-theme-variant="light" href="/static/images/mare-rio/hub-day.jpg"><img src="/static/images/mare-rio/hub-day.jpg" alt="Maré Hub no modo Day, exibindo Notes, Finance, Moon e Library, com seus estados de prontidão." width="1440" height="1060" loading="lazy" decoding="async"></a>
-  <a data-theme-variant="dark" href="/static/images/mare-rio/hub-night.jpg"><img src="/static/images/mare-rio/hub-night.jpg" alt="Maré Hub no modo Night, exibindo Notes, Finance, Moon e Library, com seus estados de prontidão." width="1440" height="1060" loading="lazy" decoding="async"></a>
-  <figcaption>A tela inicial do Maré Hub. Todas as capturas de tela deste post vêm dos frontends locais de verdade, com dados de exemplo.</figcaption>
-</figure>
+![Maré Hub no modo Day, exibindo Notes, Finance, Moon e Library, com seus estados de prontidão.](mare-rio-and-mare-hub.assets/hub-day.jpg "A tela inicial do Maré Hub. Todas as capturas de tela deste post vêm dos frontends locais de verdade, com dados de exemplo.")
 
 ## Três apps para sondar a plataforma
 
@@ -32,11 +28,7 @@ Talvez você tenha reparado em alguns apps de aparência bastante simples na cap
 
 Notes veio primeiro porque era o alvo mais fácil que consegui imaginar: um editor, uma lista, armazenamento e identidade fornecidos pela plataforma, pronto. Ele provou que o ciclo funciona. Eu descrevo um app, meu agente o constrói de acordo com os contratos, e ele roda no mesmo cluster que todo o resto. Nada disso é impressionante, exatamente o que eu queria de um primeiro app.
 
-<figure class="post-figure theme-media">
-  <a data-theme-variant="light" href="/static/images/mare-rio/notes-day.jpg"><img src="/static/images/mare-rio/notes-day.jpg" alt="Notes no modo Day, com navegação, uma lista de notas de exemplo e uma nota aberta no editor." width="1440" height="1060" loading="lazy" decoding="async"></a>
-  <a data-theme-variant="dark" href="/static/images/mare-rio/notes-night.jpg"><img src="/static/images/mare-rio/notes-night.jpg" alt="Notes no modo Night, com navegação, uma lista de notas de exemplo e uma nota aberta no editor." width="1440" height="1060" loading="lazy" decoding="async"></a>
-  <figcaption>Notes, o primeiro app construído sobre a plataforma. As notas exibidas são exemplos.</figcaption>
-</figure>
+![Notes no modo Day, com navegação, uma lista de notas de exemplo e uma nota aberta no editor.](mare-rio-and-mare-hub.assets/notes-day.jpg "Notes, o primeiro app construído sobre a plataforma. As notas exibidas são exemplos.")
 
 A primeira fase do Finance subiu o sarrafo, com mais entidades, cálculos reais e trabalho em segundo plano para agendar, e ainda assim foi fácil. Esse era o resultado que importava, porque só vale a pena construir uma plataforma se o segundo app der menos trabalho do que o primeiro, e deu.
 
@@ -44,11 +36,7 @@ Já Moon, a lista de filmes e séries[^moon], foi um pouco diferente... Foi um c
 
 Tenho evitado falar muito sobre Maré Rio em público porque acredito que ainda falta bastante para a plataforma se tornar estável, mas Moon me mostrou que existem partes estáveis em meio às instáveis, então você provavelmente verá em breve mais posts sobre a engenharia por trás da Maré e do Moon.
 
-<figure class="post-figure theme-media">
-  <a data-theme-variant="light" href="/static/images/mare-rio/moon-day.jpg"><img src="/static/images/mare-rio/moon-day.jpg" alt="Moon no modo Day, exibindo uma lista de filmes e séries de exemplo ao lado de recomendações e títulos do catálogo." width="1440" height="1494" loading="lazy" decoding="async"></a>
-  <a data-theme-variant="dark" href="/static/images/mare-rio/moon-night.jpg"><img src="/static/images/mare-rio/moon-night.jpg" alt="Moon no modo Night, exibindo uma lista de filmes e séries de exemplo ao lado de recomendações e títulos do catálogo." width="1440" height="1494" loading="lazy" decoding="async"></a>
-  <figcaption>A lista e as recomendações do Moon, preenchidas com itens de exemplo do catálogo, em vez do meu histórico ou das sugestões de um agente ativo.</figcaption>
-</figure>
+![Moon no modo Day, exibindo uma lista de filmes e séries de exemplo ao lado de recomendações e títulos do catálogo.](mare-rio-and-mare-hub.assets/moon-day.jpg "A lista e as recomendações do Moon, preenchidas com itens de exemplo do catálogo, em vez do meu histórico ou das sugestões de um agente ativo.")
 
 ## O que todo app recebe
 
@@ -60,11 +48,7 @@ Correndo o risco de me repetir, a ideia da Maré é esta: uma casa nova se liga 
 - **Um sistema de design.** Não cabe aos novos apps inventar a própria aparência. Os temas Day e Night, a navegação e os controles vêm da plataforma, por isso Notes e Moon parecem cômodos da mesma casa sem fingirem que são o mesmo cômodo.
 - **Contratos que o agente de programação consegue ler.** A CLI descreve cada comando como JSON, com suas entradas, seus efeitos e a indicação de se exige intervenção humana. Assim, o agente aprende como a Maré funciona enquanto constrói o app e faz a validação com o mesmo compilador que o implanta. Eu não explico mais a plataforma. Ela se explica sozinha.
 
-<figure class="post-figure theme-media">
-  <a data-theme-variant="light" href="/static/images/mare-rio/settings-day.jpg"><img src="/static/images/mare-rio/settings-day.jpg" alt="Configurações do Hub no modo Day, exibindo uma conta de exemplo, controles de aparência, conexões com provedores para agentes e permissões de instalação." width="1440" height="1311" loading="lazy" decoding="async"></a>
-  <a data-theme-variant="dark" href="/static/images/mare-rio/settings-night.jpg"><img src="/static/images/mare-rio/settings-night.jpg" alt="Configurações do Hub no modo Night, exibindo uma conta de exemplo, controles de aparência, conexões com provedores para agentes e permissões de instalação." width="1440" height="1311" loading="lazy" decoding="async"></a>
-  <figcaption>Configurações do Hub: conta, aparência e as conexões com provedores compartilhadas pelos agentes de todos os apps. Os estados de identidade e conexão exibidos são dados de exemplo.</figcaption>
-</figure>
+![Configurações do Hub no modo Day, exibindo uma conta de exemplo, controles de aparência, conexões com provedores para agentes e permissões de instalação.](mare-rio-and-mare-hub.assets/settings-day.jpg "Configurações do Hub: conta, aparência e as conexões com provedores compartilhadas pelos agentes de todos os apps. Os estados de identidade e conexão exibidos são dados de exemplo.")
 
 O contrato também funciona no sentido inverso. Um app declara as operações que oferece, com entradas, saídas e efeitos, e um agente de outro app pode indicar uma delas como ferramenta. Adicionar a busca do Notes às ferramentas do agente do Moon exige uma entrada numa lista, não um projeto de integração, e o Notes continua responsável pelas notas.
 

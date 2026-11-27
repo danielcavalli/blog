@@ -15,11 +15,7 @@ I've been using AI for development since 2022 and, as I mentioned in [Don't Outs
 
 [Maré Rio](mare-rio-and-mare-hub.md) is the platform I built so those apps stop reinventing their plumbing, and that post covers what it is and where it is going. This one is about a single piece of that plumbing, agent execution, and the claim in the title: adding an agent to a Maré app is a JSON file written against a contract my coding agent can discover on its own. The apps keep their own purposes and data, but I use them together through Maré Hub, shown below.
 
-<figure class="post-figure theme-media">
-  <a data-theme-variant="light" href="/static/images/mare-agent/hub-day.jpg"><img src="/static/images/mare-agent/hub-day.jpg" alt="Maré Hub in Day mode: a shared home for Notes, Finance, Moon, and Library." width="1440" height="1060" loading="lazy" decoding="async"></a>
-  <a data-theme-variant="dark" href="/static/images/mare-agent/hub-night.jpg"><img src="/static/images/mare-agent/hub-night.jpg" alt="Maré Hub in Night mode: a shared home for Notes, Finance, Moon, and Library." width="1440" height="1060" loading="lazy" decoding="async"></a>
-  <figcaption>Maré Hub, shown here with sample app data.</figcaption>
-</figure>
+![Maré Hub in Day mode: a shared home for Notes, Finance, Moon, and Library.](adding-an-agent-to-a-mare-app.assets/hub-day.jpg "Maré Hub, shown here with sample app data.")
 
 ## An agent for Moon
 
@@ -110,7 +106,7 @@ The definition is one file, `agents/scout/agent.json`. This is Scout's, with the
 }
 ```
 
-The file describes the work in terms that belong to the app: what the agent is being asked to do, which capabilities it needs, what answer is expected, and how much it is allowed to spend getting there. The [full Scout definition](/static/examples/mare-agent/scout.agent.json) carries the complete output schema[^json-schema], so the coding agent can build Moon's handling of the answer around known fields. A suggestion carries a title, media type, reason, and confidence value. Scout has up to 20,000 tokens for a run, within a daily allowance of 60,000, and ten minutes to finish[^deadline]; those limits travel with the definition as part of the request the platform agrees to execute. The disclosure block is for the person installing the app, and records that the runtime engine can observe their provider credential while a run executes.
+The file describes the work in terms that belong to the app: what the agent is being asked to do, which capabilities it needs, what answer is expected, and how much it is allowed to spend getting there. The [full Scout definition](adding-an-agent-to-a-mare-app.assets/scout.agent.json) carries the complete output schema[^json-schema], so the coding agent can build Moon's handling of the answer around known fields. A suggestion carries a title, media type, reason, and confidence value. Scout has up to 20,000 tokens for a run, within a daily allowance of 60,000, and ten minutes to finish[^deadline]; those limits travel with the definition as part of the request the platform agrees to execute. The disclosure block is for the person installing the app, and records that the runtime engine can observe their provider credential while a run executes.
 
 Just as telling is what the file is not allowed to contain. The schema rejects a provider name, a model identifier, a credential, a container image, a namespace, and a runtime class. The workload block describes the work, and the platform decides at admission what will do it. That separation is deliberate: the definition holds the part that is stable, which is what Moon needs, and the platform holds the part that churns, which is who provides it and how. A provider changing its catalog never forces Moon to cut a release.
 

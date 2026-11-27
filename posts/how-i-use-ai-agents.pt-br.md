@@ -8,7 +8,7 @@ tags:
 - pipeline de tradução
 lang: pt-br
 translation_of: how-i-use-ai-agents.md
-source_digest: 378ba14ec84638f8d81691938432e05b3ba4e5a4524200de8d8451e737c74e6b
+source_digest: a09ba39b05fe3545d85a541341d87bbe17dc621062cb81cc9d66137c5ac1b90a
 translated_by: openai/gpt-5.5, via opencode
 ---
 
@@ -30,7 +30,7 @@ Engenheiro sênior de Machine Learning no Nubank
 
 Formado em Economia pela UFRJ, com foco em modelagem causal. Nove anos de experiência em ML, passando por construção de modelos, plataformas de IA para várias empresas e, agora, brincando com agentes de IA e modelos comportamentais de mundo como linha de pesquisa.
 
-![Daniel Cavalli](/static/images/presentations/how-i-use-ai-agents/profile-picture.png)
+![Daniel Cavalli](how-i-use-ai-agents.assets/profile-picture.png)
 
 | # | Seção | Tese |
 | - | ------- | ----- |

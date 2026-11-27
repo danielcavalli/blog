@@ -62,3 +62,6 @@ _source/translations/.locks/
 node_modules/
 dist/
 .astro/
+
+# Copied from posts/*.assets before each build (tools/sync-media.mjs)
+public/media/

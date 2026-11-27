@@ -1,0 +1,14 @@
+---
+import Site from "../../../layouts/Site.astro";
+import { IndexPage } from "../../../site/IndexPage";
+import { indexModel } from "../../../site/models";
+import { WORDS, type Lang } from "../../../site/words";
+
+export const getStaticPaths = () => [{ params: { lang: "en" } }, { params: { lang: "pt" } }];
+
+const lang = Astro.params.lang as Lang;
+const model = indexModel(lang);
+---
+<Site title={`${WORDS[lang].index.title} · dan.rio`} description={WORDS[lang].description} lang={lang} path={`/${lang}/blog/`} alternates={model.alternates}>
+  <IndexPage client:load index={model} />
+</Site>

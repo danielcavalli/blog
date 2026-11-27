@@ -5,8 +5,8 @@
   "description": "dan.rio: Daniel Cavalli's blog",
   "license": "MIT",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "node tools/sync-media.mjs && astro dev",
+    "build": "node tools/sync-media.mjs && astro build",
     "preview": "astro preview",
     "prepare": "node tools/git/setup.mjs",
     "test": "node --test tools/",
@@ -36,6 +36,7 @@
     "@types/node": "^26.6.11",
     "@types/react": "^18.3.32",
     "@types/react-dom": "^18.3.7",
+    "playwright": "^1.65.1",
     "typescript": "^7.0.2"
   }
 }

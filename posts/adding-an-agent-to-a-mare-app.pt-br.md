@@ -7,7 +7,7 @@ tags:
 - Arquitetura de Software
 lang: pt-br
 translation_of: adding-an-agent-to-a-mare-app.md
-source_digest: c58ff7d7930ba9ba3f2d7d9a5ad95da6c3bf1c59343bd7f2eff86764571b6af1
+source_digest: 2e5f6898516a59e7b6ddf1276c3d03bd05d0bdb3b5b04d60aa55f838684757fa
 translated_by: openai/gpt-5.6-sol (high), via opencode
 translated_at: '2026-09-08'
 ---
@@ -16,11 +16,7 @@ Uso IA no desenvolvimento desde 2022 e, como mencionei em [Não terceirize o rac
 
 A [Maré Rio](mare-rio-and-mare-hub.pt-br.md) é a plataforma que construí para que esses apps parem de reinventar seu próprio encanamento, e aquele post explica o que ela é e aonde pretende chegar. Este trata de uma única peça desse encanamento, a execução de agentes, e da afirmação do título: adicionar um agente a um app da Maré se resume a um arquivo JSON escrito conforme um contrato que meu agente de programação consegue descobrir por conta própria. Cada app mantém seu propósito e seus dados, mas eu os uso em conjunto pelo Maré Hub, mostrado abaixo.
 
-<figure class="post-figure theme-media">
-  <a data-theme-variant="light" href="/static/images/mare-agent/hub-day.jpg"><img src="/static/images/mare-agent/hub-day.jpg" alt="Maré Hub no modo Dia: um espaço compartilhado para Notes, Finance, Moon e Library." width="1440" height="1060" loading="lazy" decoding="async"></a>
-  <a data-theme-variant="dark" href="/static/images/mare-agent/hub-night.jpg"><img src="/static/images/mare-agent/hub-night.jpg" alt="Maré Hub no modo Noite: um espaço compartilhado para Notes, Finance, Moon e Library." width="1440" height="1060" loading="lazy" decoding="async"></a>
-  <figcaption>Maré Hub, mostrado aqui com dados de exemplo dos apps.</figcaption>
-</figure>
+![Maré Hub no modo Dia: um espaço compartilhado para Notes, Finance, Moon e Library.](adding-an-agent-to-a-mare-app.assets/hub-day.jpg "Maré Hub, mostrado aqui com dados de exemplo dos apps.")
 
 ## Um agente para o Moon
 
@@ -111,7 +107,7 @@ A definição ocupa um único arquivo, `agents/scout/agent.json`. Esta é a do S
 }
 ```
 
-O arquivo descreve o trabalho nos termos do próprio app: o que o agente deve fazer, quais recursos precisa, que resposta se espera e quanto ele pode gastar para chegar até ela. A [definição completa do Scout](/static/examples/mare-agent/scout.agent.json) contém todo o schema de saída[^json-schema], para que o agente de programação possa construir o tratamento da resposta pelo Moon com base em campos conhecidos. Uma sugestão inclui título, tipo de mídia, motivo e valor de confiança. O Scout dispõe de até 20.000 tokens por execução, dentro de um limite diário de 60.000, e tem dez minutos para terminar[^deadline]. Esses limites acompanham a definição como parte do pedido que a plataforma aceita executar. O bloco de divulgação se destina à pessoa que instala o app e registra que o mecanismo de runtime pode observar a credencial dela no provedor enquanto uma execução está em andamento.
+O arquivo descreve o trabalho nos termos do próprio app: o que o agente deve fazer, quais recursos precisa, que resposta se espera e quanto ele pode gastar para chegar até ela. A [definição completa do Scout](adding-an-agent-to-a-mare-app.assets/scout.agent.json) contém todo o schema de saída[^json-schema], para que o agente de programação possa construir o tratamento da resposta pelo Moon com base em campos conhecidos. Uma sugestão inclui título, tipo de mídia, motivo e valor de confiança. O Scout dispõe de até 20.000 tokens por execução, dentro de um limite diário de 60.000, e tem dez minutos para terminar[^deadline]. Esses limites acompanham a definição como parte do pedido que a plataforma aceita executar. O bloco de divulgação se destina à pessoa que instala o app e registra que o mecanismo de runtime pode observar a credencial dela no provedor enquanto uma execução está em andamento.
 
 Igualmente revelador é o que o arquivo não pode conter. O schema rejeita um nome de provedor, um identificador de modelo, uma credencial, uma imagem de contêiner, um namespace e uma classe de runtime. O bloco de carga de trabalho descreve o trabalho, e a plataforma decide na admissão o que vai executá-lo. A separação é deliberada: a definição guarda a parte estável, que é aquilo de que o Moon precisa, enquanto a plataforma guarda a parte que vive mudando, ou seja, quem fornece a execução e como. Uma mudança no catálogo de um provedor nunca obriga o Moon a lançar uma nova versão.
 

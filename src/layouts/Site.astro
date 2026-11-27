@@ -1,36 +1,42 @@
 ---
-// Every page's document: the design system's stylesheet, fonts and page-to-page transitions, the
-// light set before the first paint, and what search engines read.
+// Every page's document: the design system's stylesheet, fonts and page-to-page canvas, the light
+// set before the first paint and turned as the earth turns, and what search engines read.
 import "@mare-rio/design-system/fonts";
 import "@mare-rio/design-system/css";
 import "@mare-rio/design-system/canvas";
 import { THEME_BOOT } from "@mare-rio/design-system/theme";
 
+import type { Alternates, Lang } from "../site/words";
+
 interface Props {
   title: string;
   description: string;
-  /** en or pt */
-  lang: "en" | "pt";
+  lang: Lang;
   /** This page's path, and the same page's path in each language it exists in. */
   path: string;
-  alternates?: Partial<Record<"en" | "pt", string>>;
+  alternates?: Alternates;
 }
 const { title, description, lang, path, alternates = {} } = Astro.props;
 const site = Astro.site!;
 const url = (to: string) => new URL(to, site).href;
 ---
 <!doctype html>
-<html lang={lang === "pt" ? "pt-BR" : "en"}>
+<html lang={lang === "pt" ? "pt-BR" : "en"} data-box="folha">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={url(path)} />
-    {Object.entries(alternates).map(([code, to]) => <link rel="alternate" hreflang={code === "pt" ? "pt-BR" : "en"} href={url(to)} />)}
+    {Object.entries(alternates).map(([code, to]) => <link rel="alternate" hreflang={code === "pt" ? "pt-BR" : "en"} href={url(to!)} />)}
+    <link rel="alternate" hreflang="x-default" href={url(alternates.en ?? path)} />
     <script is:inline set:html={THEME_BOOT}></script>
   </head>
   <body>
     <slot />
+    <script>
+      // Every change of light is a turn of the earth.
+      import "@mare-rio/design-system/turn";
+    </script>
   </body>
 </html>

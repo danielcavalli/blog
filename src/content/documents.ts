@@ -10,8 +10,10 @@ import { parse as parseYaml } from "yaml";
 
 import { split } from "../../tools/git/conversations.mjs";
 
+import type { Lang } from "../site/words";
+
+export type { Lang };
 export const LANGS = { en: "en-us", pt: "pt-br" } as const;
-export type Lang = keyof typeof LANGS;
 export type Locale = (typeof LANGS)[Lang];
 
 export const langOf = (locale: string): Lang => (locale.toLowerCase().startsWith("pt") ? "pt" : "en");

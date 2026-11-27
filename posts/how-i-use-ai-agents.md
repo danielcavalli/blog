@@ -29,7 +29,7 @@ Senior Machine Learning Engineer at Nubank
 
 Graduated in Economics from UFRJ with a focus on Causal Modeling. Nine years of experience working in ML, ranging from building models, AI platforms for multiple companies and, now, playing with AI Agents and Behavioural World Models as a research line.
 
-![Daniel Cavalli](/static/images/presentations/how-i-use-ai-agents/profile-picture.png)
+![Daniel Cavalli](how-i-use-ai-agents.assets/profile-picture.png)
 
 | # | Section | Claim |
 | - | ------- | ----- |
