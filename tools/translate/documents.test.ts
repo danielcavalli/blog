@@ -39,6 +39,7 @@ test("sources are the posts, pages and CV that are not translations, each with i
     "posts/wave.md": post("en-us"),
     "posts/wave.pt-br.md": post("pt-br", "translation_of: wave.md\n"),
     "posts/lua.md": post("pt-br"),
+    "posts/lua.en-us.md": post("en-us"), // a translation that forgot to say what it translates
     "posts/deck.md": post("en-us", "content_type: presentation\n"),
     "posts/notes.txt": "not a document",
     "pages/about.md": "---\ntitle: About\nlang: en-us\n---\n\nMe.\n",

@@ -102,9 +102,14 @@ export type SourceDocument = ProseDocument | CvDocument;
 
 export const CV_SOURCE = "cv_data.yaml";
 
+const LOCALE_SUFFIX = new RegExp(`\\.(?:${LOCALES.join("|")})$`, "i");
+
 function proseSource(root: string, file: string): ProseDocument | null {
   const { meta, body } = readMarkdown(readText(path.join(root, file)));
   if (meta.translation_of != null) return null;
+  // `<slug>.<locale>.md` beside `<slug>.md` is that file's translation, even one that forgot to say so.
+  const stem = file.slice(0, -".md".length);
+  if (LOCALE_SUFFIX.test(stem) && fs.existsSync(path.join(root, `${stem.replace(LOCALE_SUFFIX, "")}.md`))) return null;
   const lang = localeOf(meta.lang);
   const target = otherLocale(lang);
   const fields = { title: text(meta.title), excerpt: text(meta.excerpt), tags: list(meta.tags), body };
@@ -186,7 +191,6 @@ export function stateOf(root: string, source: SourceDocument): State {
 // ---------- links between documents ----------
 
 const SCHEME = /^[a-z][a-z0-9+.-]*:/i;
-const LOCALE_SUFFIX = new RegExp(`\\.(?:${LOCALES.join("|")})$`, "i");
 
 /**
  * How a link destination in `source` must read in its translation. A link to another document is

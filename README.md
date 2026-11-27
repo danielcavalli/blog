@@ -4,8 +4,8 @@ Daniel Cavalli's blog: posts in English and Portuguese, published as a static si
 
 This branch (`revamp/mare-reef`) is the blog being rebuilt: on the Maré Design System, written and
 reviewed in Reef, translated through the Maré Hub, hosted on Cloudflare. The content has moved to its
-new shape and the new site builds every post's page in both languages; the rest of the site (index,
-landing, About, CV, slides, feeds) and the translation tool are not here yet. The old Python engine
+new shape, the new site builds every post's page in both languages and the translation tool is here;
+the rest of the site (index, landing, About, CV, slides, feeds) is not yet. The old Python engine
 under `_source/` no longer builds on this branch. The published site still comes from `main`.
 
 ## The site
@@ -40,15 +40,48 @@ the repository's root shows all of it.
 | `pages/about.md`, `pages/about.pt-br.md` | The About page and its translation. |
 | `cv_data.yaml`, `cv_data.pt-br.yaml` | The CV and its translation. |
 | `tools/git/` | The filter that keeps Reef conversations out of git. |
+| `tools/translate/` | The tool that translates a document into the other language. |
 | `tools/migrate/` | The one-off script that moved translations out of the old engine's store. |
 
 A translation's front matter says what it translates (`translation_of`), which model wrote it
 (`translated_by`) and which text it was made from (`source_digest`). When the source's title, excerpt,
 tags or body change, the digest no longer matches and the translation is stale.
-`tools/migrate/export_translations.py` defines the digest.
+`tools/migrate/export_translations.py` defines the digest. The translated CV says the same in the
+comments at its head, with a digest of the CV's data (`tools/translate/digest.ts`).
 
 A link from one post to another is a link to the file beside it, `[as I said](other-post.md)`, and in
 a translation to that post in the same language, `other-post.pt-br.md`.
+
+## Translating
+
+A model translates a document through the Maré Hub, which this machine reaches over the tailnet
+with no credential. Its answer is written only if it passes the checks.
+
+```sh
+npm run translate -- status                        # where every translation stands; fails unless all are current
+npm run translate -- posts/<slug>.md               # translate it if its translation is missing or stale
+npm run translate -- --all                         # the same, for every post, page and the CV
+npm run translate -- revise posts/<slug>.pt-br.md  # revise a translation by the open comments in its margin
+```
+
+`--force` translates a current document again, `--model` and `--effort` choose the model (default
+`gpt-5.6-sol` at `high`), `--dry-run` calls nothing and writes nothing, and `--out <dir>` writes
+under another folder instead of the repository, for trials. Each document prints its tokens and cost.
+
+- **The checks** compare the answer with the source: footnotes, fenced code, link destinations
+  (a link to another post must point to that post in the translation's language), picture paths,
+  parenthetical asides, a presentation's slide markers, About's paragraphs, the CV's entries and
+  contact details, and that the text was translated at all. After a failed check the model is asked
+  once more with the exact findings; if that fails too, nothing is written.
+- **A translation's reef trailer is never rewritten.** Translating a document again replaces its
+  body and keeps the conversation at its end byte for byte.
+- **`revise`** is for a translation you reviewed in Reef. It sends the source, the translation and
+  your open comments to the model, writes the revised text, and sets each comment the model acted on
+  from `open` to `addressed`. A comment it did not act on (a question, say) stays open, with the
+  model's reason printed.
+- **The guidance** the model is given is Markdown: the locale briefs, rules and glossaries in
+  `tools/translate/guides/`, the prompt around them in `tools/translate/prompts/`, and the writing
+  references under `.agents/skills/`. Edit those to change how translations read.
 
 ## Reef conversations stay on your machine
 
@@ -77,7 +110,8 @@ The conversations are kept in `.git/reef-conversations/`, on this machine only.
 ## Checks
 
 ```sh
-npm test                         # the filter's tests
+npm test                         # the filter's tests and the translation tool's
+npm run translate -- status      # every translation is current
 reef check posts/<file>.md       # a document's footnotes, links and figures
 ```
 

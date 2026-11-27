@@ -123,6 +123,7 @@ test("a fence is closed only by its own kind, at least as long", () => {
   const text = "````md\n```js\ncode\n```\n````\n\n~~~\n```\n~~~\n";
   assert.deepEqual(fencedBlocks(text), ["````md\n```js\ncode\n```\n````\n", "~~~\n```\n~~~\n"]);
   assert.deepEqual(fencedBlocks("```\nnever closed\n"), ["```\nnever closed\n"]);
+  assert.deepEqual(protectedFences("a\n\n```\nx\n```"), protectedFences("b\n\n```\nx\n```\n\nc\n"), "a block at the very end is the same block");
 });
 
 const MERMAID = `\`\`\`mermaid

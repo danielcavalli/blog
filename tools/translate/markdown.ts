@@ -113,9 +113,9 @@ function signature(block: string): string {
     .join("");
 }
 
-/** Every fenced block as it must survive translation. */
+/** Every fenced block as it must survive translation (whether a line follows it is not part of it). */
 export function protectedFences(text: string): string[] {
-  return fencedBlocks(text.trim()).map(signature);
+  return fencedBlocks(text).map((block) => signature(block).replace(/\n$/, ""));
 }
 
 // ---------- links and images ----------
