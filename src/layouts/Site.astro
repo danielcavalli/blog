@@ -1,0 +1,36 @@
+---
+// Every page's document: the design system's stylesheet, fonts and page-to-page transitions, the
+// light set before the first paint, and what search engines read.
+import "@mare-rio/design-system/fonts";
+import "@mare-rio/design-system/css";
+import "@mare-rio/design-system/canvas";
+import { THEME_BOOT } from "@mare-rio/design-system/theme";
+
+interface Props {
+  title: string;
+  description: string;
+  /** en or pt */
+  lang: "en" | "pt";
+  /** This page's path, and the same page's path in each language it exists in. */
+  path: string;
+  alternates?: Partial<Record<"en" | "pt", string>>;
+}
+const { title, description, lang, path, alternates = {} } = Astro.props;
+const site = Astro.site!;
+const url = (to: string) => new URL(to, site).href;
+---
+<!doctype html>
+<html lang={lang === "pt" ? "pt-BR" : "en"}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={url(path)} />
+    {Object.entries(alternates).map(([code, to]) => <link rel="alternate" hreflang={code === "pt" ? "pt-BR" : "en"} href={url(to)} />)}
+    <script is:inline set:html={THEME_BOOT}></script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

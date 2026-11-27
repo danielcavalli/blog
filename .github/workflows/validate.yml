@@ -22,3 +22,6 @@ jobs:
 
       - name: Tests
         run: node --test tools/
+
+      # The Maré Design System is a private package: the site's build and type check wait for a
+      # read token in this repository's secrets (NODE_AUTH_TOKEN, read:packages on mare-rio).

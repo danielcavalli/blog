@@ -57,3 +57,8 @@ docs/*
 
 # Process-owned translation locks; accepted content is tracked.
 _source/translations/.locks/
+
+# Site build
+node_modules/
+dist/
+.astro/

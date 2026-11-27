@@ -4,8 +4,29 @@ Daniel Cavalli's blog: posts in English and Portuguese, published as a static si
 
 This branch (`revamp/mare-reef`) is the blog being rebuilt: on the Maré Design System, written and
 reviewed in Reef, translated through the Maré Hub, hosted on Cloudflare. The content has moved to its
-new shape; the new site engine is not here yet, and the old Python engine under `_source/` no longer
-builds on this branch. The published site still comes from `main`.
+new shape and the new site builds every post's page in both languages; the rest of the site (index,
+landing, About, CV, slides, feeds) and the translation tool are not here yet. The old Python engine
+under `_source/` no longer builds on this branch. The published site still comes from `main`.
+
+## The site
+
+```sh
+NODE_AUTH_TOKEN=$(gh auth token) npm install   # the design system is a private package
+npm run build                                  # the static site, into dist/
+npm run dev                                    # the site as you edit, at localhost:4321
+npm run check                                  # types
+```
+
+Each page is rendered at build time through the Maré Design System's own components
+(`@mare-rio/design-system`, pinned to 1.0.0), as its reference of dan.rio lays them out; no React
+reaches the browser. `src/content/documents.ts` reads the Markdown files, `src/reef/render.tsx` draws
+a document's body with the design system's parts (a footnote becomes a note in the margin), and
+`src/site/` holds the pages.
+
+Known gaps in what is built so far: the notes in the margin are not yet placed beside their
+passages, the language switch and the light toggle do nothing, there is no paint behind a post's
+head, and pictures are missing. The first three wait for work in the design system; the pictures for
+each post's assets to move beside it.
 
 ## Where things are
 
