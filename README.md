@@ -103,6 +103,16 @@ node tools/shots.mjs /tmp/shots /en/ /en/blog/                  # pictures under
 - Every post is also served as Markdown: add `.md` to its address. `/llms.txt` lists them.
 - The index searches every post's text in the reader's language, in the browser.
 
+## Publishing
+
+The site is static files on Cloudflare (a Worker that serves `dist/` and runs nothing per request;
+`cloudflare.config.ts`). Publishing is one command from a machine that is signed in to Cloudflare:
+
+```sh
+cf auth login      # once per machine
+npm run deploy     # builds, then uploads dist/
+```
+
 ## Reef conversations stay on your machine
 
 Reef keeps the conversation about a document (margin comments and their replies) at the end of its

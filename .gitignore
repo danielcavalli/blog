@@ -17,3 +17,6 @@ public/media/
 .idea/
 *.swp
 .DS_Store
+
+# What `cf deploy` builds before uploading
+.cloudflare/
