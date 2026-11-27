@@ -1,0 +1,17 @@
+---
+// The site's root. It is the English threshold; a reader whose browser speaks Portuguese, or who
+// chose Portuguese here before, is taken to the Portuguese one before anything is painted. Search
+// engines are told the page's own address is /en/.
+import Site from "../layouts/Site.astro";
+import { LandingPage } from "../site/LandingPage";
+import { landingModel } from "../site/models";
+import { siteData } from "../site/seo";
+import { WORDS } from "../site/words";
+
+const model = landingModel("en");
+const choose = `try{var l=localStorage.getItem("dan.rio-lang")||(/^pt\\b/i.test(navigator.language||"")?"pt":"en");if(l==="pt")location.replace("/pt/")}catch(e){}`;
+---
+<Site title="dan.rio · Daniel Cavalli" description={WORDS.en.description} lang="en" path="/" canonical="/en/" alternates={model.alternates} data={siteData("en", WORDS.en.description)}>
+  <script is:inline slot="head" set:html={choose}></script>
+  <LandingPage client:load landing={model} />
+</Site>

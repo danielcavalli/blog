@@ -1,0 +1,7 @@
+---
+import Site from "../layouts/Site.astro";
+import { NotFoundPage } from "../site/NotFoundPage";
+---
+<Site title="Not here · dan.rio" description="This page isn't here." lang="en" path="/404" hidden>
+  <NotFoundPage client:load />
+</Site>

@@ -5,11 +5,12 @@
 //
 //   npm run build && node tools/shots.mjs [out-dir] [path ...]
 
-import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
 import { chromium } from "playwright";
+
+import { serve } from "./serve.mjs";
 
 const [out = "/tmp/blog-shots", ...asked] = process.argv.slice(2);
 const pages = asked.length ? asked : ["/en/", "/en/blog/", "/en/blog/mare-rio-and-mare-hub", "/en/about", "/en/cv"];
@@ -18,16 +19,7 @@ const lights = (process.env.LIGHTS ?? "day,dusk,night").split(",");
 const port = 4399;
 
 fs.mkdirSync(out, { recursive: true });
-const server = spawn("npx", ["astro", "preview", "--port", String(port), "--host", "127.0.0.1"], { stdio: "ignore", detached: true });
-const stop = () => { try { process.kill(-server.pid); } catch {} };
-process.on("exit", stop);
-
-for (let tries = 0; tries < 60; tries++) {
-  try {
-    if ((await fetch(`http://127.0.0.1:${port}/en/`)).ok) break;
-  } catch {}
-  await new Promise((done) => setTimeout(done, 250));
-}
+const server = await serve(undefined, port);
 
 // Software rendering: the pictures never touch the machine's graphics card.
 const browser = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
@@ -57,4 +49,4 @@ for (const [frame, viewport] of Object.entries(frames)) {
   }
 }
 await browser.close();
-stop();
+server.close();

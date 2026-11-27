@@ -12,13 +12,18 @@ export function LanguageChoice({ lang, alternates }: { lang: Lang; alternates: A
       current={lang.toUpperCase()}
       onChoose={(choice) => {
         const to = choice.toLowerCase() as Lang;
-        if (to !== lang) window.location.assign(alternates[to] ?? `/${to}/`);
+        if (to === lang) return;
+        // Remembered, so the site's root opens in the language the reader chose.
+        try {
+          window.localStorage.setItem("dan.rio-lang", to);
+        } catch {}
+        window.location.assign(alternates[to] ?? `/${to}/`);
       }}
     />
   );
 }
 
-export function Bar({ lang, at, alternates }: { lang: Lang; at: "blog" | "about" | "cv"; alternates: Alternates }) {
+export function Bar({ lang, at, alternates }: { lang: Lang; at?: "blog" | "about" | "cv"; alternates: Alternates }) {
   const places = WORDS[lang].places;
   return (
     <TopBar>

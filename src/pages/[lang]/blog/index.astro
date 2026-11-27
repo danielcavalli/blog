@@ -2,6 +2,7 @@
 import Site from "../../../layouts/Site.astro";
 import { IndexPage } from "../../../site/IndexPage";
 import { indexModel } from "../../../site/models";
+import { blogData } from "../../../site/seo";
 import { WORDS, type Lang } from "../../../site/words";
 
 export const getStaticPaths = () => [{ params: { lang: "en" } }, { params: { lang: "pt" } }];
@@ -9,6 +10,6 @@ export const getStaticPaths = () => [{ params: { lang: "en" } }, { params: { lan
 const lang = Astro.params.lang as Lang;
 const model = indexModel(lang);
 ---
-<Site title={`${WORDS[lang].index.title} · dan.rio`} description={WORDS[lang].description} lang={lang} path={`/${lang}/blog/`} alternates={model.alternates}>
+<Site title={`${WORDS[lang].index.title} · dan.rio`} description={WORDS[lang].description} lang={lang} path={`/${lang}/blog/`} alternates={model.alternates} data={blogData(lang, WORDS[lang].description)}>
   <IndexPage client:load index={model} />
 </Site>
