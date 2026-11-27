@@ -8,11 +8,11 @@ tags:
 - pipeline de tradução
 lang: pt-br
 translation_of: how-i-use-ai-agents.md
-source_digest: a09ba39b05fe3545d85a541341d87bbe17dc621062cb81cc9d66137c5ac1b90a
+source_digest: fd2c0646d3a161a42b5fa1262fb9c69b64e6259b8520f10e5ff8d2480f5575bb
 translated_by: openai/gpt-5.5, via opencode
 ---
 
-<!-- presentation:slide id="title" layout="lead" density="normal" -->
+<!-- presentation:slide id="title" layout="lead" density="open" -->
 
 # Como eu uso agentes de IA
 
@@ -22,7 +22,7 @@ Daniel Cavalli | dan.rio
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="bio-and-agenda" layout="bio" density="dense" -->
+<!-- presentation:slide id="bio-and-agenda" layout="bio" density="open" -->
 
 # Daniel Cavalli
 
@@ -42,7 +42,7 @@ Formado em Economia pela UFRJ, com foco em modelagem causal. Nove anos de experi
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="foundation" layout="divider" density="normal" -->
+<!-- presentation:slide id="foundation" layout="divider" density="open" -->
 
 # Os Fundamentos
 
@@ -50,7 +50,7 @@ Formado em Economia pela UFRJ, com foco em modelagem causal. Nove anos de experi
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="stateless-model" layout="dark_content" density="dense" -->
+<!-- presentation:slide id="stateless-model" layout="dark_content" density="open" -->
 
 # O modelo não mantém estado
 
@@ -75,7 +75,7 @@ Não é expandir contexto. É saber o que condensar, o que descartar e o que lev
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="four-rules" layout="card_grid" density="very_dense" -->
+<!-- presentation:slide id="four-rules" layout="card_grid" density="open" -->
 
 # Quatro Regras
 
@@ -102,7 +102,7 @@ Quando você aceita sessões isoladas, a pergunta passa a ser como dividir o tra
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="humans-job" layout="emphasis" density="dense" -->
+<!-- presentation:slide id="humans-job" layout="emphasis" density="open" -->
 
 # O Trabalho do Humano
 
@@ -114,7 +114,7 @@ O agente executa. Seu trabalho é decidir o que ele deve executar.
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="agent-pm" layout="divider" density="normal" -->
+<!-- presentation:slide id="agent-pm" layout="divider" density="open" -->
 
 # Agent PM
 
@@ -122,7 +122,7 @@ O agente executa. Seu trabalho é decidir o que ele deve executar.
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="agent-pm-problem" layout="split" density="dense" -->
+<!-- presentation:slide id="agent-pm-problem" layout="split" density="open" -->
 
 # O Problema
 
@@ -145,7 +145,7 @@ Agent PM começou como uma forma de gerenciar meu próprio foco. Virou um orques
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="agent-pm-what-it-is" layout="split" density="very_dense" -->
+<!-- presentation:slide id="agent-pm-what-it-is" layout="split" density="open" -->
 
 # O Que Ele É
 
@@ -188,7 +188,7 @@ stories:
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="agent-pm-flow" layout="card_grid" density="very_dense" -->
+<!-- presentation:slide id="agent-pm-flow" layout="card_grid" density="open" -->
 
 # O Fluxo
 
@@ -251,7 +251,7 @@ Symphony é elegante. Supervisão Elixir OTP, WORKFLOW.md hot-reloadable, Linear
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="agent-pm-lessons" layout="split" density="dense" -->
+<!-- presentation:slide id="agent-pm-lessons" layout="split" density="open" -->
 
 # O Que Eu Aprendi
 
@@ -272,7 +272,7 @@ Eu construí escalonamento e contexto compartilhado usando a infraestrutura de t
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="knowledge-base" layout="divider" density="normal" -->
+<!-- presentation:slide id="knowledge-base" layout="divider" density="open" -->
 
 # A Base de Conhecimento
 
@@ -280,7 +280,7 @@ Eu construí escalonamento e contexto compartilhado usando a infraestrutura de t
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="knowledge-base-problem" layout="card_grid" density="dense" -->
+<!-- presentation:slide id="knowledge-base-problem" layout="card_grid" density="open" -->
 
 # O Problema
 
@@ -303,7 +303,7 @@ Uma base de conhecimento compartilhada. Grep simples sobre markdown parou de esc
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="note-structure" layout="split" density="very_dense" -->
+<!-- presentation:slide id="note-structure" layout="split" density="dense" -->
 
 # Como É Uma Nota
 
@@ -342,7 +342,7 @@ O servidor MCP roda como um processo HTTP compartilhado, então todas as sessõe
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="knowledge-base-search" layout="card_grid" density="dense" -->
+<!-- presentation:slide id="knowledge-base-search" layout="card_grid" density="open" -->
 
 # Como a Busca Funciona
 
@@ -367,7 +367,7 @@ Sem embeddings significa sem dependência de modelo, sem deriva, e cada resultad
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="consolidation-pipeline" layout="card_grid" density="dense" -->
+<!-- presentation:slide id="consolidation-pipeline" layout="card_grid" density="open" -->
 
 # O Pipeline de Consolidação
 
@@ -392,7 +392,7 @@ O pipeline se alimenta de `kb_stale`: uma ferramenta que sinaliza notas por deri
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="distribution" layout="divider" density="normal" -->
+<!-- presentation:slide id="distribution" layout="divider" density="open" -->
 
 # Distribuição
 
@@ -400,7 +400,7 @@ O pipeline se alimenta de `kb_stale`: uma ferramenta que sinaliza notas por deri
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="copying-caveat" layout="emphasis" density="normal" -->
+<!-- presentation:slide id="copying-caveat" layout="emphasis" density="open" -->
 
 # Uma Ressalva
 
@@ -410,7 +410,7 @@ O ponto não é copiá-las. É mostrar o que se torna possível quando você con
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="problem-with-copying" layout="content" density="dense" -->
+<!-- presentation:slide id="problem-with-copying" layout="content" density="open" -->
 
 # O Problema de Copiar
 
@@ -422,7 +422,7 @@ Mas isso levanta uma pergunta: se copiar é errado, como *deveríamos* distribui
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="dry-run-core-setup" layout="code" density="dense" -->
+<!-- presentation:slide id="dry-run-core-setup" layout="code" density="tight" -->
 
 # Dry Run: Fase A - Configuração Base
 
@@ -455,7 +455,7 @@ Por exemplo: alterações de código (GitHub), mensagens (Slack), calendário, d
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="dry-run-components" layout="code" density="dense" -->
+<!-- presentation:slide id="dry-run-components" layout="code" density="tight" -->
 
 # Dry Run: Fase B - Componentes
 
@@ -489,7 +489,7 @@ e detecção de desatualização. Sem ele, agentes usam Glob/Grep sem ranqueamen
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="dry-run-research" layout="code" density="normal" -->
+<!-- presentation:slide id="dry-run-research" layout="code" density="open" -->
 
 # Dry Run: Fase C - Pesquisa
 
@@ -509,7 +509,7 @@ Cada agente busca servidores MCP, ferramentas CLI e APIs REST. Para cada opção
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="dry-run-findings" layout="code" density="dense" -->
+<!-- presentation:slide id="dry-run-findings" layout="code" density="open" -->
 
 # Dry Run: Fase D - Achados
 
@@ -591,7 +591,7 @@ Há algo que você queira customizar?
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="dry-run-finalize-generate" layout="split" density="very_dense" -->
+<!-- presentation:slide id="dry-run-finalize-generate" layout="split" density="tight" -->
 
 # Dry Run: Fases G-J - Finalizar e Gerar
 
@@ -649,7 +649,7 @@ Concluído. Vault inicializado em ~/dev/kb
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="installer-reads-history" layout="card_grid" density="dense" -->
+<!-- presentation:slide id="installer-reads-history" layout="card_grid" density="open" -->
 
 # O Instalador Lê Seu Histórico
 
@@ -672,7 +672,7 @@ Usuários avançados recebem opções mais profundas (intents customizados, exte
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="two-users-same-installer" layout="split" density="very_dense" -->
+<!-- presentation:slide id="two-users-same-installer" layout="split" density="dense" -->
 
 # Dois Usuários, Mesmo Instalador
 
@@ -725,7 +725,7 @@ a partir dos nomes dos seus projetos existentes?
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="three-agents-one-conversation" layout="card_grid" density="dense" -->
+<!-- presentation:slide id="three-agents-one-conversation" layout="card_grid" density="open" -->
 
 # Três Agentes, Uma Conversa
 
@@ -750,7 +750,7 @@ O desenvolvedor constrói um codebase legível. A IA lê, entende e remodela par
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="translation-pipeline" layout="divider" density="normal" -->
+<!-- presentation:slide id="translation-pipeline" layout="divider" density="open" -->
 
 # O Pipeline de Tradução
 
@@ -758,7 +758,7 @@ O desenvolvedor constrói um codebase legível. A IA lê, entende e remodela par
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="translation-problem" layout="content" density="normal" -->
+<!-- presentation:slide id="translation-problem" layout="content" density="open" -->
 
 # O Problema
 
@@ -786,7 +786,7 @@ As etapas 1-2 rodam uma vez e produzem documentos de política vinculantes, que 
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="terminology-policy" layout="code" density="dense" -->
+<!-- presentation:slide id="terminology-policy" layout="code" density="tight" -->
 
 # Como É Uma Política Terminológica
 
@@ -840,7 +840,7 @@ A etapa de revisão recebe esses achados e precisa resolver cada um. A etapa de 
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="quality-gate" layout="split" density="very_dense" -->
+<!-- presentation:slide id="quality-gate" layout="split" density="dense" -->
 
 # O Gate de Qualidade
 
@@ -873,7 +873,7 @@ Precisão >= 85, terminologia >= 80, fidelidade Markdown >= 95. Se qualquer uma 
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="where-this-goes-next" layout="card_grid" density="dense" -->
+<!-- presentation:slide id="where-this-goes-next" layout="card_grid" density="open" -->
 
 # Para Onde Isso Vai Agora
 
@@ -896,7 +896,7 @@ As categorias de crítica são definidas à mão. Migrar para MQM (Multidimensio
 
 <!-- /presentation:slide -->
 
-<!-- presentation:slide id="thanks" layout="lead" density="normal" -->
+<!-- presentation:slide id="thanks" layout="lead" density="open" -->
 
 # Obrigado
 
