@@ -13,6 +13,10 @@
 //
 // A document is a post, a page or the CV: `posts/<slug>.md`, `pages/about.md`, `cv_data.yaml`.
 // What a translation was made from is recorded in it as `source_digest` (see digest.ts).
+//
+// MARE_HUB names another Hub than the one on the tailnet. TRANSLATE_TRACE=<file> appends every
+// question and the model's whole answer to that file, one JSON object per line: the way to see what
+// a model was told and what it said, above all when its answer was refused.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -38,6 +42,7 @@ export interface Io {
   hub?: HubOptions;
   ask?: Settings["ask"];
   today?: string;
+  trace?: string;
 }
 
 const USAGE = `usage: npm run translate -- status [--json]
@@ -112,7 +117,11 @@ interface Flags {
 const destination = (io: Io, flags: Flags, source: SourceDocument): string =>
   path.join(flags.out ?? io.root, source.translation);
 
-const shown = (io: Io, file: string): string => path.relative(io.cwd, file) || file;
+// A path as the reader would type it: from where they are, when it is under there.
+const shown = (io: Io, file: string): string => {
+  const relative = path.relative(io.cwd, file);
+  return relative && !relative.startsWith("..") && !path.isAbsolute(relative) ? relative : file;
+};
 
 function report(io: Io, error: unknown, what: string): void {
   io.err(`${what}: ${error instanceof Error ? error.message : String(error)}`);
@@ -219,6 +228,7 @@ export async function main(argv: string[], given: Partial<Io> = {}): Promise<num
         today: io.today ?? today(),
         hub: io.hub,
         ask: io.ask,
+        trace: io.trace ?? process.env.TRANSLATE_TRACE,
         log: (line) => io.err(`  ${line}`),
       },
       dryRun: values["dry-run"] ?? false,

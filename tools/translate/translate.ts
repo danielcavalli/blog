@@ -29,6 +29,8 @@ export interface Settings {
   ask?: (question: Question, options?: HubOptions) => Promise<Answer>;
   /** Told what happens along the way: a repair, a retry. */
   log?: (line: string) => void;
+  /** A file to append every question and answer to, one JSON object per line. */
+  trace?: string;
 }
 
 /** An answer that failed its checks twice. */
@@ -72,10 +74,14 @@ export async function converse(
   ];
   const usages: Usage[] = [];
   for (let attempt = 0; ; attempt++) {
-    const answer = await (settings.ask ?? ask)(
-      { model: settings.model, effort: settings.effort, maxTokens: settings.maxTokens, messages, schema: job.schema },
-      { ...settings.hub, onRetry: (reason, wait) => settings.log?.(`${reason}; again in ${Math.round(wait / 1000)}s`) },
-    );
+    const question = { model: settings.model, effort: settings.effort, maxTokens: settings.maxTokens, messages, schema: job.schema };
+    const answer = await (settings.ask ?? ask)(question, {
+      ...settings.hub,
+      onRetry: (reason, wait) => settings.log?.(`${reason}; again in ${Math.round(wait / 1000)}s`),
+    });
+    if (settings.trace) {
+      fs.appendFileSync(settings.trace, `${JSON.stringify({ at: new Date().toISOString(), question, answer })}\n`);
+    }
     usages.push(answer.usage);
     const parsed = parse(answer.content);
     const verdict = "error" in parsed ? { findings: [parsed.error], warnings: [] } : job.check(parsed.value);

@@ -60,7 +60,7 @@ interface World {
   exists: (file: string) => boolean;
 }
 
-function world(files: Record<string, string> = {}): World {
+function world(files: Record<string, string> = {}, trace?: string): World {
   const root = repository({
     "posts/tide.md": TIDE,
     "posts/wave.md": post("en-us", "Waves."),
@@ -83,6 +83,7 @@ function world(files: Record<string, string> = {}): World {
         err: (line) => errors.push(line),
         hub: { baseUrl: hub.baseUrl, backoffMs: () => 1 },
         today: "2026-11-26",
+        trace: trace ?? "",
       }),
     read: (file) => fs.readFileSync(path.join(root, file), "utf8"),
     exists: (file) => fs.existsSync(path.join(root, file)),
@@ -262,6 +263,18 @@ test("an answer that still fails after the repair is never written", async () =>
   assert.equal(await fresh.run("posts/tide.md"), 1);
   assert.ok(!fresh.exists("posts/tide.pt-br.md"), "no file appears for a translation that failed");
   assert.match(fresh.errors.join("\n"), /Missing required field "content"/);
+});
+
+test("a trace keeps every question and the whole answer, the refused one too", async () => {
+  const trace = path.join(repository({}), "trace.jsonl");
+  const w = world({}, trace);
+  reply({ answer: DASHED }, { answer: GOOD });
+  assert.equal(await w.run("posts/tide.md"), 0, w.errors.join("\n"));
+  const entries = fs.readFileSync(trace, "utf8").trim().split("\n").map((line) => JSON.parse(line) as { question: { messages: unknown[] }; answer: { content: string; usage: { cost_usd: number } } });
+  assert.equal(entries.length, 2);
+  assert.deepEqual(entries.map((entry) => entry.question.messages.length), [2, 4]);
+  assert.equal(entries[0]!.answer.content, JSON.stringify(DASHED));
+  assert.equal(entries[1]!.answer.usage.cost_usd, 0.01);
 });
 
 test("one document failing does not stop the others, and the run still fails", async () => {
