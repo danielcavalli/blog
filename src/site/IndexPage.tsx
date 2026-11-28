@@ -53,7 +53,7 @@ export function IndexBody({ index }: { index: IndexModel }) {
   return (
       <Reading measure="index">
         <PageHead title={words.index.title} note={`${words.posts(posts.length)} · en / pt`}>
-          <Choice label={words.index.sortBy} named="beside" of="view" options={orders} value={order} onChange={(next) => turn(() => setOrder(next))} />
+          <Choice label={words.index.sortBy} named="beside" of="view" options={orders} value={order} onChange={(next) => turn(() => setOrder(next), { place: true })} />
           <Button size="small" onPress={() => setFilters(!filters)}>{words.index.filter}</Button>
           <Mark glyph="search" label={words.index.search} expanded={searching} onPress={() => { setSearching(!searching); setQuery(""); }} />
         </PageHead>
@@ -77,7 +77,7 @@ export function IndexBody({ index }: { index: IndexModel }) {
           <Unfold open={filters}>
             <Tags label={lower(words.index.filter)}>
               {chips.map((chip) => (
-                <Tag key={chip} chosen={pick === chip} onPress={() => turn(() => setPick(pick === chip ? "" : chip))}>{chip}</Tag>
+                <Tag key={chip} chosen={pick === chip} onPress={() => turn(() => setPick(pick === chip ? "" : chip), { place: true })}>{chip}</Tag>
               ))}
             </Tags>
           </Unfold>
